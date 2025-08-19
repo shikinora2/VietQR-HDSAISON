@@ -1,24 +1,20 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" data-theme="dark">
 <head>
   <meta charset="utf-8" />
-  <title>VietQR - HD SAISON</title>
+  <title>Bộ công cụ HDSAISON</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Meta tags for social sharing -->
-  <meta property="og:title" content="Tạo mã VietQR HD SAISON" />
-  <meta property="og:description" content="Công cụ tạo mã VietQR cho hợp đồng HD SAISON nhanh chóng và tiện lợi. Hỗ trợ tải file PDF để tự động điền thông tin và in ấn." />
-  <meta property="og:image" content="https://flic.kr/p/2rmRvBZ" />
+  <meta property="og:title" content="Bộ công cụ HDSAISON" />
+  <meta property="og:description" content="Công cụ tạo mã VietQR và lọc thông tin khách hàng cho HD SAISON." />
+  <meta property="og:image" content="https://i.imgur.com/sC5323R.png" />
   <meta property="og:type" content="website" />
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <!-- Thêm thư viện PDF.js và pdf-lib -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
-
   <style>
-    :root{
+:root{
       --bg:#f6f8fb; --card:#ffffff; --ink:#15253b; --muted:#6b7280;
       --border:#e9eef5; --shadow:0 10px 30px rgba(25,35,78,.08); --danger:#dc3545; --info: #0dcaf0;
     }
@@ -46,13 +42,34 @@
 
     .error-msg { color: var(--danger); font-size: 0.8rem; margin-top: 4px; display: none; }
 
+    /* --- Lightbox Styles --- */
     .lightbox{ position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; padding:18px; opacity:0; pointer-events:none; transition:opacity .2s ease-out; z-index:9999; }
     .lightbox.show{ opacity:1; pointer-events:auto; }
-    .lightbox-inner{ background:var(--card); border-radius:16px; box-shadow:var(--shadow); padding:16px; transform:scale(.92); transition:transform .2s ease-out; max-width:min(520px, 92vw); }
+    .lightbox-inner{ background:var(--card); border-radius:16px; box-shadow:var(--shadow); padding:24px; transform:scale(.92); transition:transform .2s ease-out; max-width:min(520px, 92vw); text-align: center; }
     .lightbox.show .lightbox-inner{ transform:scale(1); }
-    .lightbox img{ width:100%; height:auto; display:block; border-radius:10px; }
-    .lightbox .close{ position:absolute; top:14px; right:14px; border:0; background:#111827; color:#fff; border-radius:10px; padding:.35rem .7rem; font-weight:700; cursor:pointer; z-index: 10;}
-    .lightbox .download-qr{ position:absolute; top:14px; right:60px; border:0; background:#111827; color:#fff; border-radius:10px; padding:.35rem .7rem; font-weight:700; cursor:pointer; text-decoration: none;}
+    .lightbox img{ width:100%; height:auto; display:block; border-radius:10px; margin-bottom: 16px; }
+    
+    .lightbox-actions { display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .btn-lightbox {
+        border: 0;
+        background: #1f2937;
+        color: #fff;
+        border-radius: 10px;
+        padding: .6rem 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: background .2s;
+    }
+    [data-theme="dark"] .btn-lightbox { background: #374151; }
+    .btn-lightbox:hover { background: #374151; color: #fff; }
+    [data-theme="dark"] .btn-lightbox:hover { background: #4b5563; }
+    .btn-lightbox.close { background: var(--danger); }
+    .btn-lightbox.close:hover { background: var(--danger); opacity: 0.85; }
+    .btn-lightbox:disabled { opacity: 0.7; cursor: not-allowed; }
     
     .toast-notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background-color: var(--danger); color: white; padding: 12px 20px; border-radius: 8px; z-index: 10000; font-weight: 600; font-size: 0.9rem; opacity: 0; transition: opacity 0.3s, top 0.3s; pointer-events: none; }
     .toast-notification.show { top: 30px; opacity: 1; }
@@ -61,18 +78,93 @@
     .instructions .list-group-item { background: transparent; border-color: var(--border); color: var(--ink); font-size: 0.85rem; }
     .instructions .fa-solid { color: var(--info); }
     #instructionsContent.show { display: block !important; }
+
+/* Dark mode button overrides */
+[data-theme="dark"] .btn-secondary {
+    background-color: var(--border);
+    border-color: var(--border);
+    color: var(--ink);
+}
+
+[data-theme="dark"] .btn-secondary:hover {
+    filter: brightness(1.2);
+}
+
+[data-theme="dark"] .btn-success {
+    background-color: #16a34a;
+    border-color: #16a34a;
+    color: #fff;
+}
+
+[data-theme="dark"] .btn-success:hover {
+    filter: brightness(1.2);
+}
+
+/* Dark mode tab overrides */
+[data-theme="dark"] .nav-tabs {
+    border-bottom-color: var(--border);
+}
+
+[data-theme="dark"] .nav-tabs .nav-link {
+    background: transparent;
+    border-color: transparent transparent var(--border);
+    color: var(--muted);
+}
+
+[data-theme="dark"] .nav-tabs .nav-link.active,
+[data-theme="dark"] .nav-tabs .nav-item.show .nav-link {
+    background: var(--card);
+    border-color: var(--border) var(--border) var(--card);
+    color: var(--ink);
+}
+
+[data-theme="dark"] .nav-tabs .nav-link:hover:not(.active) {
+    border-color: transparent transparent var(--border);
+    isolation: isolate;
+    background: #ffffff10;
+}
+
+/* Dark mode table overrides */
+[data-theme="dark"] .table {
+    --bs-table-bg: transparent;
+    --bs-table-border-color: var(--border);
+    --bs-table-color: var(--ink);
+}
+
+[data-theme="dark"] .table-bordered th,
+[data-theme="dark"] .table-bordered td {
+    border-color: var(--border);
+}
+
+[data-theme="dark"] .table thead th {
+    color: var(--muted);
+    font-weight: 600;
+}
+
+[data-theme="dark"] .table tbody tr:first-child td {
+    border-top: none;
+}
+[data-theme="dark"] .table td, [data-theme="dark"] .table th {
+    padding: 1rem 0.5rem;
+}
+.date-col {
+    white-space: nowrap;
+
   </style>
+  
+  <!-- Thư viện PDF.js và pdf-lib -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
 </head>
 <body>
+  <!-- Main Editor View -->
   <div class="container py-4" id="root">
     <div class="app-card mx-auto" style="max-width:1100px">
       <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
-        <h3 class="title mb-0">Tạo mã VietQR HD SAISON</h3>
+        <h3 class="title mb-0">Bộ công cụ HDSAISON</h3>
         <div class="d-flex align-items-center gap-3">
-          <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" id="darkSwitch">
-            <label class="form-check-label" for="darkSwitch">Dark mode</label>
-          </div>
           <label for="pdfFile" class="btn btn-secondary px-3" id="uploadPdfLabel">
               <i class="fa-solid fa-file-pdf"></i> Tải PDF
           </label>
@@ -81,44 +173,114 @@
         </div>
       </div>
 
-      <div class="soft-panel mb-4 instructions">
-        <div class="d-flex justify-content-between align-items-center" style="cursor: pointer;" id="toggleInstructionsBtn">
-            <h5 class="hdr mb-0">Hướng dẫn sử dụng</h5>
-            <button class="btn btn-sm btn-outline-secondary">
-                <i class="fa-solid fa-chevron-down"></i>
-            </button>
+      <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="qr-tab" data-bs-toggle="tab" data-bs-target="#qr-tab-pane" type="button" role="tab" aria-controls="qr-tab-pane" aria-selected="true">Tạo mã QR</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="filter-tab" data-bs-toggle="tab" data-bs-target="#filter-tab-pane" type="button" role="tab" aria-controls="filter-tab-pane" aria-selected="false">Lọc thông tin khách hàng</button>
+        </li>
+      </ul>
+
+      <div class="tab-content" id="myTabContent">
+        <div class="tab-pane fade show active" id="qr-tab-pane" role="tabpanel" aria-labelledby="qr-tab" tabindex="0">
+          <div class="soft-panel my-4 instructions">
+            <div class="d-flex justify-content-between align-items-center" style="cursor: pointer;" id="toggleInstructionsBtn">
+                <h5 class="hdr mb-0">Hướng dẫn sử dụng</h5>
+                <button class="btn btn-sm btn-outline-secondary">
+                    <i class="fa-solid fa-chevron-down"></i>
+                </button>
+            </div>
+            <div id="instructionsContent" class="d-none mt-2">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex align-items-start"><i class="fa-solid fa-file-pdf fa-fw mt-1 me-3"></i><div><strong>Tải PDF (Nhanh):</strong> Nhấn nút "Tải PDF" và chọn 1 hoặc nhiều file (tối đa 10). Thông tin sẽ được tự động điền vào các dòng và tạo mã QR tương ứng.</div></li>
+                    <li class="list-group-item d-flex align-items-start"><i class="fa-solid fa-keyboard fa-fw mt-1 me-3"></i><div><strong>Nhập thủ công:</strong> Nhấn "+ Thêm hợp đồng" để tạo dòng mới, sau đó điền thông tin và nhấn "Tạo QR".</div></li>
+                    <li class="list-group-item d-flex align-items-start"><i class="fa-solid fa-print fa-fw mt-1 me-3"></i><div><strong>In Hợp Đồng & QR:</strong> Với dòng được tạo từ PDF, nhấn nút <i class="fa-solid fa-print"></i> để mở tab mới chứa file PDF đã được chèn sẵn mã QR để in.</div></li>
+                    <li class="list-group-item d-flex align-items-start"><i class="fa-solid fa-images fa-fw mt-1 me-3"></i><div><strong>In QR lẻ:</strong> Với dòng nhập tay (không có file PDF), nút <i class="fa-solid fa-print"></i> sẽ mở trang để in mã QR.</div></li>
+                </ul>
+            </div>
+          </div>
+          
+          <div id="toast" class="toast-notification"></div>
+    
+          <div class="d-none d-md-flex align-items-center justify-content-between px-3 mb-2">
+            <div class="d-flex align-items-center gap-2" style="flex-grow: 1;">
+              <div class="hdr" style="flex: 1 1 230px;">Số hợp đồng</div>
+              <div class="hdr" style="flex: 1 1 260px;">Họ tên</div>
+              <div class="hdr" style="flex: 1 1 170px;">Số tiền (VND)</div>
+            </div>
+            <div style="width: 180px;"> <!-- Placeholder for alignment -->
+            </div>
+          </div>
+    
+          <div id="rows"></div>
         </div>
-        <div id="instructionsContent" class="d-none mt-2">
-            <ul class="list-group list-group-flush">
-                <li class="list-group-item d-flex align-items-start"><i class="fa-solid fa-file-pdf fa-fw mt-1 me-3"></i><div><strong>Tải PDF (Nhanh):</strong> Nhấn nút "Tải PDF" và chọn 1 hoặc nhiều file (tối đa 10). Thông tin sẽ được tự động điền vào các dòng và tạo mã QR tương ứng.</div></li>
-                <li class="list-group-item d-flex align-items-start"><i class="fa-solid fa-keyboard fa-fw mt-1 me-3"></i><div><strong>Nhập thủ công:</strong> Nhấn "+ Thêm hợp đồng" để tạo dòng mới, sau đó điền thông tin và nhấn "Tạo QR".</div></li>
-                <li class="list-group-item d-flex align-items-start"><i class="fa-solid fa-print fa-fw mt-1 me-3"></i><div><strong>In Hợp Đồng & QR:</strong> Với dòng được tạo từ PDF, nhấn nút <i class="fa-solid fa-print"></i> để mở tab mới chứa file PDF đã được chèn sẵn mã QR để in.</div></li>
-                <li class="list-group-item d-flex align-items-start"><i class="fa-solid fa-images fa-fw mt-1 me-3"></i><div><strong>In QR lẻ:</strong> Với dòng nhập tay (không có file PDF), nút <i class="fa-solid fa-print"></i> sẽ mở trang để in mã QR.</div></li>
-            </ul>
+        <div class="tab-pane fade" id="filter-tab-pane" role="tabpanel" aria-labelledby="filter-tab" tabindex="0">
+          <div class="soft-panel my-4">
+            <p class="text-muted mb-4">Tải lên một hoặc nhiều file hợp đồng PDF để tự động trích xuất thông tin.</p>
+            
+            <div class="d-flex justify-content-between align-items-center">
+              <h5 class="mt-4 mb-3">Thông tin khách hàng</h5>
+              <button id="export-excel-btn" class="btn btn-sm btn-outline-success mb-3" style="display: none;"><i class="fa-solid fa-file-excel me-2"></i>Xuất Excel</button>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-bordered" id="customer-info-table">
+                <thead>
+                  <tr>
+                    <th>STT</th>
+                    <th>Số hợp đồng</th>
+                    <th>Họ tên</th>
+                    <th>Ngày sinh</th>
+                    <th>SĐT</th>
+                    <th>Số CCCD</th>
+                    <th class="date-col">Ngày đóng tiền</th>
+                    <th class="date-col">Ngày kết thúc</th>
+                    <th>Xóa</th>
+                  </tr>
+                </thead>
+                <tbody id="filter-results-tbody">
+                  <!-- Dữ liệu sẽ được chèn vào đây -->
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
-      
-      <div id="toast" class="toast-notification"></div>
-
-      <div class="d-none d-md-flex align-items-center justify-content-between px-3 mb-2">
-        <div class="d-flex align-items-center gap-2" style="flex-grow: 1;">
-          <div class="hdr" style="flex: 1 1 230px;">Số hợp đồng</div>
-          <div class="hdr" style="flex: 1 1 260px;">Họ tên</div>
-          <div class="hdr" style="flex: 1 1 170px;">Số tiền (VND)</div>
-        </div>
-        <div style="width: 180px;"> <!-- Placeholder for alignment -->
-        </div>
-      </div>
-
-      <div id="rows"></div>
     </div>
   </div>
 
+  <!-- Shared Link Viewer -->
+  <div class="container py-4" id="viewer" style="display: none;">
+    <div class="app-card mx-auto" style="max-width: 520px; text-align: center;">
+        <h3 class="title mb-3">Mã QR Thanh Toán</h3>
+        <img id="viewerImg" alt="VietQR Code" style="width: 100%; max-width: 400px; height: auto; border-radius: 16px; margin-bottom: 1.5rem; background: #fff; padding: 10px;"/>
+        <div class="soft-panel" style="text-align: left;">
+            <p class="mb-2"><strong>Số hợp đồng:</strong> <span id="viewerContract"></span></p>
+            <p class="mb-2"><strong>Họ tên:</strong> <span id="viewerName"></span></p>
+            <p class="mb-0"><strong>Số tiền:</strong> <span id="viewerAmount" style="font-weight: bold; color: var(--info);"></span></p>
+        </div>
+        <button id="viewerDownloadBtn" class="btn btn-success mt-4">
+          <i class="fa-solid fa-download"></i> Tải xuống
+        </button>
+    </div>
+  </div>
+
+  <!-- Lightbox Structure -->
   <div id="lb" class="lightbox" aria-hidden="true">
-    <div class="lightbox-inner position-relative">
-      <a href="#" class="download-qr" download title="Tải ảnh QR"><i class="fa-solid fa-download"></i></a>
-      <button class="close" type="button" id="lbClose" aria-label="Đóng">×</button>
+    <div class="lightbox-inner">
       <img id="lbImg" alt="VietQR phóng to"/>
+      <div class="lightbox-actions">
+          <button type="button" class="btn-lightbox download-qr" title="Tải ảnh QR">
+              <i class="fa-solid fa-download"></i> Tải xuống
+          </button>
+          <button type="button" class="btn-lightbox" id="shareBtn" title="Chia sẻ">
+              <i class="fa-solid fa-share-nodes"></i> Chia sẻ
+          </button>
+          <button type="button" class="btn-lightbox close" id="lbClose" title="Đóng">
+              <i class="fa-solid fa-xmark"></i> Đóng
+          </button>
+      </div>
     </div>
   </div>
 
@@ -132,7 +294,7 @@
         </div>
         <div class="field-wrapper">
             <label class="hdr d-md-none mb-1">Họ tên</label>
-            <input class="form-control nameInput" placeholder="VD: Nguyễn Văn A"/>
+            <input class="form-control nameInput" placeholder="VD: Nguyễn Văn A (Không bắt buộc)"/>
             <div class="error-msg"></div>
         </div>
         <div class="field-wrapper">
@@ -150,311 +312,322 @@
     </div>
   </template>
   
-  <footer class="text-center py-4">
+  <footer id="footer" class="text-center py-4">
     <p class="mb-0" style="font-size: 0.8rem; color: var(--muted);">Phát triển bởi Huỳnh Hải Đăng</p>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
+const pdfUpload = document.getElementById('pdfFile');
+    const uploadPdfLabel = document.getElementById('uploadPdfLabel');
+    const qrCodeContainer = document.getElementById('qr-code-container');
+    const dataTableBody = document.querySelector('#data-table tbody');
+    const toastContainer = document.getElementById('toast-container');
     const { PDFDocument, rgb } = PDFLib;
 
-    const BANK_ID      = "hdbank";
-    const ACCOUNT_NO   = "002704070014601";
-    const ACCOUNT_NAME = "HD SAISON";
-    const TEMPLATE     = "print.png";
-    const QR_TEMPLATE_EMBED = "compact.png";
-    const LOGO_URL     = "https://i.imgur.com/sC5323R.png";
-
-    const rowsEl   = document.getElementById("rows");
-    const addRowEl = document.getElementById("addRow");
-    const tpl      = document.getElementById("rowTemplate");
-    const toastEl  = document.getElementById("toast");
-    const pdfFileInput = document.getElementById('pdfFile');
-    const uploadPdfLabel = document.getElementById('uploadPdfLabel');
-    const toggleInstructionsBtn = document.getElementById('toggleInstructionsBtn');
-    const instructionsContent = document.getElementById('instructionsContent');
-
-    const lb      = document.getElementById("lb");
-    const lbImg   = document.getElementById("lbImg");
-    const lbClose = document.getElementById("lbClose");
-    const lbDownload = document.querySelector('.download-qr');
-    const darkSwitch = document.getElementById("darkSwitch");
-    
-    pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js`;
-
-    const pdfBuffers = new Map();
-
-    (function initTheme(){
-      const saved = localStorage.getItem("theme");
-      if(saved === "dark"){ document.documentElement.setAttribute("data-theme","dark"); darkSwitch.checked = true; }
-      darkSwitch.addEventListener("change", ()=>{
-        const mode = darkSwitch.checked ? "dark" : "light";
-        document.documentElement.setAttribute("data-theme", mode);
-        localStorage.setItem("theme", mode);
-      });
-    })();
-
-    function showToast(message, type = 'error') {
-        toastEl.textContent = message;
-        toastEl.className = 'toast-notification';
-        if (type === 'info') toastEl.classList.add('info');
-        toastEl.classList.add("show");
-        setTimeout(() => { toastEl.classList.remove("show"); }, 3000);
-    }
-    function pad2(n){ return String(n).padStart(2,"0"); }
-    function todayYYYYMMDD(){ const d=new Date(); return d.getFullYear()+""+pad2(d.getMonth()+1)+""+pad2(d.getDate()); }
-    function digitsOnly(str){ return (str||"").replace(/\D/g,""); }
-    function formatThousandDots(numStr){ const s = digitsOnly(numStr); return s.replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
-    function stripVietnamese(str){
-      if(!str) return "";
-      return str.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/đ/gi,"d")
-               .replace(/[^A-Za-z0-9 ]+/g," ").replace(/\s+/g," ").trim();
-    }
-
-    function buildQRUrl({contract, name, amount}, template = TEMPLATE){
-      const amountDigits = digitsOnly(amount);
-      const addInfo = `${contract} ${stripVietnamese(name)}`.trim().toUpperCase();
-      const qs = new URLSearchParams({ 
-          amount: String(parseInt(amountDigits,10)||0), 
-          addInfo, 
-          accountName: ACCOUNT_NAME,
-          logo: LOGO_URL
-      });
-      // Thêm tham số ngẫu nhiên để trình duyệt không lưu cache ảnh QR
-      qs.append('cache_bust', Date.now());
-      return `https://img.vietqr.io/image/${BANK_ID}-${ACCOUNT_NO}-${template}?${qs.toString()}`;
-    }
-
-    async function createAndPrintModifiedPdf(pdfBuffer, qrUrl) {
-        // Mở cửa sổ mới ngay lập tức để tránh bị chặn popup
-        const printWindow = window.open("", "_blank");
-        if (!printWindow) {
-            showToast("Trình duyệt đã chặn popup. Vui lòng cho phép.");
-            return;
-        }
-        printWindow.document.write('<!DOCTYPE html><html lang="vi"><head><title>Đang tạo PDF...</title><style>body{font-family:sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;font-size:1.2rem;color:#333;}</style></head><body><p>⏳ Đang chuẩn bị file PDF, vui lòng chờ trong giây lát...</p></body></html>');
-
-        try {
-            const qrImageResponse = await fetch(qrUrl, { cache: 'no-store' });
-            if (!qrImageResponse.ok) throw new Error('Không thể tải ảnh QR');
-            const qrImageBytes = await qrImageResponse.arrayBuffer();
-
-            const pdfDoc = await PDFDocument.load(pdfBuffer);
-            const qrImage = await pdfDoc.embedPng(qrImageBytes);
-            
-            const firstPage = pdfDoc.getPages()[0];
-            
-            // Chèn ảnh QR
-            const qrSize = 170; 
-            firstPage.drawImage(qrImage, {
-                x: 390,
-                y: 680, 
-                width: qrSize,
-                height: qrSize,
-            });
-
-            const modifiedPdfBytes = await pdfDoc.save();
-            const blob = new Blob([modifiedPdfBytes], { type: 'application/pdf' });
-            const url = URL.createObjectURL(blob);
-
-            // Tải nội dung vào cửa sổ đã mở
-            printWindow.location.href = url;
-
-        } catch (error) {
-            console.error("Lỗi khi tạo PDF:", error);
-            showToast("Không thể tạo file PDF để in.");
-            printWindow.close(); // Đóng cửa sổ nếu có lỗi
-        }
-    }
-
-    function openQrPrintPreview(qrUrl) {
-        const w = window.open("", "_blank");
-        if (!w) { showToast("Trình duyệt đã chặn popup."); return; }
-        const html = `
-            <!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"/><title>In mã QR</title>
-            <style>
-                body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-                img { max-width: 80vw; max-height: 80vh; object-fit: contain; }
-                @media print { 
-                    @page { size: A5 landscape; margin: 0; }
-                    body { margin: 0; padding: 0; justify-content: center; align-items: center; }
-                    img { width: 100%; height: 100%; object-fit: contain; }
-                }
-            </style></head>
-            <body><img src="${qrUrl}" alt="VietQR"/><script> window.onload = () => { setTimeout(() => { window.print(); }, 500); }; <\/script></body></html>`;
-        w.document.open(); w.document.write(html); w.document.close();
-    }
-
-    function addRow(){
-      const node = tpl.content.cloneNode(true);
-      const el = node.querySelector(".row-item");
-      const inputContract = el.querySelector(".contractInput");
-      const inputName = el.querySelector(".nameInput");
-      const inputAmount = el.querySelector(".amountInput");
-      const btnGen = el.querySelector(".generateBtn");
-      const btnPrint = el.querySelector(".printBtn");
-      const btnDelRow = el.querySelector(".deleteRowBtn");
-      const img = el.querySelector(".qr-thumb");
-
-      [inputContract, inputName, inputAmount].forEach(input => {
-        input.addEventListener('input', () => {
-            input.classList.remove('is-invalid');
-            input.closest('.field-wrapper').querySelector('.error-msg').style.display = 'none';
-        });
-      });
-
-      inputAmount.addEventListener("input", ()=>{
-        const caretEnd = inputAmount.selectionEnd;
-        const beforeLen = inputAmount.value.length;
-        inputAmount.value = formatThousandDots(inputAmount.value);
-        const afterLen = inputAmount.value.length;
-        inputAmount.selectionStart = inputAmount.selectionEnd = Math.max(0, caretEnd + (afterLen - beforeLen));
-      });
-
-      function validate(){
-        let isValid = true;
-        el.querySelectorAll('.error-msg').forEach(e => e.style.display = 'none');
-        el.querySelectorAll('.form-control').forEach(e => e.classList.remove('is-invalid'));
-        const c = inputContract.value.trim().toUpperCase();
-        const n = inputName.value.trim();
-        const a = inputAmount.value.trim();
-        if(!c){
-          inputContract.closest('.field-wrapper').querySelector('.error-msg').textContent = "Vui lòng nhập Số Hợp Đồng.";
-          inputContract.closest('.field-wrapper').querySelector('.error-msg').style.display = 'block';
-          inputContract.classList.add('is-invalid');
-          isValid = false;
-        }
-        if(!n){
-          inputName.closest('.field-wrapper').querySelector('.error-msg').textContent = "Vui lòng nhập Họ Tên.";
-          inputName.closest('.field-wrapper').querySelector('.error-msg').style.display = 'block';
-          inputName.classList.add('is-invalid');
-          isValid = false;
-        }
-        if(!digitsOnly(a) || parseInt(digitsOnly(a), 10) <= 0){
-          inputAmount.closest('.field-wrapper').querySelector('.error-msg').textContent = "Vui lòng nhập số tiền hợp lệ.";
-          inputAmount.closest('.field-wrapper').querySelector('.error-msg').style.display = 'block';
-          inputAmount.classList.add('is-invalid');
-          isValid = false;
-        }
-        if (!isValid) return false;
-        return {contract:c, name:n, amount:a};
-      }
-
-      btnGen.addEventListener("click", ()=>{
-        const v = validate(); if(!v) return;
-        const url = buildQRUrl(v);
-        img.src = url; img.style.display = "block";
-        btnPrint.disabled = false;
-      });
-
-      btnPrint.addEventListener("click", async () => {
-          const v = validate(); if (!v) return;
-          const pdfId = el.dataset.pdfId;
-          
-          const originalBtnHTML = btnPrint.innerHTML;
-          btnPrint.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
-          btnPrint.disabled = true;
-
-          try {
-            if (pdfId && pdfBuffers.has(pdfId)) {
-                const pdfBuffer = pdfBuffers.get(pdfId);
-                const qrUrlForEmbed = buildQRUrl(v, QR_TEMPLATE_EMBED);
-                await createAndPrintModifiedPdf(pdfBuffer, qrUrlForEmbed);
-            } else {
-                const qrUrlForPrint = buildQRUrl(v, TEMPLATE);
-                openQrPrintPreview(qrUrlForPrint);
+    // Event Listeners
+    if (uploadPdfLabel) {
+        uploadPdfLabel.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!uploadPdfLabel.classList.contains('disabled')) {
+                pdfUpload.click();
             }
-          } finally {
-            btnPrint.innerHTML = originalBtnHTML;
-            btnPrint.disabled = false;
-          }
-      });
-      
-      btnDelRow.addEventListener("click", () => {
-        const pdfId = el.dataset.pdfId;
-        if (pdfId) pdfBuffers.delete(pdfId);
-        el.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-        el.style.opacity = '0';
-        el.style.transform = 'scale(0.95)';
-        setTimeout(() => el.remove(), 300);
-      });
-
-      img.addEventListener("click", ()=>{
-        if(!img.src) return;
-        lbImg.src = img.src;
-        lbDownload.href = img.src;
-        lbDownload.download = `${inputContract.value}_${todayYYYYMMDD()}.png`;
-        lb.classList.add("show");
-        lb.setAttribute("aria-hidden","false");
-      });
-
-      rowsEl.appendChild(node);
-      inputContract.focus();
-      return el;
+        });
     }
-
-    function closeLb(){ lb.classList.remove("show"); lb.setAttribute("aria-hidden","true"); lbImg.src=""; }
-    lb.addEventListener("click", (e)=>{ if(e.target===lb) closeLb(); });
-    lbClose.addEventListener("click", closeLb);
-    document.addEventListener("keydown", (e)=>{ if(e.key==="Escape") closeLb(); });
-
-    addRowEl.addEventListener("click", addRow);
+    if (pdfUpload) {
+        pdfUpload.addEventListener('change', handlePdfUpload);
+    }
 
     async function handlePdfUpload(event) {
         const files = event.target.files;
         if (files.length === 0) return;
 
-        if (files.length > 10) {
-            showToast('Bạn chỉ có thể tải lên tối đa 10 file cùng lúc.');
-            event.target.value = '';
-            return;
-        }
-        
+        const activeTabId = document.querySelector('.nav-link.active').id;
         const originalBtnHTML = uploadPdfLabel.innerHTML;
         uploadPdfLabel.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...`;
         uploadPdfLabel.classList.add('disabled');
 
-        let isFirstFileInBatch = true;
-        let successCount = 0;
+        try {
+            if (activeTabId === 'filter-tab') {
+                await processPdfsForFiltering(files);
+            } else if (activeTabId === 'qr-tab') {
+                // Existing logic for QR tab
+                let isFirstFileInBatch = true;
+                let successCount = 0;
 
-        for (const file of files) {
-            if (file.type !== 'application/pdf') {
-                showToast(`File "${file.name}" không phải là PDF và đã bị bỏ qua.`);
-                continue;
-            }
-            try {
-                const pdfBuffer = await file.arrayBuffer();
-                const text = await new Promise((resolve, reject) => {
-                    const typedarray = new Uint8Array(pdfBuffer);
-                    pdfjsLib.getDocument(typedarray).promise.then(async (pdf) => {
-                        let fullText = '';
-                        for (let i = 1; i <= pdf.numPages; i++) {
-                            const page = await pdf.getPage(i);
-                            const textContent = await page.getTextContent();
-                            fullText += textContent.items.map(item => item.str).join(' ');
+                for (const file of files) {
+                    if (file.type !== 'application/pdf') {
+                        showToast(`File "${file.name}" không phải là PDF và đã bị bỏ qua.`);
+                        continue;
+                    }
+                    try {
+                        const pdfBuffer = await file.arrayBuffer();
+                        const text = await new Promise((resolve, reject) => {
+                            const typedarray = new Uint8Array(pdfBuffer);
+                            pdfjsLib.getDocument(typedarray).promise.then(async (pdf) => {
+                                let fullText = '';
+                                for (let i = 1; i <= pdf.numPages; i++) {
+                                    const page = await pdf.getPage(i);
+                                    const textContent = await page.getTextContent();
+                                    fullText += textContent.items.map(item => item.str).join(' ');
+                                }
+                                resolve(fullText);
+                            }).catch(reject);
+                        });
+                        
+                        const parsed = parsePdfTextAndFillRow(text, pdfBuffer, isFirstFileInBatch);
+                        if (parsed) {
+                            successCount++;
+                            isFirstFileInBatch = false; 
                         }
-                        resolve(fullText);
-                    }).catch(reject);
-                });
-                
-                const parsed = parsePdfTextAndFillRow(text, pdfBuffer, isFirstFileInBatch);
-                if (parsed) {
-                    successCount++;
-                    isFirstFileInBatch = false; 
+                    } catch (error) {
+                        console.error(`Lỗi xử lý file "${file.name}":`, error);
+                        showToast(`Không thể xử lý file "${file.name}".`);
+                    }
                 }
+                if (successCount > 0) showToast(`Đã xử lý thành công ${successCount} file PDF.`, 'info');
+            }
+        } catch (error) {
+            console.error('Lỗi khi xử lý PDF:', error);
+            showToast('Đã xảy ra lỗi trong quá trình xử lý file.');
+        } finally {
+            uploadPdfLabel.innerHTML = originalBtnHTML;
+            uploadPdfLabel.classList.remove('disabled');
+            event.target.value = '';
+        }
+    }
 
-            } catch (error) {
-                console.error(`Lỗi xử lý file "${file.name}":`, error);
-                showToast(`Không thể xử lý file "${file.name}".`);
+    document.addEventListener('DOMContentLoaded', () => {
+        handleSharedLink();
+
+        const exportBtn = document.getElementById('export-excel-btn');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => {
+                const table = document.getElementById('customer-info-table');
+                const headers = Array.from(table.querySelectorAll('thead th'))
+                                     .map(th => th.textContent)
+                                     .slice(0, -1); // Exclude "Xóa" column
+
+                const data = Array.from(table.querySelectorAll('tbody tr')).map(row => {
+                    const rowData = Array.from(row.querySelectorAll('td')).map((td, index) => {
+                         const cellText = td.textContent;
+                         // Columns for SĐT (index 3) and Số CCCD (index 4)
+                         if (index === 3 || index === 4) {
+                             return { v: cellText, t: 's' }; // Treat as string
+                         }
+                         return cellText;
+                    });
+                    return rowData.slice(0, -1); // Exclude delete button cell
+                });
+
+                const ws = XLSX.utils.aoa_to_sheet([headers]);
+                XLSX.utils.sheet_add_aoa(ws, data, { origin: -1 }); // Append data starting after the header
+
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Danh sách khách hàng");
+                XLSX.writeFile(wb, 'DanhSachKhachHang.xlsx');
+            });
+        }
+    });
+
+    async function getPdfText(file) {
+        const fileReader = new FileReader();
+        return new Promise((resolve, reject) => {
+            fileReader.onload = async function() {
+                const typedarray = new Uint8Array(this.result);
+                try {
+                    const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                    let fullText = '';
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const textContent = await page.getTextContent();
+                        const pageText = textContent.items.map(item => item.str).join(' ');
+                        fullText += pageText + '\n';
+                    }
+                    resolve(fullText);
+                } catch (error) {
+                    reject(error);
+                }
+            };
+            fileReader.onerror = reject;
+            fileReader.readAsArrayBuffer(file);
+        });
+    }
+
+async function processPdfsForFiltering(files) {
+    const tbody = document.getElementById('filter-results-tbody');
+    if (!tbody) return;
+    // Don't clear previous results: tbody.innerHTML = ''; 
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const file of files) {
+        if (file.type !== 'application/pdf') {
+            showToast(`File "${file.name}" không phải là PDF và đã bị bỏ qua.`);
+            continue;
+        }
+        try {
+            const text = await getPdfText(file);
+            
+            const info = {
+                soHopDong: getValueAfterLabel(text, 'Số Hợp Đồng'),
+                hoTen: getValueAfterLabel(text, 'Họ tên'),
+                ngaySinh: getValueAfterLabel(text, 'Ngày sinh'),
+                sdt: getValueAfterLabel(text, 'Điện thoại di động'),
+                cccd: getValueAfterLabel(text, 'Số CCCD/Thẻ căn cước/Giấy tờ khác'),
+                ngayLamHopDong: getValueAfterLabel(text, 'Ngày Thanh Toán Đầu Tiên'),
+                ngayKetThuc: getValueAfterLabel(text, 'Ngày Thanh Toán Cuối Cùng')
+            };
+
+            const allInfoFound = Object.values(info).every(value => value !== 'Không tìm thấy');
+
+            if (!allInfoFound) {
+                showToast(`File "${file.name}" không hợp lệ hoặc thiếu thông tin.`, 'error');
+                errorCount++;
+                continue; // Bỏ qua file này và xử lý file tiếp theo
+            }
+
+            const row = tbody.insertRow();
+            const stt = tbody.rows.length;
+            row.insertCell().textContent = stt;
+            row.insertCell().textContent = info.soHopDong;
+            row.insertCell().textContent = info.hoTen;
+            row.insertCell().textContent = info.ngaySinh;
+            row.insertCell().textContent = info.sdt;
+            row.insertCell().textContent = info.cccd;
+            row.insertCell().textContent = info.ngayLamHopDong;
+            row.insertCell().textContent = info.ngayKetThuc;
+            
+            const actionCell = row.insertCell();
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'btn btn-sm btn-outline-danger';
+            deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
+            deleteBtn.title = 'Xoá dòng này';
+            deleteBtn.onclick = function() {
+                row.remove();
+                updateStt();
+            };
+            actionCell.appendChild(deleteBtn);
+
+            successCount++;
+        } catch (error) {
+            console.error(`Lỗi xử lý file "${file.name}":`, error);
+            showToast(`Không thể xử lý file "${file.name}".`);
+            errorCount++;
+        }
+    }
+    
+    const exportBtn = document.getElementById('export-excel-btn');
+    if (exportBtn) {
+        if (tbody.rows.length > 0) {
+            if (successCount > 0) {
+                showToast(`Đã trích xuất thông tin từ ${successCount} file.`, 'info');
+            }
+            exportBtn.style.display = 'inline-block';
+        } else {
+            if (errorCount === 0 && successCount === 0) {
+                // No files processed, do nothing
+            } else if (successCount === 0 && errorCount > 0) {
+                showToast(`Không có file nào được xử lý thành công.`, 'error');
+            }
+            exportBtn.style.display = 'none';
+        }
+    }
+}
+
+function updateStt() {
+    const tbody = document.getElementById('filter-results-tbody');
+    if (!tbody) return;
+    const rows = tbody.getElementsByTagName('tr');
+    for (let i = 0; i < rows.length; i++) {
+        rows[i].getElementsByTagName('td')[0].textContent = i + 1;
+    }
+}    function getValueAfterLabel(text, label) {
+        // Special, more precise handling for Contract Number
+        if (label === 'Số Hợp Đồng') {
+            const contractRegex = /(?:Số Hợp Đồng|Số hợp đồng|Số)\s*:\s*([A-Z]{2}\d+)/;
+            const match = text.match(contractRegex);
+            if (match && match[1]) {
+                return match[1].trim();
             }
         }
 
-        if (successCount > 0) {
-            showToast(`Đã xử lý thành công ${successCount} file PDF.`, 'info');
+        // Normalize whitespace and make matching more robust
+        const cleanedText = text.replace(/\s+/g, ' ').trim();
+        const escapedLabel = label.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        
+        // This regex looks for the label, an optional colon, and then captures the following text.
+        // It stops capturing when it encounters a known subsequent label from your list,
+        // or a pattern that looks like a numbered list item (e.g., "1.", "2.1.").
+        const stopWords = [
+            'Họ tên', 'Thông tin Khoản Vay', 'Điện thoại di động', 'Số CCCD/Thẻ căn cước/Giấy tờ khác',
+            'Ngày Thanh Toán Đầu Tiên', 'Ngày Thanh Toán Cuối Cùng', 'Số Hợp Đồng', 'Ngày sinh'
+        ].filter(w => w !== label).join('|');
+
+        const regex = new RegExp(`${escapedLabel}\\s*:?\\s*(.*?)(?=\\s+(?:${stopWords})\\s*:|\\s[0-9]+\\.[0-9]*)`, 'i');
+        
+        const match = cleanedText.match(regex);
+
+        if (match && match[1]) {
+            return match[1].trim();
+        }
+        
+        // A simpler fallback for cases where the value might be at the very end of the text
+        const fallbackRegex = new RegExp(`${escapedLabel}\\s*:?\\s*([^\\n\\r]+)`);
+        const fallbackMatch = text.match(fallbackRegex);
+        if(fallbackMatch && fallbackMatch[1]){
+            // Clean up potential multiple spaces between parts of the value
+            return fallbackMatch[1].trim().replace(/\s{2,}/g, ' ');
         }
 
-        uploadPdfLabel.innerHTML = originalBtnHTML;
-        uploadPdfLabel.classList.remove('disabled');
-        event.target.value = '';
+        return 'Không tìm thấy';
+    }
+
+    // --- Chức năng Tab Tạo mã QR ---
+
+    const rowsEl = document.getElementById("rows");
+    const addRowEl = document.getElementById("addRow");
+    const tpl = document.getElementById("rowTemplate");
+    const lb = document.getElementById("lb");
+    const lbImg = document.getElementById("lbImg");
+    const lbClose = document.getElementById("lbClose");
+    const shareBtn = document.getElementById("shareBtn");
+    const downloadQrBtn = lb.querySelector(".download-qr");
+
+    const pdfBuffers = new Map(); // Lưu trữ buffer của các file PDF đã tải lên
+
+    function stripVietnamese(str) {
+        if (!str) return "";
+        return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/gi, "d");
+    }
+
+    function digitsOnly(str) {
+        return (str || "").replace(/\D/g, "");
+    }
+
+    function formatThousandDots(numStr) {
+        const s = digitsOnly(numStr);
+        return s.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+
+    function buildQRUrl({
+        contract,
+        name,
+        amount
+    }, template = "print.png") {
+        const amountDigits = digitsOnly(amount);
+        const addInfo = `${contract} ${stripVietnamese(name)}`.trim().toUpperCase();
+        const BANK_ID = "hdbank";
+        const ACCOUNT_NO = "002704070014601";
+        const LOGO_URL = "https://i.imgur.com/sC5323R.png";
+
+        const qs = new URLSearchParams({
+            accountName: "HD SAISON",
+            amount: amountDigits,
+            addInfo: addInfo,
+            template: template,
+        });
+        return `https://img.vietqr.io/image/${BANK_ID}-${ACCOUNT_NO}-${template}?${qs.toString()}`;
     }
 
     function parsePdfTextAndFillRow(text, pdfBuffer, isFirstFile) {
@@ -470,58 +643,319 @@
             const contract = contractMatch[1].trim();
             const name = nameMatch[1].trim();
             const amount = amountMatch[1].trim();
-            
-            let targetRow = null;
-            
-            if (isFirstFile) {
+
+            let rowEl;
+            // Nếu là file đầu tiên và dòng đầu tiên trống, sử dụng dòng đó
+            if (isFirstFile && rowsEl.children.length === 1) {
                 const firstRow = rowsEl.querySelector('.row-item');
-                if (firstRow) {
-                    const contractInput = firstRow.querySelector('.contractInput');
-                    const nameInput = firstRow.querySelector('.nameInput');
-                    const amountInput = firstRow.querySelector('.amountInput');
-                    if (!contractInput.value && !nameInput.value && !amountInput.value) {
-                        targetRow = firstRow;
-                    }
+                const inputs = firstRow.querySelectorAll('input');
+                const allEmpty = Array.from(inputs).every(i => i.value === '');
+                if (allEmpty) {
+                    rowEl = firstRow;
                 }
             }
 
-            if (!targetRow) {
-                targetRow = addRow();
+            // Nếu không, tạo dòng mới
+            if (!rowEl) {
+                rowEl = addRow();
             }
 
-            if (targetRow) {
-                const pdfId = Date.now().toString() + Math.random();
-                targetRow.dataset.pdfId = pdfId;
-                pdfBuffers.set(pdfId, pdfBuffer);
+            rowEl.querySelector(".contractInput").value = contract;
+            rowEl.querySelector(".nameInput").value = name;
+            rowEl.querySelector(".amountInput").value = formatThousandDots(amount);
+            rowEl.querySelector(".generateBtn").click(); // Tự động tạo QR
+            
+            // Kích hoạt nút in và lưu buffer
+            const printBtn = rowEl.querySelector(".printBtn");
+            printBtn.disabled = false;
+            pdfBuffers.set(rowEl, pdfBuffer);
 
-                targetRow.querySelector('.contractInput').value = contract;
-                targetRow.querySelector('.nameInput').value = name;
-                targetRow.querySelector('.amountInput').value = formatThousandDots(amount);
-                
-                targetRow.querySelector('.generateBtn').click();
-                
-                return true;
-            }
+            return true;
         } else {
-            let errorMsg = 'Không tìm thấy đủ thông tin trong file PDF.';
-            if (!nameMatch) errorMsg = 'Không tìm thấy "Họ tên" theo đúng định dạng.';
-            else if (!contractMatch) errorMsg = 'Không tìm thấy "Số Hợp Đồng" theo đúng định dạng.';
-            else if (!amountMatch) errorMsg = 'Không tìm thấy "Khoản Thanh Toán Hàng Tháng" theo đúng định dạng.';
-            showToast(errorMsg);
+            let missing = [];
+            if (!contractMatch) missing.push("Số hợp đồng");
+            if (!nameMatch) missing.push("Họ tên");
+            if (!amountMatch) missing.push("Số tiền");
+            showToast(`Không tìm thấy đủ thông tin (${missing.join(", ")}) trong file PDF.`);
         }
         return false;
     }
 
-    pdfFileInput.addEventListener('change', handlePdfUpload);
+    async function createAndPrintModifiedPdf(pdfBuffer, qrUrl) {
+        const printWindow = window.open("", "_blank");
+        if (!printWindow) {
+            showToast("Trình duyệt đã chặn popup. Vui lòng cho phép popup.");
+            return;
+        }
+        printWindow.document.write('<!DOCTYPE html><html lang="vi"><head><title>Đang tạo PDF...</title><style>body{font-family:sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;font-size:1.2rem;color:#333;}</style></head><body><p>⏳ Đang chuẩn bị file PDF, vui lòng chờ trong giây lát...</p></body></html>');
 
-    toggleInstructionsBtn.addEventListener('click', () => {
-        instructionsContent.classList.toggle('d-none');
-        const icon = toggleInstructionsBtn.querySelector('i');
-        icon.classList.toggle('fa-chevron-down');
-        icon.classList.toggle('fa-chevron-up');
+        try {
+            const pdfDoc = await PDFDocument.load(pdfBuffer);
+            const qrImageBytes = await fetch(qrUrl).then(res => res.arrayBuffer());
+            const qrImage = await pdfDoc.embedPng(qrImageBytes);
+            const firstPage = pdfDoc.getPages()[0];
+            const {
+                width,
+                height
+            } = firstPage.getSize();
+
+            const qrDims = qrImage.scale(0.25); // Điều chỉnh kích thước QR nếu cần
+
+            firstPage.drawImage(qrImage, {
+                x: width - qrDims.width - 40, // Vị trí X
+                y: height - qrDims.height - 40, // Vị trí Y
+                width: qrDims.width,
+                height: qrDims.height,
+            });
+
+            const pdfBytes = await pdfDoc.save();
+            const blob = new Blob([pdfBytes], {
+                type: 'application/pdf'
+            });
+            const url = URL.createObjectURL(blob);
+            printWindow.location.href = url;
+
+        } catch (error) {
+            console.error("Lỗi khi chèn QR vào PDF:", error);
+            printWindow.document.body.innerHTML = `<p>❌ Đã xảy ra lỗi khi tạo PDF. Vui lòng thử lại.</p>`;
+            showToast("Lỗi khi chèn QR vào PDF.");
+        }
+    }
+
+    function openQrPrintPreview(qrUrl) {
+        const w = window.open("", "_blank");
+        if (!w) {
+            showToast("Trình duyệt đã chặn popup.");
+            return;
+        }
+        const html = `
+            <!DOCTYPE html><html lang="vi"><head><title>In mã QR</title><style>body{margin:0; text-align:center;} img{width:80vw; max-width:400px; margin-top:2rem;}</style></head>
+            <body><img src="${qrUrl}" alt="VietQR"/><script> window.onload = () => { setTimeout(() => { window.print(); }, 500); }; <\/script></body></html>`;
+        w.document.open();
+        w.document.write(html);
+        w.document.close();
+    }
+
+    function addRow() {
+        const node = tpl.content.cloneNode(true);
+        const el = node.querySelector(".row-item");
+        const inputContract = el.querySelector(".contractInput");
+        const inputName = el.querySelector(".nameInput");
+        const inputAmount = el.querySelector(".amountInput");
+        const btnGen = el.querySelector(".generateBtn");
+        const btnPrint = el.querySelector(".printBtn");
+        const btnDelRow = el.querySelector(".deleteRowBtn");
+        const img = el.querySelector(".qr-thumb");
+        const errorMessages = {
+            contract: el.querySelector(".contractInput + .error-msg"),
+            amount: el.querySelector(".amountInput + .error-msg"),
+        };
+
+        [inputContract, inputName, inputAmount].forEach(input => {
+            input.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    btnGen.click();
+                }
+            });
+        });
+
+        inputAmount.addEventListener("input", () => {
+            const value = inputAmount.value;
+            const caretPos = inputAmount.selectionStart;
+            const originalLength = value.length;
+
+            const formattedValue = formatThousandDots(value);
+            inputAmount.value = formattedValue;
+
+            const newLength = formattedValue.length;
+            if (caretPos !== null) {
+                const newCaretPos = caretPos + (newLength - originalLength);
+                inputAmount.setSelectionRange(newCaretPos, newCaretPos);
+            }
+        });
+
+        function validate() {
+            let valid = true;
+            errorMessages.contract.style.display = "none";
+            errorMessages.amount.style.display = "none";
+            inputContract.classList.remove("is-invalid");
+            inputAmount.classList.remove("is-invalid");
+
+            if (!inputContract.value.trim()) {
+                errorMessages.contract.textContent = "Số hợp đồng không được để trống.";
+                errorMessages.contract.style.display = "block";
+                inputContract.classList.add("is-invalid");
+                valid = false;
+            }
+            if (!digitsOnly(inputAmount.value)) {
+                errorMessages.amount.textContent = "Số tiền không được để trống.";
+                errorMessages.amount.style.display = "block";
+                inputAmount.classList.add("is-invalid");
+                valid = false;
+            }
+            return valid;
+        }
+
+        btnGen.addEventListener("click", () => {
+            if (!validate()) return;
+            const data = {
+                contract: inputContract.value,
+                name: inputName.value,
+                amount: inputAmount.value
+            };
+            const qrUrl = buildQRUrl(data);
+            img.src = qrUrl;
+            img.style.display = "block";
+            btnPrint.disabled = false;
+        });
+
+        btnPrint.addEventListener("click", async () => {
+            const data = {
+                contract: inputContract.value,
+                name: inputName.value,
+                amount: inputAmount.value
+            };
+            const qrUrl = buildQRUrl(data, "compact.png");
+
+            if (pdfBuffers.has(el)) {
+                await createAndPrintModifiedPdf(pdfBuffers.get(el), qrUrl);
+            } else {
+                openQrPrintPreview(qrUrl);
+            }
+        });
+
+        btnDelRow.addEventListener("click", () => {
+            if (pdfBuffers.has(el)) {
+                pdfBuffers.delete(el);
+            }
+            el.style.transition = 'opacity 0.3s, transform 0.3s';
+            el.style.opacity = '0';
+            el.style.transform = 'scale(0.95)';
+            setTimeout(() => el.remove(), 300);
+        });
+
+        img.addEventListener("click", () => {
+            if (!img.src) return;
+            lbImg.src = img.src;
+            lb.classList.add("show");
+            lb.setAttribute("aria-hidden", "false");
+            downloadQrBtn.href = img.src;
+            
+            const data = {
+                contract: inputContract.value,
+                name: inputName.value,
+                amount: inputAmount.value
+            };
+            const shareUrl = buildShareLink(data);
+            shareBtn.onclick = () => copyToClipboard(shareUrl, "Đã sao chép link chia sẻ!");
+        });
+
+        rowsEl.appendChild(node);
+        inputContract.focus();
+        return el;
+    }
+
+    function closeLb() {
+        lb.classList.remove("show");
+        lb.setAttribute("aria-hidden", "true");
+        lbImg.src = "";
+    }
+    lb.addEventListener("click", (e) => {
+        if (e.target === lb) closeLb();
+    });
+    lbClose.addEventListener("click", closeLb);
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeLb();
     });
 
-    addRow();
+    if (addRowEl) {
+        addRowEl.addEventListener("click", addRow);
+    }
+
+    // --- Chức năng chia sẻ link ---
+    function buildShareLink(data) {
+        const url = new URL(window.location.href.split('?')[0]);
+        url.searchParams.set('c', data.contract);
+        url.searchParams.set('n', data.name);
+        url.searchParams.set('a', data.amount);
+        return url.toString();
+    }
+
+    function handleSharedLink() {
+        const params = new URLSearchParams(window.location.search);
+        const contract = params.get('c');
+        const name = params.get('n');
+        const amount = params.get('a');
+
+        if (contract && amount) {
+            document.getElementById('root').style.display = 'none';
+            document.getElementById('footer').style.display = 'none';
+            const viewer = document.getElementById('viewer');
+viewer.style.display = 'block';
+
+            const qrUrl = buildQRUrl({ contract, name, amount });
+            document.getElementById('viewerImg').src = qrUrl;
+            document.getElementById('viewerContract').textContent = contract;
+            document.getElementById('viewerName').textContent = name || 'N/A';
+            document.getElementById('viewerAmount').textContent = formatThousandDots(amount) + ' VND';
+            document.getElementById('viewerDownloadBtn').onclick = () => {
+                const a = document.createElement('a');
+                a.href = qrUrl;
+                a.download = `QR_${contract}.png`;
+                a.click();
+            };
+        } else {
+            // Thêm dòng mặc định khi không có link chia sẻ
+            if (rowsEl && rowsEl.children.length === 0) {
+                addRow();
+            }
+        }
+    }
+    
+    // --- Toast Notification ---
+    function showToast(message, type = 'error') {
+        const toastEl = document.createElement('div');
+        toastEl.className = 'toast-notification';
+        if (type === 'info') {
+            toastEl.classList.add('info');
+        }
+        toastEl.textContent = message;
+        document.body.appendChild(toastEl);
+
+        // Force a reflow
+        toastEl.offsetHeight;
+
+        toastEl.classList.add('show');
+
+        setTimeout(() => {
+            toastEl.classList.remove('show');
+            setTimeout(() => {
+                toastEl.remove();
+            }, 300);
+        }, 3000);
+    }
+    
+    function copyToClipboard(text, message) {
+        navigator.clipboard.writeText(text).then(() => {
+            showToast(message, 'info');
+        }).catch(err => {
+            console.error('Không thể sao chép: ', err);
+            showToast('Lỗi khi sao chép.');
+        });
+    }
+
+    // --- Hướng dẫn ---
+    const toggleInstructionsBtn = document.getElementById('toggleInstructionsBtn');
+    const instructionsContent = document.getElementById('instructionsContent');
+    if(toggleInstructionsBtn) {
+        toggleInstructionsBtn.addEventListener('click', () => {
+            const isHidden = instructionsContent.classList.toggle('d-none');
+            const icon = toggleInstructionsBtn.querySelector('i');
+            icon.classList.toggle('fa-chevron-down', isHidden);
+            icon.classList.toggle('fa-chevron-up', !isHidden);
+        });
+    }
   </script>
 </body>
 </html>
