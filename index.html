@@ -457,7 +457,6 @@ const pdfUpload = document.getElementById('pdfFile');
 async function processPdfsForFiltering(files) {
     const tbody = document.getElementById('filter-results-tbody');
     if (!tbody) return;
-    // Don't clear previous results: tbody.innerHTML = ''; 
     let successCount = 0;
     let errorCount = 0;
 
@@ -470,13 +469,13 @@ async function processPdfsForFiltering(files) {
             const text = await getPdfText(file);
             
             const info = {
-                soHopDong: getValueAfterLabel(text, 'Số Hợp Đồng'),
-                hoTen: getValueAfterLabel(text, 'Họ tên'),
-                ngaySinh: getValueAfterLabel(text, 'Ngày sinh'),
-                sdt: getValueAfterLabel(text, 'Điện thoại di động'),
-                cccd: getValueAfterLabel(text, 'Số CCCD/Thẻ căn cước/Giấy tờ khác'),
-                ngayLamHopDong: getValueAfterLabel(text, 'Ngày Thanh Toán Đầu Tiên'),
-                ngayKetThuc: getValueAfterLabel(text, 'Ngày Thanh Toán Cuối Cùng')
+                soHopDong: findValue(text, FIELD_CONFIG.soHopDong),
+                hoTen: findValue(text, FIELD_CONFIG.hoTen),
+                ngaySinh: findValue(text, FIELD_CONFIG.ngaySinh),
+                sdt: findValue(text, FIELD_CONFIG.sdt),
+                cccd: findValue(text, FIELD_CONFIG.cccd),
+                ngayLamHopDong: findValue(text, FIELD_CONFIG.ngayLamHopDong),
+                ngayKetThuc: findValue(text, FIELD_CONFIG.ngayKetThuc)
             };
 
             const allInfoFound = Object.values(info).every(value => value !== 'Không tìm thấy');
@@ -484,12 +483,11 @@ async function processPdfsForFiltering(files) {
             if (!allInfoFound) {
                 showToast(`File "${file.name}" không hợp lệ hoặc thiếu thông tin.`, 'error');
                 errorCount++;
-                continue; // Bỏ qua file này và xử lý file tiếp theo
+                continue; 
             }
 
             const row = tbody.insertRow();
-            const stt = tbody.rows.length;
-            row.insertCell().textContent = stt;
+            row.insertCell().textContent = tbody.rows.length;
             row.insertCell().textContent = info.soHopDong;
             row.insertCell().textContent = info.hoTen;
             row.insertCell().textContent = info.ngaySinh;
@@ -502,10 +500,12 @@ async function processPdfsForFiltering(files) {
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'btn btn-sm btn-outline-danger';
             deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
-            deleteBtn.title = 'Xoá dòng này';
-            deleteBtn.onclick = function() {
+            deleteBtn.onclick = () => {
                 row.remove();
                 updateStt();
+                if (tbody.rows.length === 0) {
+                    document.getElementById('export-excel-btn').style.display = 'none';
+                }
             };
             actionCell.appendChild(deleteBtn);
 
@@ -517,19 +517,15 @@ async function processPdfsForFiltering(files) {
         }
     }
     
+    if (successCount > 0) showToast(`Đã xử lý thành công ${successCount} file.`, 'info');
+    if (errorCount > 0) showToast(`Có ${errorCount} file không thể xử lý hoặc thiếu thông tin.`);
+
+    updateStt();
     const exportBtn = document.getElementById('export-excel-btn');
     if (exportBtn) {
         if (tbody.rows.length > 0) {
-            if (successCount > 0) {
-                showToast(`Đã trích xuất thông tin từ ${successCount} file.`, 'info');
-            }
             exportBtn.style.display = 'inline-block';
         } else {
-            if (errorCount === 0 && successCount === 0) {
-                // No files processed, do nothing
-            } else if (successCount === 0 && errorCount > 0) {
-                showToast(`Không có file nào được xử lý thành công.`, 'error');
-            }
             exportBtn.style.display = 'none';
         }
     }
@@ -542,46 +538,89 @@ function updateStt() {
     for (let i = 0; i < rows.length; i++) {
         rows[i].getElementsByTagName('td')[0].textContent = i + 1;
     }
-}    function getValueAfterLabel(text, label) {
-        // Special, more precise handling for Contract Number
-        if (label === 'Số Hợp Đồng') {
-            const contractRegex = /(?:Số Hợp Đồng|Số hợp đồng|Số)\s*:\s*([A-Z]{2}\d+)/;
-            const match = text.match(contractRegex);
-            if (match && match[1]) {
-                return match[1].trim();
-            }
-        }
+}
 
-        // Normalize whitespace and make matching more robust
-        const cleanedText = text.replace(/\s+/g, ' ').trim();
-        const escapedLabel = label.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-        
-        // This regex looks for the label, an optional colon, and then captures the following text.
-        // It stops capturing when it encounters a known subsequent label from your list,
-        // or a pattern that looks like a numbered list item (e.g., "1.", "2.1.").
-        const stopWords = [
-            'Họ tên', 'Thông tin Khoản Vay', 'Điện thoại di động', 'Số CCCD/Thẻ căn cước/Giấy tờ khác',
-            'Ngày Thanh Toán Đầu Tiên', 'Ngày Thanh Toán Cuối Cùng', 'Số Hợp Đồng', 'Ngày sinh'
-        ].filter(w => w !== label).join('|');
+const FIELD_CONFIG = {
+    soHopDong: {
+        labels: ['Số Hợp Đồng', 'Số hợp đồng', 'Số HĐ'],
+        regex: /(?:Số Hợp Đồng|Số hợp đồng|Số)\s*:\s*([A-Z]{2}\d+)/
+    },
+    hoTen: {
+        labels: ['Họ tên', 'Họ và tên']
+    },
+    ngaySinh: {
+        labels: ['Ngày sinh']
+    },
+    sdt: {
+        labels: ['Điện thoại di động', 'SĐT', 'Số điện thoại'],
+        regex: /(?:Điện thoại di động|SĐT|Số điện thoại)\s*:\s*(\d{10})/
+    },
+    cccd: {
+        labels: ['Số CCCD/Thẻ căn cước/Giấy tờ khác', 'Số CCCD', 'CCCD', 'Hộ chiếu/Giấy tờ khác'],
+        regex: /(?:Số CCCD\/Thẻ căn cước\/Giấy tờ khác|Số CCCD|CCCD|Hộ chiếu\/Giấy tờ khác)\s*:\s*(\d+)/
+    },
+    ngayLamHopDong: {
+        labels: ['Ngày Thanh Toán Đầu Tiên', 'Ngày trả nợ đầu tiên']
+    },
+    ngayKetThuc: {
+        labels: ['Ngày Thanh Toán Cuối Cùng', 'Ngày trả nợ cuối cùng']
+    }
+};
 
-        const regex = new RegExp(`${escapedLabel}\\s*:?\\s*(.*?)(?=\\s+(?:${stopWords})\\s*:|\\s[0-9]+\\.[0-9]*)`, 'i');
-        
-        const match = cleanedText.match(regex);
-
+function findValue(text, config) {
+    // First, try the specific regex if it exists, as it's likely more accurate
+    if (config.regex) {
+        const match = text.match(config.regex);
         if (match && match[1]) {
             return match[1].trim();
         }
-        
-        // A simpler fallback for cases where the value might be at the very end of the text
-        const fallbackRegex = new RegExp(`${escapedLabel}\\s*:?\\s*([^\\n\\r]+)`);
-        const fallbackMatch = text.match(fallbackRegex);
-        if(fallbackMatch && fallbackMatch[1]){
-            // Clean up potential multiple spaces between parts of the value
-            return fallbackMatch[1].trim().replace(/\s{2,}/g, ' ');
-        }
-
-        return 'Không tìm thấy';
     }
+    // If regex fails or doesn't exist, iterate through labels
+    for (const label of config.labels) {
+        const value = getValueAfterLabel(text, label);
+        if (value !== 'Không tìm thấy') {
+            return value;
+        }
+    }
+    return 'Không tìm thấy';
+}
+
+function getValueAfterLabel(text, label) {
+    const cleanedText = text.replace(/\s+/g, ' ').trim();
+    const escapedLabel = label.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    
+    const allLabels = Object.values(FIELD_CONFIG).flatMap(config => config.labels);
+    const stopWords = allLabels.filter(l => l.toLowerCase() !== label.toLowerCase()).join('|');
+
+    // Improved regex to better handle variations and stop words.
+    // It looks for the label, optional colon, then captures text until the next known label or a numbered list item.
+    const regex = new RegExp(`${escapedLabel}\\s*:?\\s*(.*?)(?=\\s+(?:${stopWords})\\s*:|\\s+\\d+\\.\\d)`, 'i');
+    
+    const match = cleanedText.match(regex);
+
+    if (match && match[1]) {
+        let result = match[1].trim();
+        // Remove trailing colon if it exists
+        if (result.endsWith(':')) {
+            result = result.slice(0, -1).trim();
+        }
+        // Additional cleanup for the CCCD field to remove unwanted prefixes
+        if (label.toLowerCase().includes('cccd') || label.toLowerCase().includes('hộ chiếu')) {
+            const cccdMatch = result.match(/(\d{9,12})$/);
+            if (cccdMatch) return cccdMatch[0];
+        }
+        return result;
+    }
+    
+    // Fallback regex remains the same
+    const fallbackRegex = new RegExp(`${escapedLabel}\\s*:?\\s*([^\\n\\r]+)`);
+    const fallbackMatch = text.match(fallbackRegex);
+    if (fallbackMatch && fallbackMatch[1]) {
+        return fallbackMatch[1].trim();
+    }
+
+    return 'Không tìm thấy';
+}
 
     // --- Chức năng Tab Tạo mã QR ---
 
@@ -958,4 +997,4 @@ viewer.style.display = 'block';
     }
   </script>
 </body>
-</html>
+</html
