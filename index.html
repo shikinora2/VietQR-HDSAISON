@@ -929,16 +929,33 @@ function getValueAfterLabel(text, label) {
         const amount = params.get('a');
 
         if (contract && amount) {
+            const formattedAmount = formatThousandDots(amount);
+            const newTitle = `Thanh toán HĐ ${contract} - ${name || 'Khách hàng'}`;
+            const newDescription = `Vui lòng thanh toán số tiền ${formattedAmount} VND cho hợp đồng ${contract}.`;
+            const qrUrl = buildQRUrl({ contract, name, amount });
+
+            // Update title and meta tags for social sharing
+            document.title = newTitle;
+            
+            const ogTitleTag = document.querySelector('meta[property="og:title"]');
+            if (ogTitleTag) ogTitleTag.setAttribute('content', newTitle);
+
+            const ogDescTag = document.querySelector('meta[property="og:description"]');
+            if (ogDescTag) ogDescTag.setAttribute('content', newDescription);
+            
+            const ogImageTag = document.querySelector('meta[property="og:image"]');
+            if (ogImageTag) ogImageTag.setAttribute('content', qrUrl);
+
+
             document.getElementById('root').style.display = 'none';
             document.getElementById('footer').style.display = 'none';
             const viewer = document.getElementById('viewer');
-viewer.style.display = 'block';
+            viewer.style.display = 'block';
 
-            const qrUrl = buildQRUrl({ contract, name, amount });
             document.getElementById('viewerImg').src = qrUrl;
             document.getElementById('viewerContract').textContent = contract;
             document.getElementById('viewerName').textContent = name || 'N/A';
-            document.getElementById('viewerAmount').textContent = formatThousandDots(amount) + ' VND';
+            document.getElementById('viewerAmount').textContent = formattedAmount + ' VND';
             document.getElementById('viewerDownloadBtn').onclick = () => {
                 const a = document.createElement('a');
                 a.href = qrUrl;
