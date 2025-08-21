@@ -740,10 +740,11 @@ function getValueAfterLabel(text, label) {
             } = firstPage.getSize();
 
             const qrDims = qrImage.scale(0.25); // Điều chỉnh kích thước QR nếu cần
+            
 
             firstPage.drawImage(qrImage, {
-                x: width - qrDims.width - 40, // Vị trí X
-                y: height - qrDims.height - 40, // Vị trí Y
+                x: width - qrDims.width - 30, // Vị trí X
+                y: height - qrDims.height - 25, // Vị trí Y
                 width: qrDims.width,
                 height: qrDims.height,
             });
