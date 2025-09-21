@@ -196,8 +196,8 @@
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item d-flex align-items-start"><i class="fa-solid fa-file-pdf fa-fw mt-1 me-3"></i><div><strong>Tải PDF (Nhanh):</strong> Nhấn nút "Tải PDF" và chọn 1 hoặc nhiều file (tối đa 10). Thông tin sẽ được tự động điền vào các dòng và tạo mã QR tương ứng.</div></li>
                     <li class="list-group-item d-flex align-items-start"><i class="fa-solid fa-keyboard fa-fw mt-1 me-3"></i><div><strong>Nhập thủ công:</strong> Nhấn "+ Thêm hợp đồng" để tạo dòng mới, sau đó điền thông tin và nhấn "Tạo QR".</div></li>
-                    <li class="list-group-item d-flex align-items-start"><i class="fa-solid fa-print fa-fw mt-1 me-3"></i><div><strong>In Hợp Đồng & QR:</strong> Với dòng được tạo từ PDF, nhấn nút <i class="fa-solid fa-print"></i> để mở tab mới chứa file PDF đã được chèn sẵn mã QR để in.</div></li>
-                    <li class="list-group-item d-flex align-items-start"><i class="fa-solid fa-images fa-fw mt-1 me-3"></i><div><strong>In QR lẻ:</strong> Với dòng nhập tay (không có file PDF), nút <i class="fa-solid fa-print"></i> sẽ mở trang để in mã QR.</div></li>
+                    <li class="list-group-item d-flex align-items-start"><i class="fa-solid fa-print fa-fw mt-1 me-3"></i><div><strong>In Hợp Đồng & QR:</strong> Với dòng được tạo từ PDF, nhấn nút <i class="fa-solid fa-print text-success"></i> để in trang thanh toán, hoặc nhấn <i class="fa-solid fa-file-zipper"></i> để mở trang tải xuống các file hợp đồng đã tách.</div></li>
+                    <li class="list-group-item d-flex align-items-start"><i class="fa-solid fa-images fa-fw mt-1 me-3"></i><div><strong>In QR lẻ:</strong> Với dòng nhập tay (không có file PDF), nút <i class="fa-solid fa-print text-success"></i> sẽ mở trang để in mã QR.</div></li>
                 </ul>
             </div>
           </div>
@@ -210,7 +210,7 @@
               <div class="hdr" style="flex: 1 1 260px;">Họ tên</div>
               <div class="hdr" style="flex: 1 1 170px;">Số tiền (VND)</div>
             </div>
-            <div style="width: 180px;"> <!-- Placeholder for alignment -->
+            <div style="width: 220px;"> <!-- Placeholder for alignment -->
             </div>
           </div>
     
@@ -305,8 +305,9 @@
         </div>
         <div class="actions-group">
             <button class="btn btn-primary generateBtn">Tạo QR</button>
-            <button class="btn btn-success printBtn" disabled title="In hợp đồng có QR"><i class="fa-solid fa-print"></i></button>
+            <button class="btn btn-success printBtn" disabled title="Chỉ in trang thanh toán có QR"><i class="fa-solid fa-print"></i></button>
             <img class="qr-thumb" alt="QR preview" title="Click để phóng to"/>
+            <button class="btn btn-outline-secondary printFullBtn" disabled title="Tách và tải xuống các file hợp đồng"><i class="fa-solid fa-file-zipper"></i></button>
             <button class="btn btn-outline-danger deleteRowBtn" title="Xoá dòng"><i class="fa-solid fa-trash-can"></i></button>
         </div>
       </div>
@@ -407,6 +408,7 @@
                         const pdfBuffer = await file.arrayBuffer();
                         let paymentPageNum = -1;
                         let paymentPageText = '';
+                        let insurancePageNum = -1;
                         
                         const pdf = await pdfjsLib.getDocument(new Uint8Array(pdfBuffer)).promise;
                         for (let i = 1; i <= pdf.numPages; i++) {
@@ -417,27 +419,23 @@
                             if (pageText.includes('HƯỚNG DẪN THANH TOÁN')) {
                                 paymentPageNum = i; 
                                 paymentPageText = pageText;
-                                break; // Stop searching once found
+                            }
+                            if (pageText.includes('BẢN YÊU CẦU BẢO HIỂM')) {
+                                if (insurancePageNum === -1) insurancePageNum = i;
                             }
                         }
 
-                        if (paymentPageNum === -1 && pdf.numPages > 0) {
-                            paymentPageNum = pdf.numPages; // Fallback to last page
-                            const lastPage = await pdf.getPage(paymentPageNum);
-                            const textContent = await lastPage.getTextContent();
-                            paymentPageText = textContent.items.map(item => item.str).join(' ');
-                            showToast(`Không tìm thấy trang "HƯỚNG DẪN THANH TOÁN" trong file "${file.name}". Sẽ chèn QR vào trang cuối.`, 'info');
+                        if (paymentPageNum === -1) { // If payment page not found, abort for this file
+                           showToast(`Không tìm thấy trang "HƯỚNG DẪN THANH TOÁN" trong file "${file.name}".`, 'error');
+                           continue;
                         }
                         
-                        if (paymentPageText) {
-                            const parsed = parsePdfTextAndFillRow(paymentPageText, pdfBuffer, paymentPageNum, isFirstFileInBatch);
-                            if (parsed) {
-                                successCount++;
-                                isFirstFileInBatch = false; 
-                            }
-                        } else {
-                             showToast(`Không thể đọc nội dung từ file PDF "${file.name}".`);
+                        const parsed = parsePdfTextAndFillRow(paymentPageText, pdfBuffer, paymentPageNum, insurancePageNum, isFirstFileInBatch);
+                        if (parsed) {
+                            successCount++;
+                            isFirstFileInBatch = false; 
                         }
+
                     } catch (error) {
                         console.error(`Lỗi xử lý file "${file.name}":`, error);
                         showToast(`Không thể xử lý file "${file.name}".`);
@@ -455,7 +453,7 @@
         }
     }
 
-    function parsePdfTextAndFillRow(text, pdfBuffer, pageNum, isFirstFile) {
+    function parsePdfTextAndFillRow(text, pdfBuffer, paymentPageNum, insurancePageNum, isFirstFile) {
         const contractRegex = /Số Hợp Đồng:\s*([A-Z0-9]+)/;
         const nameRegex = /Họ tên:\s*(.*?)\s*Thông tin Khoản Vay:/;
         const amountRegex = /Khoản Thanh Toán Hàng Tháng:\s*([\d,.]+)\s*VNĐ/;
@@ -489,9 +487,10 @@
             rowEl.querySelector(".generateBtn").click();
             
             const printBtn = rowEl.querySelector(".printBtn");
+            const printFullBtn = rowEl.querySelector(".printFullBtn");
             printBtn.disabled = false;
-            pdfBuffers.set(rowEl, pdfBuffer);
-            rowEl.dataset.qrPage = pageNum; // Store page number here
+            printFullBtn.disabled = false;
+            pdfBuffers.set(rowEl, { buffer: pdfBuffer, paymentPage: paymentPageNum, insurancePage: insurancePageNum });
 
             return true;
         } else {
@@ -504,7 +503,7 @@
         }
     }
 
-    async function createAndPrintModifiedPdf(pdfBuffer, qrUrl, pageNumber) {
+    async function createAndPrintSinglePagePdf(pdfBuffer, qrUrl, pageNumber) {
         const printWindow = window.open("", "_blank");
         if (!printWindow) {
             showToast("Trình duyệt đã chặn popup. Vui lòng cho phép popup.");
@@ -513,30 +512,24 @@
         printWindow.document.write('<!DOCTYPE html><html lang="vi"><head><title>Đang tạo PDF...</title><style>body{font-family:sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;font-size:1.2rem;color:#333;}</style></head><body><p>⏳ Đang chuẩn bị file PDF, vui lòng chờ trong giây lát...</p></body></html>');
 
         try {
-            // Load the original PDF document
             const originalPdfDoc = await PDFDocument.load(pdfBuffer);
-            // Create a new PDF document
             const newPdfDoc = await PDFDocument.create();
 
-            // Get the correct page index (1-based from input, 0-based for library)
             const pageIndex = pageNumber > 0 ? pageNumber - 1 : originalPdfDoc.getPageCount() - 1;
             
             if (pageIndex < 0 || pageIndex >= originalPdfDoc.getPageCount()) {
                 throw new Error(`Trang ${pageNumber} không hợp lệ.`);
             }
 
-            // Copy the specific page from the original document to the new one
             const [copiedPage] = await newPdfDoc.copyPages(originalPdfDoc, [pageIndex]);
             newPdfDoc.addPage(copiedPage);
 
-            // Fetch and embed the QR image into the new document
             const qrImageBytes = await fetch(qrUrl).then(res => res.arrayBuffer());
             const qrImage = await newPdfDoc.embedPng(qrImageBytes);
             
             const { width, height } = copiedPage.getSize();
             const qrDims = qrImage.scale(0.25);
 
-            // Draw the QR image on the copied page
             copiedPage.drawImage(qrImage, {
                 x: width - qrDims.width - 30,
                 y: height - qrDims.height - 25,
@@ -544,7 +537,6 @@
                 height: qrDims.height,
             });
 
-            // Save the new single-page PDF
             const pdfBytes = await newPdfDoc.save();
             const blob = new Blob([pdfBytes], { type: 'application/pdf' });
             const url = URL.createObjectURL(blob);
@@ -557,6 +549,139 @@
         }
     }
 
+    async function createAndPreviewSplitPdf(pdfData, qrUrl, contractId) {
+        const previewWindow = window.open("", "_blank");
+        if (!previewWindow) {
+            showToast("Trình duyệt đã chặn popup. Vui lòng cho phép popup.");
+            return;
+        }
+        previewWindow.document.write('<!DOCTYPE html><html lang="vi"><head><title>Đang tách file...</title><style>body{font-family:sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;font-size:1.2rem;color:#333;}</style></head><body><p>⏳ Đang chuẩn bị các file PDF, vui lòng chờ trong giây lát...</p></body></html>');
+
+        try {
+            const { buffer, paymentPage, insurancePage } = pdfData;
+            const originalPdfDoc = await PDFDocument.load(buffer);
+            const totalPages = originalPdfDoc.getPageCount();
+
+            // --- 1. Hợp đồng Tín dụng (Trang 1-4) ---
+            const hopDongDoc = await PDFDocument.create();
+            const hopDongPages = await hopDongDoc.copyPages(originalPdfDoc, [0, 1, 2, 3]);
+            hopDongPages.forEach(page => hopDongDoc.addPage(page));
+            const hopDongBytes = await hopDongDoc.save();
+            const hopDongUrl = URL.createObjectURL(new Blob([hopDongBytes], { type: 'application/pdf' }));
+            
+            // --- 2. Hướng dẫn Thanh toán (1 trang + QR) ---
+            const thanhToanDoc = await PDFDocument.create();
+            const [thanhToanPage] = await thanhToanDoc.copyPages(originalPdfDoc, [paymentPage - 1]);
+            thanhToanDoc.addPage(thanhToanPage);
+            const qrImageBytes = await fetch(qrUrl).then(res => res.arrayBuffer());
+            const qrImage = await thanhToanDoc.embedPng(qrImageBytes);
+            const { width, height } = thanhToanPage.getSize();
+            const qrDims = qrImage.scale(0.25);
+            thanhToanPage.drawImage(qrImage, { x: width - qrDims.width - 30, y: height - qrDims.height - 25, width: qrDims.width, height: qrDims.height });
+            const thanhToanBytes = await thanhToanDoc.save();
+            const thanhToanUrl = URL.createObjectURL(new Blob([thanhToanBytes], { type: 'application/pdf' }));
+
+            // --- 3. Yêu cầu Bảo hiểm (2 trang cuối) ---
+            let baoHiemUrl = '';
+            if (insurancePage > 0 && insurancePage + 1 <= totalPages) {
+                const baoHiemDoc = await PDFDocument.create();
+                const baoHiemPages = await baoHiemDoc.copyPages(originalPdfDoc, [insurancePage - 1, insurancePage]);
+                baoHiemPages.forEach(page => baoHiemDoc.addPage(page));
+                const baoHiemBytes = await baoHiemDoc.save();
+                baoHiemUrl = URL.createObjectURL(new Blob([baoHiemBytes], { type: 'application/pdf' }));
+            }
+            
+            const previewHtml = `
+                <!DOCTYPE html>
+                <html lang="vi">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Tải xuống & In Hợp đồng ${contractId}</title>
+                    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+                    <style>
+                        body { background-color: #0f172a; color: #e5e7eb; font-family: system-ui, sans-serif; }
+                        .container { max-width: 700px; }
+                        .card { background-color: #111827; border: 1px solid #263143; }
+                        .card h3 { color: #ffffff; }
+                        .card .contract-id { color: #e5e7eb; }
+                        .list-group-item {
+                            background-color: #1f2937 !important;
+                            color: #e5e7eb !important;
+                            border-color: #374151 !important;
+                        }
+                        .file-link {
+                            color: #e5e7eb;
+                            text-decoration: none;
+                            flex-grow: 1;
+                            transition: color .2s;
+                        }
+                        .file-link:hover {
+                            color: #93c5fd;
+                        }
+                        .action-btn {
+                            color: #9ca3af;
+                            text-decoration: none;
+                            font-size: 1.1rem;
+                            transition: color .2s;
+                        }
+                        .action-btn:hover {
+                            color: #e5e7eb;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container py-5">
+                        <div class="card p-4 rounded-4">
+                            <h3 class="mb-4 text-center">Tải xuống & In Hợp đồng</h3>
+                            <p class="text-center contract-id mb-4">Số hợp đồng: <strong>${contractId}</strong></p>
+                            <div class="list-group">
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <a href="${hopDongUrl}" target="_blank" class="file-link">
+                                        <span><i class="fa-solid fa-file-contract fa-fw me-3"></i>Hợp Đồng Tín Dụng</span>
+                                    </a>
+                                    <div class="actions">
+                                        <a href="${hopDongUrl}" target="_blank" class="action-btn me-3" title="In"><i class="fa-solid fa-print"></i></a>
+                                        <a href="${hopDongUrl}" download="HopDongTinDung_${contractId}.pdf" class="action-btn" title="Tải về"><i class="fa-solid fa-download"></i></a>
+                                    </div>
+                                </div>
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <a href="${thanhToanUrl}" target="_blank" class="file-link">
+                                       <span><i class="fa-solid fa-qrcode fa-fw me-3"></i>Hướng Dẫn Thanh Toán (có QR)</span>
+                                    </a>
+                                     <div class="actions">
+                                        <a href="${thanhToanUrl}" target="_blank" class="action-btn me-3" title="In"><i class="fa-solid fa-print"></i></a>
+                                        <a href="${thanhToanUrl}" download="HuongDanThanhToan_${contractId}.pdf" class="action-btn" title="Tải về"><i class="fa-solid fa-download"></i></a>
+                                    </div>
+                                </div>
+                                ${baoHiemUrl ? `
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                     <a href="${baoHiemUrl}" target="_blank" class="file-link">
+                                        <span><i class="fa-solid fa-shield-halved fa-fw me-3"></i>Bản Yêu Cầu Bảo Hiểm</span>
+                                    </a>
+                                    <div class="actions">
+                                        <a href="${baoHiemUrl}" target="_blank" class="action-btn me-3" title="In"><i class="fa-solid fa-print"></i></a>
+                                        <a href="${baoHiemUrl}" download="YeuCauBaoHiem_${contractId}.pdf" class="action-btn" title="Tải về"><i class="fa-solid fa-download"></i></a>
+                                    </div>
+                                </div>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `;
+
+            previewWindow.document.open();
+            previewWindow.document.write(previewHtml);
+            previewWindow.document.close();
+
+        } catch (error) {
+            console.error("Lỗi khi tách file PDF:", error);
+            previewWindow.document.body.innerHTML = `<p>❌ Đã xảy ra lỗi khi tách file PDF. Vui lòng thử lại.</p>`;
+            showToast("Lỗi khi tách file PDF.");
+        }
+    }
+
     function addRow() {
         const node = tpl.content.cloneNode(true);
         const el = node.querySelector(".row-item");
@@ -565,6 +690,7 @@
         const inputAmount = el.querySelector(".amountInput");
         const btnGen = el.querySelector(".generateBtn");
         const btnPrint = el.querySelector(".printBtn");
+        const btnPrintFull = el.querySelector(".printFullBtn");
         const btnDelRow = el.querySelector(".deleteRowBtn");
         const img = el.querySelector(".qr-thumb");
         const errorMessages = {
@@ -624,19 +750,26 @@
             const qrUrl = buildQRUrl(data);
             img.src = qrUrl;
             img.style.display = "block";
-            // Do not enable print button here automatically for manual entries without PDF
         });
         
         btnPrint.addEventListener("click", async () => {
             const data = { contract: inputContract.value, name: inputName.value, amount: inputAmount.value };
             const qrUrl = buildQRUrl(data, "compact.png");
-
-            if (pdfBuffers.has(el)) {
-                const pageNum = el.dataset.qrPage ? parseInt(el.dataset.qrPage, 10) : 0;
-                await createAndPrintModifiedPdf(pdfBuffers.get(el), qrUrl, pageNum);
+            
+            const pdfData = pdfBuffers.get(el);
+            if (pdfData) {
+                await createAndPrintSinglePagePdf(pdfData.buffer, qrUrl, pdfData.paymentPage);
             } else {
                 openQrPrintPreview(qrUrl);
             }
+        });
+
+        btnPrintFull.addEventListener("click", async () => {
+            if (!pdfBuffers.has(el)) return;
+            const data = { contract: inputContract.value, name: inputName.value, amount: inputAmount.value };
+            const qrUrl = buildQRUrl(data, "compact.png");
+            const contractId = inputContract.value;
+            await createAndPreviewSplitPdf(pdfBuffers.get(el), qrUrl, contractId);
         });
 
         btnDelRow.addEventListener("click", () => {
@@ -863,7 +996,9 @@
     
     function showToast(message, type = 'error') {
         const toastEl = document.createElement('div');
-        toastEl.className = `toast-notification ${type}`;
+        toastEl.className = `toast-notification`;
+        if (type === 'info') toastEl.classList.add('info');
+
         toastEl.textContent = message;
         document.body.appendChild(toastEl);
         setTimeout(() => {
@@ -894,9 +1029,4 @@
   </script>
 </body>
 </html>
-
-
-
-
-
 
