@@ -15,7 +15,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <style>
-:root{
+    :root{
       --bg:#f6f8fb; --card:#ffffff; --ink:#15253b; --muted:#6b7280;
       --border:#e9eef5; --shadow:0 10px 30px rgba(25,35,78,.08); --danger:#dc3545; --info: #0dcaf0;
     }
@@ -80,77 +80,77 @@
     .instructions .fa-solid { color: var(--info); }
     #instructionsContent.show { display: block !important; }
 
-/* Dark mode button overrides */
-[data-theme="dark"] .btn-secondary {
-    background-color: var(--border);
-    border-color: var(--border);
-    color: var(--ink);
-}
+    /* Dark mode button overrides */
+    [data-theme="dark"] .btn-secondary {
+        background-color: var(--border);
+        border-color: var(--border);
+        color: var(--ink);
+    }
 
-[data-theme="dark"] .btn-secondary:hover {
-    filter: brightness(1.2);
-}
+    [data-theme="dark"] .btn-secondary:hover {
+        filter: brightness(1.2);
+    }
 
-[data-theme="dark"] .btn-success {
-    background-color: #16a34a;
-    border-color: #16a34a;
-    color: #fff;
-}
+    [data-theme="dark"] .btn-success {
+        background-color: #16a34a;
+        border-color: #16a34a;
+        color: #fff;
+    }
 
-[data-theme="dark"] .btn-success:hover {
-    filter: brightness(1.2);
-}
+    [data-theme="dark"] .btn-success:hover {
+        filter: brightness(1.2);
+    }
 
-/* Dark mode tab overrides */
-[data-theme="dark"] .nav-tabs {
-    border-bottom-color: var(--border);
-}
+    /* Dark mode tab overrides */
+    [data-theme="dark"] .nav-tabs {
+        border-bottom-color: var(--border);
+    }
 
-[data-theme="dark"] .nav-tabs .nav-link {
-    background: transparent;
-    border-color: transparent transparent var(--border);
-    color: var(--muted);
-}
+    [data-theme="dark"] .nav-tabs .nav-link {
+        background: transparent;
+        border-color: transparent transparent var(--border);
+        color: var(--muted);
+    }
 
-[data-theme="dark"] .nav-tabs .nav-link.active,
-[data-theme="dark"] .nav-tabs .nav-item.show .nav-link {
-    background: var(--card);
-    border-color: var(--border) var(--border) var(--card);
-    color: var(--ink);
-}
+    [data-theme="dark"] .nav-tabs .nav-link.active,
+    [data-theme="dark"] .nav-tabs .nav-item.show .nav-link {
+        background: var(--card);
+        border-color: var(--border) var(--border) var(--card);
+        color: var(--ink);
+    }
 
-[data-theme="dark"] .nav-tabs .nav-link:hover:not(.active) {
-    border-color: transparent transparent var(--border);
-    isolation: isolate;
-    background: #ffffff10;
-}
+    [data-theme="dark"] .nav-tabs .nav-link:hover:not(.active) {
+        border-color: transparent transparent var(--border);
+        isolation: isolate;
+        background: #ffffff10;
+    }
 
-/* Dark mode table overrides */
-[data-theme="dark"] .table {
-    --bs-table-bg: transparent;
-    --bs-table-border-color: var(--border);
-    --bs-table-color: var(--ink);
-}
+    /* Dark mode table overrides */
+    [data-theme="dark"] .table {
+        --bs-table-bg: transparent;
+        --bs-table-border-color: var(--border);
+        --bs-table-color: var(--ink);
+    }
 
-[data-theme="dark"] .table-bordered th,
-[data-theme="dark"] .table-bordered td {
-    border-color: var(--border);
-}
+    [data-theme="dark"] .table-bordered th,
+    [data-theme="dark"] .table-bordered td {
+        border-color: var(--border);
+    }
 
-[data-theme="dark"] .table thead th {
-    color: var(--muted);
-    font-weight: 600;
-}
+    [data-theme="dark"] .table thead th {
+        color: var(--muted);
+        font-weight: 600;
+    }
 
-[data-theme="dark"] .table tbody tr:first-child td {
-    border-top: none;
-}
-[data-theme="dark"] .table td, [data-theme="dark"] .table th {
-    padding: 1rem 0.5rem;
-}
-.date-col {
-    white-space: nowrap;
-
+    [data-theme="dark"] .table tbody tr:first-child td {
+        border-top: none;
+    }
+    [data-theme="dark"] .table td, [data-theme="dark"] .table th {
+        padding: 1rem 0.5rem;
+    }
+    .date-col {
+        white-space: nowrap;
+    }
   </style>
   
   <!-- Thư viện PDF.js và pdf-lib -->
@@ -319,14 +319,21 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-const pdfUpload = document.getElementById('pdfFile');
+    // --- Elements ---
+    const pdfUpload = document.getElementById('pdfFile');
     const uploadPdfLabel = document.getElementById('uploadPdfLabel');
-    const qrCodeContainer = document.getElementById('qr-code-container');
-    const dataTableBody = document.querySelector('#data-table tbody');
-    const toastContainer = document.getElementById('toast-container');
-    const { PDFDocument, rgb } = PDFLib;
+    const { PDFDocument } = PDFLib;
+    const rowsEl = document.getElementById("rows");
+    const addRowEl = document.getElementById("addRow");
+    const tpl = document.getElementById("rowTemplate");
+    const lb = document.getElementById("lb");
+    const lbImg = document.getElementById("lbImg");
+    const lbClose = document.getElementById("lbClose");
+    const shareBtn = document.getElementById("shareBtn");
+    const downloadQrBtn = lb.querySelector(".download-qr");
+    const pdfBuffers = new Map();
 
-    // Event Listeners
+    // --- Event Listeners ---
     if (uploadPdfLabel) {
         uploadPdfLabel.addEventListener('click', (e) => {
             e.preventDefault();
@@ -338,7 +345,43 @@ const pdfUpload = document.getElementById('pdfFile');
     if (pdfUpload) {
         pdfUpload.addEventListener('change', handlePdfUpload);
     }
+     if (addRowEl) {
+        addRowEl.addEventListener("click", addRow);
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+        handleSharedLink();
 
+        const exportBtn = document.getElementById('export-excel-btn');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => {
+                const table = document.getElementById('customer-info-table');
+                const headers = Array.from(table.querySelectorAll('thead th'))
+                                     .map(th => th.textContent)
+                                     .slice(0, -1); 
+
+                const data = Array.from(table.querySelectorAll('tbody tr')).map(row => {
+                    const rowData = Array.from(row.querySelectorAll('td')).map((td, index) => {
+                         const cellText = td.textContent;
+                         if (index === 4 || index === 5) { // SĐT and CCCD columns
+                             return { v: cellText, t: 's' }; // Treat as string
+                         }
+                         return cellText;
+                    });
+                    return rowData.slice(0, -1); 
+                });
+
+                const ws = XLSX.utils.aoa_to_sheet([headers]);
+                XLSX.utils.sheet_add_aoa(ws, data, { origin: -1 }); 
+
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Danh sách khách hàng");
+                XLSX.writeFile(wb, 'DanhSachKhachHang.xlsx');
+            });
+        }
+    });
+
+
+    // --- Core Functions ---
     async function handlePdfUpload(event) {
         const files = event.target.files;
         if (files.length === 0) return;
@@ -352,7 +395,6 @@ const pdfUpload = document.getElementById('pdfFile');
             if (activeTabId === 'filter-tab') {
                 await processPdfsForFiltering(files);
             } else if (activeTabId === 'qr-tab') {
-                // Existing logic for QR tab
                 let isFirstFileInBatch = true;
                 let successCount = 0;
 
@@ -363,23 +405,38 @@ const pdfUpload = document.getElementById('pdfFile');
                     }
                     try {
                         const pdfBuffer = await file.arrayBuffer();
-                        const text = await new Promise((resolve, reject) => {
-                            const typedarray = new Uint8Array(pdfBuffer);
-                            pdfjsLib.getDocument(typedarray).promise.then(async (pdf) => {
-                                let fullText = '';
-                                for (let i = 1; i <= pdf.numPages; i++) {
-                                    const page = await pdf.getPage(i);
-                                    const textContent = await page.getTextContent();
-                                    fullText += textContent.items.map(item => item.str).join(' ');
-                                }
-                                resolve(fullText);
-                            }).catch(reject);
-                        });
+                        let paymentPageNum = -1;
+                        let paymentPageText = '';
                         
-                        const parsed = parsePdfTextAndFillRow(text, pdfBuffer, isFirstFileInBatch);
-                        if (parsed) {
-                            successCount++;
-                            isFirstFileInBatch = false; 
+                        const pdf = await pdfjsLib.getDocument(new Uint8Array(pdfBuffer)).promise;
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const textContent = await page.getTextContent();
+                            const pageText = textContent.items.map(item => item.str).join(' ');
+                            
+                            if (pageText.includes('HƯỚNG DẪN THANH TOÁN')) {
+                                paymentPageNum = i; 
+                                paymentPageText = pageText;
+                                break; // Stop searching once found
+                            }
+                        }
+
+                        if (paymentPageNum === -1 && pdf.numPages > 0) {
+                            paymentPageNum = pdf.numPages; // Fallback to last page
+                            const lastPage = await pdf.getPage(paymentPageNum);
+                            const textContent = await lastPage.getTextContent();
+                            paymentPageText = textContent.items.map(item => item.str).join(' ');
+                            showToast(`Không tìm thấy trang "HƯỚNG DẪN THANH TOÁN" trong file "${file.name}". Sẽ chèn QR vào trang cuối.`, 'info');
+                        }
+                        
+                        if (paymentPageText) {
+                            const parsed = parsePdfTextAndFillRow(paymentPageText, pdfBuffer, paymentPageNum, isFirstFileInBatch);
+                            if (parsed) {
+                                successCount++;
+                                isFirstFileInBatch = false; 
+                            }
+                        } else {
+                             showToast(`Không thể đọc nội dung từ file PDF "${file.name}".`);
                         }
                     } catch (error) {
                         console.error(`Lỗi xử lý file "${file.name}":`, error);
@@ -398,279 +455,7 @@ const pdfUpload = document.getElementById('pdfFile');
         }
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        handleSharedLink();
-
-        const exportBtn = document.getElementById('export-excel-btn');
-        if (exportBtn) {
-            exportBtn.addEventListener('click', () => {
-                const table = document.getElementById('customer-info-table');
-                const headers = Array.from(table.querySelectorAll('thead th'))
-                                     .map(th => th.textContent)
-                                     .slice(0, -1); // Exclude "Xóa" column
-
-                const data = Array.from(table.querySelectorAll('tbody tr')).map(row => {
-                    const rowData = Array.from(row.querySelectorAll('td')).map((td, index) => {
-                         const cellText = td.textContent;
-                         // Columns for SĐT (index 3) and Số CCCD (index 4)
-                         if (index === 3 || index === 4) {
-                             return { v: cellText, t: 's' }; // Treat as string
-                         }
-                         return cellText;
-                    });
-                    return rowData.slice(0, -1); // Exclude delete button cell
-                });
-
-                const ws = XLSX.utils.aoa_to_sheet([headers]);
-                XLSX.utils.sheet_add_aoa(ws, data, { origin: -1 }); // Append data starting after the header
-
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Danh sách khách hàng");
-                XLSX.writeFile(wb, 'DanhSachKhachHang.xlsx');
-            });
-        }
-    });
-
-    async function getPdfText(file) {
-        const fileReader = new FileReader();
-        return new Promise((resolve, reject) => {
-            fileReader.onload = async function() {
-                const typedarray = new Uint8Array(this.result);
-                try {
-                    const pdf = await pdfjsLib.getDocument(typedarray).promise;
-                    let fullText = '';
-                    for (let i = 1; i <= pdf.numPages; i++) {
-                        const page = await pdf.getPage(i);
-                        const textContent = await page.getTextContent();
-                        const pageText = textContent.items.map(item => item.str).join(' ');
-                        fullText += pageText + '\n';
-                    }
-                    resolve(fullText);
-                } catch (error) {
-                    reject(error);
-                }
-            };
-            fileReader.onerror = reject;
-            fileReader.readAsArrayBuffer(file);
-        });
-    }
-
-async function processPdfsForFiltering(files) {
-    const tbody = document.getElementById('filter-results-tbody');
-    if (!tbody) return;
-    let successCount = 0;
-    let errorCount = 0;
-
-    for (const file of files) {
-        if (file.type !== 'application/pdf') {
-            showToast(`File "${file.name}" không phải là PDF và đã bị bỏ qua.`);
-            continue;
-        }
-        try {
-            const text = await getPdfText(file);
-            
-            const info = {
-                soHopDong: findValue(text, FIELD_CONFIG.soHopDong),
-                hoTen: findValue(text, FIELD_CONFIG.hoTen),
-                ngaySinh: findValue(text, FIELD_CONFIG.ngaySinh),
-                sdt: findValue(text, FIELD_CONFIG.sdt),
-                cccd: findValue(text, FIELD_CONFIG.cccd),
-                ngayLamHopDong: findValue(text, FIELD_CONFIG.ngayLamHopDong),
-                ngayKetThuc: findValue(text, FIELD_CONFIG.ngayKetThuc)
-            };
-
-            const allInfoFound = Object.values(info).every(value => value !== 'Không tìm thấy');
-
-            if (!allInfoFound) {
-                showToast(`File "${file.name}" không hợp lệ hoặc thiếu thông tin.`, 'error');
-                errorCount++;
-                continue; 
-            }
-
-            const row = tbody.insertRow();
-            row.insertCell().textContent = tbody.rows.length;
-            row.insertCell().textContent = info.soHopDong;
-            row.insertCell().textContent = info.hoTen;
-            row.insertCell().textContent = info.ngaySinh;
-            row.insertCell().textContent = info.sdt;
-            row.insertCell().textContent = info.cccd;
-            row.insertCell().textContent = info.ngayLamHopDong;
-            row.insertCell().textContent = info.ngayKetThuc;
-            
-            const actionCell = row.insertCell();
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'btn btn-sm btn-outline-danger';
-            deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
-            deleteBtn.onclick = () => {
-                row.remove();
-                updateStt();
-                if (tbody.rows.length === 0) {
-                    document.getElementById('export-excel-btn').style.display = 'none';
-                }
-            };
-            actionCell.appendChild(deleteBtn);
-
-            successCount++;
-        } catch (error) {
-            console.error(`Lỗi xử lý file "${file.name}":`, error);
-            showToast(`Không thể xử lý file "${file.name}".`);
-            errorCount++;
-        }
-    }
-    
-    if (successCount > 0) showToast(`Đã xử lý thành công ${successCount} file.`, 'info');
-    if (errorCount > 0) showToast(`Có ${errorCount} file không thể xử lý hoặc thiếu thông tin.`);
-
-    updateStt();
-    const exportBtn = document.getElementById('export-excel-btn');
-    if (exportBtn) {
-        if (tbody.rows.length > 0) {
-            exportBtn.style.display = 'inline-block';
-        } else {
-            exportBtn.style.display = 'none';
-        }
-    }
-}
-
-function updateStt() {
-    const tbody = document.getElementById('filter-results-tbody');
-    if (!tbody) return;
-    const rows = tbody.getElementsByTagName('tr');
-    for (let i = 0; i < rows.length; i++) {
-        rows[i].getElementsByTagName('td')[0].textContent = i + 1;
-    }
-}
-
-const FIELD_CONFIG = {
-    soHopDong: {
-        labels: ['Số Hợp Đồng', 'Số hợp đồng', 'Số HĐ'],
-        regex: /(?:Số Hợp Đồng|Số hợp đồng|Số)\s*:\s*([A-Z]{2}\d+)/
-    },
-    hoTen: {
-        labels: ['Họ tên', 'Họ và tên']
-    },
-    ngaySinh: {
-        labels: ['Ngày sinh']
-    },
-    sdt: {
-        labels: ['Điện thoại di động', 'SĐT', 'Số điện thoại'],
-        regex: /(?:Điện thoại di động|SĐT|Số điện thoại)\s*:\s*(\d{10})/
-    },
-    cccd: {
-        labels: ['Số CCCD/Thẻ căn cước/Giấy tờ khác', 'Số CCCD', 'CCCD', 'Hộ chiếu/Giấy tờ khác'],
-        regex: /(?:Số CCCD\/Thẻ căn cước\/Giấy tờ khác|Số CCCD|CCCD|Hộ chiếu\/Giấy tờ khác)\s*:\s*(\d+)/
-    },
-    ngayLamHopDong: {
-        labels: ['Ngày Thanh Toán Đầu Tiên', 'Ngày trả nợ đầu tiên']
-    },
-    ngayKetThuc: {
-        labels: ['Ngày Thanh Toán Cuối Cùng', 'Ngày trả nợ cuối cùng']
-    }
-};
-
-function findValue(text, config) {
-    // First, try the specific regex if it exists, as it's likely more accurate
-    if (config.regex) {
-        const match = text.match(config.regex);
-        if (match && match[1]) {
-            return match[1].trim();
-        }
-    }
-    // If regex fails or doesn't exist, iterate through labels
-    for (const label of config.labels) {
-        const value = getValueAfterLabel(text, label);
-        if (value !== 'Không tìm thấy') {
-            return value;
-        }
-    }
-    return 'Không tìm thấy';
-}
-
-function getValueAfterLabel(text, label) {
-    const cleanedText = text.replace(/\s+/g, ' ').trim();
-    const escapedLabel = label.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-    
-    const allLabels = Object.values(FIELD_CONFIG).flatMap(config => config.labels);
-    const stopWords = allLabels.filter(l => l.toLowerCase() !== label.toLowerCase()).join('|');
-
-    // Improved regex to better handle variations and stop words.
-    // It looks for the label, optional colon, then captures text until the next known label or a numbered list item.
-    const regex = new RegExp(`${escapedLabel}\\s*:?\\s*(.*?)(?=\\s+(?:${stopWords})\\s*:|\\s+\\d+\\.\\d)`, 'i');
-    
-    const match = cleanedText.match(regex);
-
-    if (match && match[1]) {
-        let result = match[1].trim();
-        // Remove trailing colon if it exists
-        if (result.endsWith(':')) {
-            result = result.slice(0, -1).trim();
-        }
-        // Additional cleanup for the CCCD field to remove unwanted prefixes
-        if (label.toLowerCase().includes('cccd') || label.toLowerCase().includes('hộ chiếu')) {
-            const cccdMatch = result.match(/(\d{9,12})$/);
-            if (cccdMatch) return cccdMatch[0];
-        }
-        return result;
-    }
-    
-    // Fallback regex remains the same
-    const fallbackRegex = new RegExp(`${escapedLabel}\\s*:?\\s*([^\\n\\r]+)`);
-    const fallbackMatch = text.match(fallbackRegex);
-    if (fallbackMatch && fallbackMatch[1]) {
-        return fallbackMatch[1].trim();
-    }
-
-    return 'Không tìm thấy';
-}
-
-    // --- Chức năng Tab Tạo mã QR ---
-
-    const rowsEl = document.getElementById("rows");
-    const addRowEl = document.getElementById("addRow");
-    const tpl = document.getElementById("rowTemplate");
-    const lb = document.getElementById("lb");
-    const lbImg = document.getElementById("lbImg");
-    const lbClose = document.getElementById("lbClose");
-    const shareBtn = document.getElementById("shareBtn");
-    const downloadQrBtn = lb.querySelector(".download-qr");
-
-    const pdfBuffers = new Map(); // Lưu trữ buffer của các file PDF đã tải lên
-
-    function stripVietnamese(str) {
-        if (!str) return "";
-        return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/gi, "d");
-    }
-
-    function digitsOnly(str) {
-        return (str || "").replace(/\D/g, "");
-    }
-
-    function formatThousandDots(numStr) {
-        const s = digitsOnly(numStr);
-        return s.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-    }
-
-    function buildQRUrl({
-        contract,
-        name,
-        amount
-    }, template = "print.png") {
-        const amountDigits = digitsOnly(amount);
-        const addInfo = `${contract} ${stripVietnamese(name)}`.trim().toUpperCase();
-        const BANK_ID = "hdbank";
-        const ACCOUNT_NO = "002704070014601";
-        const LOGO_URL = "https://i.imgur.com/sC5323R.png";
-
-        const qs = new URLSearchParams({
-            accountName: "HD SAISON",
-            amount: amountDigits,
-            addInfo: addInfo,
-            template: template,
-        });
-        return `https://img.vietqr.io/image/${BANK_ID}-${ACCOUNT_NO}-${template}?${qs.toString()}`;
-    }
-
-    function parsePdfTextAndFillRow(text, pdfBuffer, isFirstFile) {
+    function parsePdfTextAndFillRow(text, pdfBuffer, pageNum, isFirstFile) {
         const contractRegex = /Số Hợp Đồng:\s*([A-Z0-9]+)/;
         const nameRegex = /Họ tên:\s*(.*?)\s*Thông tin Khoản Vay:/;
         const amountRegex = /Khoản Thanh Toán Hàng Tháng:\s*([\d,.]+)\s*VNĐ/;
@@ -685,7 +470,6 @@ function getValueAfterLabel(text, label) {
             const amount = amountMatch[1].trim();
 
             let rowEl;
-            // Nếu là file đầu tiên và dòng đầu tiên trống, sử dụng dòng đó
             if (isFirstFile && rowsEl.children.length === 1) {
                 const firstRow = rowsEl.querySelector('.row-item');
                 const inputs = firstRow.querySelectorAll('input');
@@ -695,7 +479,6 @@ function getValueAfterLabel(text, label) {
                 }
             }
 
-            // Nếu không, tạo dòng mới
             if (!rowEl) {
                 rowEl = addRow();
             }
@@ -703,12 +486,12 @@ function getValueAfterLabel(text, label) {
             rowEl.querySelector(".contractInput").value = contract;
             rowEl.querySelector(".nameInput").value = name;
             rowEl.querySelector(".amountInput").value = formatThousandDots(amount);
-            rowEl.querySelector(".generateBtn").click(); // Tự động tạo QR
+            rowEl.querySelector(".generateBtn").click();
             
-            // Kích hoạt nút in và lưu buffer
             const printBtn = rowEl.querySelector(".printBtn");
             printBtn.disabled = false;
             pdfBuffers.set(rowEl, pdfBuffer);
+            rowEl.dataset.qrPage = pageNum; // Store page number here
 
             return true;
         } else {
@@ -716,12 +499,12 @@ function getValueAfterLabel(text, label) {
             if (!contractMatch) missing.push("Số hợp đồng");
             if (!nameMatch) missing.push("Họ tên");
             if (!amountMatch) missing.push("Số tiền");
-            showToast(`Không tìm thấy đủ thông tin (${missing.join(", ")}) trong file PDF.`);
+            showToast(`Không tìm thấy đủ thông tin (${missing.join(", ")}) trên trang thanh toán.`);
+            return false;
         }
-        return false;
     }
 
-    async function createAndPrintModifiedPdf(pdfBuffer, qrUrl) {
+    async function createAndPrintModifiedPdf(pdfBuffer, qrUrl, pageNumber) {
         const printWindow = window.open("", "_blank");
         if (!printWindow) {
             showToast("Trình duyệt đã chặn popup. Vui lòng cho phép popup.");
@@ -730,51 +513,48 @@ function getValueAfterLabel(text, label) {
         printWindow.document.write('<!DOCTYPE html><html lang="vi"><head><title>Đang tạo PDF...</title><style>body{font-family:sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;font-size:1.2rem;color:#333;}</style></head><body><p>⏳ Đang chuẩn bị file PDF, vui lòng chờ trong giây lát...</p></body></html>');
 
         try {
-            const pdfDoc = await PDFDocument.load(pdfBuffer);
-            const qrImageBytes = await fetch(qrUrl).then(res => res.arrayBuffer());
-            const qrImage = await pdfDoc.embedPng(qrImageBytes);
-            const firstPage = pdfDoc.getPages()[0];
-            const {
-                width,
-                height
-            } = firstPage.getSize();
+            // Load the original PDF document
+            const originalPdfDoc = await PDFDocument.load(pdfBuffer);
+            // Create a new PDF document
+            const newPdfDoc = await PDFDocument.create();
 
-            const qrDims = qrImage.scale(0.25); // Điều chỉnh kích thước QR nếu cần
+            // Get the correct page index (1-based from input, 0-based for library)
+            const pageIndex = pageNumber > 0 ? pageNumber - 1 : originalPdfDoc.getPageCount() - 1;
             
+            if (pageIndex < 0 || pageIndex >= originalPdfDoc.getPageCount()) {
+                throw new Error(`Trang ${pageNumber} không hợp lệ.`);
+            }
 
-            firstPage.drawImage(qrImage, {
-                x: width - qrDims.width - 30, // Vị trí X
-                y: height - qrDims.height - 25, // Vị trí Y
+            // Copy the specific page from the original document to the new one
+            const [copiedPage] = await newPdfDoc.copyPages(originalPdfDoc, [pageIndex]);
+            newPdfDoc.addPage(copiedPage);
+
+            // Fetch and embed the QR image into the new document
+            const qrImageBytes = await fetch(qrUrl).then(res => res.arrayBuffer());
+            const qrImage = await newPdfDoc.embedPng(qrImageBytes);
+            
+            const { width, height } = copiedPage.getSize();
+            const qrDims = qrImage.scale(0.25);
+
+            // Draw the QR image on the copied page
+            copiedPage.drawImage(qrImage, {
+                x: width - qrDims.width - 30,
+                y: height - qrDims.height - 25,
                 width: qrDims.width,
                 height: qrDims.height,
             });
 
-            const pdfBytes = await pdfDoc.save();
-            const blob = new Blob([pdfBytes], {
-                type: 'application/pdf'
-            });
+            // Save the new single-page PDF
+            const pdfBytes = await newPdfDoc.save();
+            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
             const url = URL.createObjectURL(blob);
             printWindow.location.href = url;
 
         } catch (error) {
-            console.error("Lỗi khi chèn QR vào PDF:", error);
+            console.error("Lỗi khi tạo PDF chỉ có trang thanh toán:", error);
             printWindow.document.body.innerHTML = `<p>❌ Đã xảy ra lỗi khi tạo PDF. Vui lòng thử lại.</p>`;
-            showToast("Lỗi khi chèn QR vào PDF.");
+            showToast("Lỗi khi tạo file PDF để in.");
         }
-    }
-
-    function openQrPrintPreview(qrUrl) {
-        const w = window.open("", "_blank");
-        if (!w) {
-            showToast("Trình duyệt đã chặn popup.");
-            return;
-        }
-        const html = `
-            <!DOCTYPE html><html lang="vi"><head><title>In mã QR</title><style>body{margin:0; text-align:center;} img{width:80vw; max-width:400px; margin-top:2rem;}</style></head>
-            <body><img src="${qrUrl}" alt="VietQR"/><script> window.onload = () => { setTimeout(() => { window.print(); }, 500); }; <\/script></body></html>`;
-        w.document.open();
-        w.document.write(html);
-        w.document.close();
     }
 
     function addRow() {
@@ -840,27 +620,20 @@ function getValueAfterLabel(text, label) {
 
         btnGen.addEventListener("click", () => {
             if (!validate()) return;
-            const data = {
-                contract: inputContract.value,
-                name: inputName.value,
-                amount: inputAmount.value
-            };
+            const data = { contract: inputContract.value, name: inputName.value, amount: inputAmount.value };
             const qrUrl = buildQRUrl(data);
             img.src = qrUrl;
             img.style.display = "block";
-            btnPrint.disabled = false;
+            // Do not enable print button here automatically for manual entries without PDF
         });
-
+        
         btnPrint.addEventListener("click", async () => {
-            const data = {
-                contract: inputContract.value,
-                name: inputName.value,
-                amount: inputAmount.value
-            };
+            const data = { contract: inputContract.value, name: inputName.value, amount: inputAmount.value };
             const qrUrl = buildQRUrl(data, "compact.png");
 
             if (pdfBuffers.has(el)) {
-                await createAndPrintModifiedPdf(pdfBuffers.get(el), qrUrl);
+                const pageNum = el.dataset.qrPage ? parseInt(el.dataset.qrPage, 10) : 0;
+                await createAndPrintModifiedPdf(pdfBuffers.get(el), qrUrl, pageNum);
             } else {
                 openQrPrintPreview(qrUrl);
             }
@@ -883,11 +656,7 @@ function getValueAfterLabel(text, label) {
             lb.setAttribute("aria-hidden", "false");
             downloadQrBtn.href = img.src;
             
-            const data = {
-                contract: inputContract.value,
-                name: inputName.value,
-                amount: inputAmount.value
-            };
+            const data = { contract: inputContract.value, name: inputName.value, amount: inputAmount.value };
             const shareUrl = buildShareLink(data);
             shareBtn.onclick = () => copyToClipboard(shareUrl, "Đã sao chép link chia sẻ!");
         });
@@ -897,24 +666,166 @@ function getValueAfterLabel(text, label) {
         return el;
     }
 
+    // --- Tab 2: Filter Customer Info Functions ---
+
+    async function getPdfText(file) {
+        return new Promise((resolve, reject) => {
+            const fileReader = new FileReader();
+            fileReader.onload = async function() {
+                const typedarray = new Uint8Array(this.result);
+                try {
+                    const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                    let fullText = '';
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const textContent = await page.getTextContent();
+                        fullText += textContent.items.map(item => item.str).join(' ');
+                    }
+                    resolve(fullText);
+                } catch (error) { reject(error); }
+            };
+            fileReader.onerror = reject;
+            fileReader.readAsArrayBuffer(file);
+        });
+    }
+
+    async function processPdfsForFiltering(files) {
+        const tbody = document.getElementById('filter-results-tbody');
+        if (!tbody) return;
+        let successCount = 0, errorCount = 0;
+
+        for (const file of files) {
+            if (file.type !== 'application/pdf') {
+                showToast(`File "${file.name}" không phải là PDF và đã bị bỏ qua.`);
+                continue;
+            }
+            try {
+                const text = await getPdfText(file);
+                const info = {
+                    soHopDong: findValue(text, FIELD_CONFIG.soHopDong),
+                    hoTen: findValue(text, FIELD_CONFIG.hoTen),
+                    ngaySinh: findValue(text, FIELD_CONFIG.ngaySinh),
+                    sdt: findValue(text, FIELD_CONFIG.sdt),
+                    cccd: findValue(text, FIELD_CONFIG.cccd),
+                    ngayDongTien: findValue(text, FIELD_CONFIG.ngayDongTien),
+                    ngayKetThuc: findValue(text, FIELD_CONFIG.ngayKetThuc)
+                };
+                
+                if (Object.values(info).some(v => v === 'Không tìm thấy')) {
+                     throw new Error('Thiếu thông tin.');
+                }
+
+                const row = tbody.insertRow();
+                row.insertCell().textContent = tbody.rows.length;
+                Object.values(info).forEach(value => {
+                    row.insertCell().textContent = value;
+                });
+                
+                const actionCell = row.insertCell();
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn btn-sm btn-outline-danger';
+                deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
+                deleteBtn.onclick = () => {
+                    row.remove();
+                    updateStt();
+                    if (tbody.rows.length === 0) {
+                        document.getElementById('export-excel-btn').style.display = 'none';
+                    }
+                };
+                actionCell.appendChild(deleteBtn);
+                successCount++;
+            } catch (error) {
+                console.error(`Lỗi xử lý file "${file.name}":`, error);
+                showToast(`Không thể xử lý file "${file.name}" hoặc file thiếu thông tin.`);
+                errorCount++;
+            }
+        }
+        
+        if (successCount > 0) showToast(`Đã xử lý thành công ${successCount} file.`, 'info');
+        if (errorCount > 0) showToast(`Có ${errorCount} file không thể xử lý.`);
+
+        updateStt();
+        const exportBtn = document.getElementById('export-excel-btn');
+        if (exportBtn) {
+            exportBtn.style.display = tbody.rows.length > 0 ? 'inline-block' : 'none';
+        }
+    }
+
+    function updateStt() {
+        const rows = document.querySelectorAll('#filter-results-tbody tr');
+        rows.forEach((row, index) => {
+            row.cells[0].textContent = index + 1;
+        });
+    }
+
+    const FIELD_CONFIG = {
+        soHopDong: { regex: [/Số:\s*([A-Z0-9]+)/, /Số Hợp Đồng:\s*([A-Z0-9]+)/] },
+        hoTen: { regex: [/1\.1\.\s*Họ tên:\s*([^\r\n]+)/, /Họ tên:\s*([^\r\n]+)/] },
+        ngaySinh: { regex: [/1\.2\.\s*Ngày sinh:\s*([^\r\n]+)/] },
+        sdt: { regex: [/1\.7\.\s*Điện thoại di động:\s*([^\r\n]+)/] },
+        cccd: { regex: [/1\.4\.\s*Số CCCD\/Thẻ căn cước\/Giấy tờ khác:\s*([^\r\n]+)/] },
+        ngayDongTien: { regex: [/5\.6\.\s*Ngày Thanh Toán Đầu Tiên:\s*([^\r\n]+)/, /Ngày Thanh Toán Đầu Tiên:\s*([^\r\n]+)/] },
+        ngayKetThuc: { regex: [/5\.8\.\s*Ngày Thanh Toán Cuối Cùng:\s*([^\r\n]+)/, /Ngày Thanh Toán Cuối Cùng:\s*([^\r\n]+)/] }
+    };
+
+    function findValue(text, config) {
+        if (config.regex) {
+            for (const r of config.regex) {
+                const match = text.match(r);
+                if (match && match[1]) {
+                    // Clean up potential unwanted text for generic 'Họ tên' match
+                    return match[1].replace('Thông tin Khoản Vay:', '').trim();
+                }
+            }
+        }
+        return 'Không tìm thấy';
+    }
+
+
+    // --- Helper & Utility Functions ---
+    function stripVietnamese(str) {
+        return (str || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/gi, "d");
+    }
+
+    function digitsOnly(str) {
+        return (str || "").replace(/\D/g, "");
+    }
+
+    function formatThousandDots(numStr) {
+        return digitsOnly(numStr).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+
+    function buildQRUrl({ contract, name, amount }, template = "print.png") {
+        const addInfo = `${contract} ${stripVietnamese(name)}`.trim().toUpperCase();
+        const qs = new URLSearchParams({
+            accountName: "HD SAISON",
+            amount: digitsOnly(amount),
+            addInfo: addInfo,
+            template: template,
+        });
+        return `https://img.vietqr.io/image/970437-002704070014601-${template}?${qs.toString()}`;
+    }
+
+    function openQrPrintPreview(qrUrl) {
+        const w = window.open("", "_blank");
+        if (!w) {
+            showToast("Trình duyệt đã chặn popup."); return;
+        }
+        const html = `<!DOCTYPE html><html lang="vi"><head><title>In mã QR</title><style>body{margin:0; text-align:center;} img{width:80vw; max-width:400px; margin-top:2rem;}</style></head>
+            <body><img src="${qrUrl}" alt="VietQR"/><script>window.onload=()=>{setTimeout(()=>{window.print();},500)};<\/script></body></html>`;
+        w.document.write(html);
+        w.document.close();
+    }
+    
     function closeLb() {
         lb.classList.remove("show");
         lb.setAttribute("aria-hidden", "true");
         lbImg.src = "";
     }
-    lb.addEventListener("click", (e) => {
-        if (e.target === lb) closeLb();
-    });
+    lb.addEventListener("click", (e) => e.target === lb && closeLb());
     lbClose.addEventListener("click", closeLb);
-    document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") closeLb();
-    });
+    document.addEventListener("keydown", (e) => e.key === "Escape" && closeLb());
 
-    if (addRowEl) {
-        addRowEl.addEventListener("click", addRow);
-    }
-
-    // --- Chức năng chia sẻ link ---
     function buildShareLink(data) {
         const url = new URL(window.location.href.split('?')[0]);
         url.searchParams.set('c', data.contract);
@@ -925,38 +836,20 @@ function getValueAfterLabel(text, label) {
 
     function handleSharedLink() {
         const params = new URLSearchParams(window.location.search);
-        const contract = params.get('c');
-        const name = params.get('n');
-        const amount = params.get('a');
+        const contract = params.get('c'), name = params.get('n'), amount = params.get('a');
 
         if (contract && amount) {
             const formattedAmount = formatThousandDots(amount);
-            const newTitle = `Thanh toán HĐ ${contract} - ${name || 'Khách hàng'}`;
-            const newDescription = `Vui lòng thanh toán số tiền ${formattedAmount} VND cho hợp đồng ${contract}.`;
             const qrUrl = buildQRUrl({ contract, name, amount });
-
-            // Update title and meta tags for social sharing
-            document.title = newTitle;
-            
-            const ogTitleTag = document.querySelector('meta[property="og:title"]');
-            if (ogTitleTag) ogTitleTag.setAttribute('content', newTitle);
-
-            const ogDescTag = document.querySelector('meta[property="og:description"]');
-            if (ogDescTag) ogDescTag.setAttribute('content', newDescription);
-            
-            const ogImageTag = document.querySelector('meta[property="og:image"]');
-            if (ogImageTag) ogImageTag.setAttribute('content', qrUrl);
-
 
             document.getElementById('root').style.display = 'none';
             document.getElementById('footer').style.display = 'none';
-            const viewer = document.getElementById('viewer');
-            viewer.style.display = 'block';
+            document.getElementById('viewer').style.display = 'block';
 
             document.getElementById('viewerImg').src = qrUrl;
             document.getElementById('viewerContract').textContent = contract;
             document.getElementById('viewerName').textContent = name || 'N/A';
-            document.getElementById('viewerAmount').textContent = formattedAmount + ' VND';
+            document.getElementById('viewerAmount').textContent = `${formattedAmount} VND`;
             document.getElementById('viewerDownloadBtn').onclick = () => {
                 const a = document.createElement('a');
                 a.href = qrUrl;
@@ -964,56 +857,46 @@ function getValueAfterLabel(text, label) {
                 a.click();
             };
         } else {
-            // Thêm dòng mặc định khi không có link chia sẻ
-            if (rowsEl && rowsEl.children.length === 0) {
-                addRow();
-            }
+            if (rowsEl && rowsEl.children.length === 0) addRow();
         }
     }
     
-    // --- Toast Notification ---
     function showToast(message, type = 'error') {
         const toastEl = document.createElement('div');
-        toastEl.className = 'toast-notification';
-        if (type === 'info') {
-            toastEl.classList.add('info');
-        }
+        toastEl.className = `toast-notification ${type}`;
         toastEl.textContent = message;
         document.body.appendChild(toastEl);
-
-        // Force a reflow
-        toastEl.offsetHeight;
-
-        toastEl.classList.add('show');
-
         setTimeout(() => {
-            toastEl.classList.remove('show');
+            toastEl.classList.add('show');
             setTimeout(() => {
-                toastEl.remove();
-            }, 300);
-        }, 3000);
+                toastEl.classList.remove('show');
+                setTimeout(() => toastEl.remove(), 300);
+            }, 3000);
+        }, 10);
     }
     
     function copyToClipboard(text, message) {
-        navigator.clipboard.writeText(text).then(() => {
-            showToast(message, 'info');
-        }).catch(err => {
-            console.error('Không thể sao chép: ', err);
-            showToast('Lỗi khi sao chép.');
-        });
+        navigator.clipboard.writeText(text)
+            .then(() => showToast(message, 'info'))
+            .catch(err => showToast('Lỗi khi sao chép.'));
     }
 
-    // --- Hướng dẫn ---
     const toggleInstructionsBtn = document.getElementById('toggleInstructionsBtn');
-    const instructionsContent = document.getElementById('instructionsContent');
     if(toggleInstructionsBtn) {
         toggleInstructionsBtn.addEventListener('click', () => {
-            const isHidden = instructionsContent.classList.toggle('d-none');
+            const content = document.getElementById('instructionsContent');
             const icon = toggleInstructionsBtn.querySelector('i');
+            const isHidden = content.classList.toggle('d-none');
             icon.classList.toggle('fa-chevron-down', isHidden);
             icon.classList.toggle('fa-chevron-up', !isHidden);
         });
     }
   </script>
 </body>
-</html
+</html>
+
+
+
+
+
+
