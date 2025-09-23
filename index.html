@@ -36,6 +36,7 @@
 
     .row-item .form-control, .soft-panel .form-control, .form-select { border-radius:12px; background:var(--card); color:var(--ink); border-color:var(--border); }
     .form-select { -webkit-appearance: none; -moz-appearance: none; appearance: none; background-image: none !important; }
+    [data-theme="dark"] .form-control::placeholder { color: var(--muted) }
     .row-item .form-control::placeholder, .soft-panel .form-control::placeholder { color:var(--muted); }
     .row-item .form-control.is-invalid { border-color: var(--danger); }
     .row-item .form-control:focus, .soft-panel .form-control:focus, .form-select:focus { box-shadow: none; border-color: var(--border); }
@@ -77,6 +78,41 @@
     .toast-notification.show { top: 30px; opacity: 1; }
     .toast-notification.info { background-color: var(--info); color: var(--ink); }
 
+    /* --- Loan Calculator Styles --- */
+    .calculator-form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    @media (min-width: 768px) {
+        .calculator-form-group {
+            flex-direction: row;
+            align-items: center;
+            gap: 1rem;
+        }
+        .calculator-form-group > label {
+            flex: 0 0 30%;
+        }
+    }
+    .calculator-input, .calculator-select {
+        background-color: var(--bg);
+        border: 1px solid var(--border);
+        color: var(--ink);
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+        width: 100%;
+    }
+     .calculator-input:read-only {
+        background-color: #374151;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+     [data-theme="dark"] .calculator-input:read-only {
+         color: var(--muted);
+     }
+
+
     /* Dark mode button overrides */
     [data-theme="dark"] .btn-secondary {
         background-color: var(--border);
@@ -89,6 +125,9 @@
     }
      [data-theme="dark"] #pos-address {
         color: var(--ink);
+    }
+    [data-theme="dark"] .form-check-label {
+        color: var(--muted);
     }
 
     [data-theme="dark"] .btn-success, [data-theme="dark"] .btn-primary {
@@ -196,6 +235,9 @@
         <li class="nav-item" role="presentation">
           <button class="nav-link" id="pdk-cho-lon-tab" data-bs-toggle="tab" data-bs-target="#pdk-cho-lon-tab-pane" type="button" role="tab" aria-controls="pdk-cho-lon-tab-pane" aria-selected="false">PDK 0%</button>
         </li>
+         <li class="nav-item" role="presentation">
+          <button class="nav-link" id="calculator-tab" data-bs-toggle="tab" data-bs-target="#calculator-tab-pane" type="button" role="tab" aria-controls="calculator-tab-pane" aria-selected="false">Tính Khoản Vay (ED)</button>
+        </li>
       </ul>
 
       <div class="tab-content" id="myTabContent">
@@ -253,6 +295,72 @@
               </table>
             </div>
           </div>
+        </div>
+        <div class="tab-pane fade p-3" id="calculator-tab-pane" role="tabpanel" aria-labelledby="calculator-tab" tabindex="0">
+             <div class="soft-panel my-4">
+                <div class="calculator-form-group">
+                    <label for="loan-program" class="hdr">Chương trình vay</label>
+                    <select id="loan-program" class="form-select calculator-select">
+                        <option value="0" selected>Lãi suất 0%</option>
+                        <option value="0.005">Lãi suất 0.5%</option>
+                        <option value="0.01">Lãi suất 1%</option>
+                        <option value="regular">Lãi thường</option>
+                    </select>
+                </div>
+                 <div class="calculator-form-group">
+                    <label for="product-price" class="hdr">Giá Sản Phẩm</label>
+                    <div class="input-group">
+                        <input type="text" inputmode="numeric" id="product-price" placeholder="Nhập giá sản phẩm" class="form-control calculator-input">
+                        <button id="clear-ed" type="button" class="btn btn-danger">Xoá</button>
+                    </div>
+                </div>
+                 <div class="calculator-form-group">
+                    <label for="down-payment-percentage" class="hdr">Trả trước</label>
+                     <div class="input-group">
+                        <input type="text" inputmode="numeric" id="down-payment-percentage" placeholder="%" class="form-control calculator-input text-center" style="flex: 0 0 70px;">
+                        <input type="text" inputmode="numeric" id="down-payment" placeholder="Hoặc nhập số tiền" class="form-control calculator-input">
+                    </div>
+                </div>
+                 <div class="calculator-form-group">
+                    <label for="loan-amount" class="hdr">Số tiền vay</label>
+                    <input type="text" id="loan-amount" readonly placeholder="Tự động tính" class="form-control calculator-input">
+                </div>
+                <div class="calculator-form-group">
+                    <label for="loan-term" class="hdr">Số tháng</label>
+                    <select id="loan-term" class="form-select calculator-select">
+                        <option value="6" selected>6 tháng</option>
+                        <option value="7">7 tháng</option>
+                        <option value="9">9 tháng</option>
+                        <option value="12">12 tháng</option>
+                        <option value="15">15 tháng</option>
+                        <option value="24">24 tháng</option>
+                    </select>
+                </div>
+                 <div class="calculator-form-group">
+                     <div class="w-full d-flex justify-content-md-end">
+                         <div class="form-check">
+                            <input id="include-insurance" type="checkbox" checked class="form-check-input">
+                            <label for="include-insurance" class="form-check-label text-muted">Bao gồm bảo hiểm khoản vay</label>
+                        </div>
+                     </div>
+                </div>
+                 <div class="calculator-form-group">
+                    <label for="monthly-difference" class="hdr">Phí chênh lệch (tháng)</label>
+                    <input type="text" id="monthly-difference" readonly placeholder="Tự động tính" class="form-control calculator-input">
+                </div>
+                 <div class="calculator-form-group">
+                    <label for="total-price-with-fees" class="hdr">Tổng tiền gồm phí</label>
+                    <input type="text" id="total-price-with-fees" readonly placeholder="Tự động tính" class="form-control calculator-input">
+                </div>
+                <div class="calculator-form-group">
+                    <label for="total-difference" class="hdr">Tổng tiền chênh lệch</label>
+                    <input type="text" id="total-difference" readonly placeholder="Tự động tính" class="form-control calculator-input">
+                </div>
+                 <div class="calculator-form-group">
+                    <label for="monthly-installment" class="hdr">Số tiền góp mỗi tháng</label>
+                    <input type="text" id="monthly-installment" readonly placeholder="Tự động tính" class="form-control calculator-input fw-bold" style="color: var(--info); font-size: 1.2rem;">
+                </div>
+            </div>
         </div>
       </div>
     </div>
@@ -353,6 +461,25 @@
     const FONT_URL = 'https://rawcdn.githack.com/shikinora2/VietQR-HDSAISON/f0381eb2e75227df3ceeb4ff3e8979f11229af35/SVN-Times%20New%20Roman%20Bold.ttf';
     const POS_STORAGE_KEY = 'selectedPos';
 
+    // --- Helper & Utility Functions ---
+    function stripVietnamese(str) {
+        return (str || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/gi, "d");
+    }
+
+    function digitsOnly(str) {
+        return String(str || "").replace(/\D/g, "");
+    }
+
+    function formatThousandDots(numStr) {
+        return digitsOnly(numStr).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+    
+     function parseNumber(str) {
+        if (!str) return 0;
+        return Number(String(str).replace(/[^0-9]/g, '')) || 0;
+    }
+
+
     // --- Event Listeners ---
     if (uploadPdfLabel) {
         uploadPdfLabel.addEventListener('click', (e) => {
@@ -394,6 +521,36 @@
             });
             updatePosAddress(); // Initial call
         }
+        
+        // Loan Calculator ED Listeners
+        const loanProgramSelect = document.getElementById('loan-program');
+        const productPriceInput = document.getElementById('product-price');
+        const downPaymentPercentageInput = document.getElementById('down-payment-percentage');
+        const downPaymentInput = document.getElementById('down-payment');
+        const loanTermSelect = document.getElementById('loan-term');
+        const includeInsuranceCheckbox = document.getElementById('include-insurance');
+        const clearEdBtn = document.getElementById('clear-ed');
+
+        [loanProgramSelect, loanTermSelect, includeInsuranceCheckbox].forEach(el => el.addEventListener('change', calculateLoanEd));
+        clearEdBtn.addEventListener('click', resetEdForm);
+        productPriceInput.addEventListener('input', formatCurrencyOnLoanInput);
+        downPaymentInput.addEventListener('input', (e) => {
+            downPaymentPercentageInput.value = '';
+            formatCurrencyOnLoanInput(e);
+        });
+        downPaymentPercentageInput.addEventListener('input', () => {
+            const productPrice = parseNumber(productPriceInput.value);
+            downPaymentPercentageInput.value = downPaymentPercentageInput.value.replace(/[^0-9]/g, '');
+            const percentage = parseFloat(downPaymentPercentageInput.value);
+            if (productPrice > 0 && !isNaN(percentage) && percentage >= 0 && percentage <= 100) {
+                const downPaymentAmount = productPrice * (percentage / 100);
+                downPaymentInput.value = downPaymentAmount.toLocaleString('vi-VN');
+            } else {
+                downPaymentInput.value = '';
+            }
+            calculateLoanEd();
+        });
+        calculateLoanEd();
     });
     
     // --- PDK 0% PDF Generation ---
@@ -410,8 +567,9 @@
     };
     
     function formatCurrency(numStr) {
-        if (!numStr || isNaN(Number(digitsOnly(numStr)))) return numStr;
-        return formatThousandDots(numStr) + ' VND';
+        if (typeof numStr === 'number') numStr = String(numStr);
+        if (!numStr || isNaN(Number(digitsOnly(numStr)))) return "0 VNĐ";
+        return formatThousandDots(numStr) + ' VNĐ';
     }
     
     async function generatePdkPdfBytes(pdkData, templateBytes, fontBytes) {
@@ -961,18 +1119,6 @@
     }
 
     // --- Helper & Utility Functions ---
-    function stripVietnamese(str) {
-        return (str || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/gi, "d");
-    }
-
-    function digitsOnly(str) {
-        return (str || "").replace(/\D/g, "");
-    }
-
-    function formatThousandDots(numStr) {
-        return digitsOnly(numStr).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-    }
-
     function buildQRUrl({ contract, name, amount }, template = "print.png") {
         const addInfo = `${contract} ${stripVietnamese(name)}`.trim().toUpperCase();
         const qs = new URLSearchParams({
@@ -1048,6 +1194,132 @@
         navigator.clipboard.writeText(text)
             .then(() => showToast(message, 'info'))
             .catch(err => showToast('Lỗi khi sao chép.'));
+    }
+    
+    // --- Loan Calculator ED ---
+    function calculateLoanEd() {
+        const loanProgramSelect = document.getElementById('loan-program');
+        const productPriceInput = document.getElementById('product-price');
+        const downPaymentInput = document.getElementById('down-payment');
+        const loanAmountInput = document.getElementById('loan-amount');
+        const loanTermSelect = document.getElementById('loan-term');
+        const includeInsuranceCheckbox = document.getElementById('include-insurance');
+        const monthlyDifferenceInput = document.getElementById('monthly-difference');
+        const totalPriceWithFeesInput = document.getElementById('total-price-with-fees');
+        const totalDifferenceInput = document.getElementById('total-difference');
+        const monthlyInstallmentInput = document.getElementById('monthly-installment');
+
+        const productPrice = parseNumber(productPriceInput.value);
+        const downPayment = parseNumber(downPaymentInput.value);
+        let loanAmount = 0;
+
+        if (productPrice > 0 && productPrice >= downPayment) {
+            loanAmount = productPrice - downPayment;
+            loanAmountInput.value = formatCurrency(loanAmount);
+        } else {
+            loanAmountInput.value = "";
+        }
+
+        const loanTerm = parseInt(loanTermSelect.value, 10);
+        const loanProgramValue = loanProgramSelect.value;
+
+        if (loanAmount > 0 && loanTerm > 0) {
+            let totalInsurance = 0;
+            let monthlyInsurance = 0;
+            if (includeInsuranceCheckbox.checked) {
+                totalInsurance = loanAmount * 0.05;
+                monthlyInsurance = totalInsurance / loanTerm;
+            } 
+
+            let monthlyInstallment = 0;
+            let totalDifference = 0;
+            let totalPriceWithFees = 0;
+
+            if (loanProgramValue === 'regular') {
+                const coefficients = { '7': 0.175, '9': 0.1393, '12': 0.11135, '15': 0.0947 };
+                const coefficient = coefficients[loanTerm];
+                if (coefficient) {
+                    const basePaymentWithInsurance = loanAmount * coefficient;
+                    if (includeInsuranceCheckbox.checked) {
+                        monthlyInstallment = basePaymentWithInsurance + 13000;
+                    } else {
+                        const basePaymentWithoutInsurance = basePaymentWithInsurance - monthlyInsurance;
+                        monthlyInstallment = basePaymentWithoutInsurance + 13000;
+                    }
+                    const totalPayment = monthlyInstallment * loanTerm;
+                    totalDifference = totalPayment - loanAmount;
+                    totalPriceWithFees = productPrice + totalDifference;
+                } else {
+                    monthlyInstallment = 0; // Mark as not applicable
+                }
+            } else {
+                const interestRatePerMonthFromSelect = parseFloat(loanProgramValue);
+                let totalInterest = 0;
+                if (interestRatePerMonthFromSelect === 0.005 && loanTerm === 6) {
+                    totalInterest = loanAmount * 0.0322;
+                } else {
+                    totalInterest = loanAmount * interestRatePerMonthFromSelect * loanTerm;
+                }
+                const totalCollectionFee = 12000 * loanTerm;
+                const totalPayment = loanAmount + totalInsurance + totalInterest + totalCollectionFee;
+                monthlyInstallment = totalPayment / loanTerm;
+                totalDifference = totalInsurance + totalInterest + totalCollectionFee;
+                totalPriceWithFees = productPrice + totalDifference;
+            }
+            
+            const formatMonthly = (num) => num > 0 ? (Math.ceil(num / 1000) * 1000).toLocaleString('vi-VN') + ' VNĐ' : "Không áp dụng";
+            
+            let monthlyDifference = 0;
+            if (totalDifference > 0 && loanTerm > 0) {
+                monthlyDifference = totalDifference / loanTerm;
+            }
+            const formatMonthlyDifference = (num) => {
+                if (num > 0) {
+                    const rounded = Math.round(num / 100) * 100;
+                    return rounded.toLocaleString('vi-VN') + ' VNĐ';
+                }
+                return "0 VNĐ";
+            };
+
+            monthlyInstallmentInput.value = formatMonthly(monthlyInstallment);
+            totalDifferenceInput.value = formatCurrency(totalDifference);
+            totalPriceWithFeesInput.value = formatCurrency(totalPriceWithFees);
+            monthlyDifferenceInput.value = formatMonthlyDifference(monthlyDifference);
+
+        } else {
+            monthlyDifferenceInput.value = "";
+            totalDifferenceInput.value = "";
+            totalPriceWithFeesInput.value = "";
+            monthlyInstallmentInput.value = "";
+        }
+    }
+    
+    function formatCurrencyOnLoanInput(event) {
+        const input = event.target;
+        const originalValue = input.value;
+        const originalCursor = input.selectionStart;
+        const numericValue = parseNumber(originalValue);
+        const formattedValue = numericValue > 0 ? numericValue.toLocaleString('vi-VN') : '';
+        input.value = formattedValue;
+        const newCursor = originalCursor + (formattedValue.length - originalValue.length);
+        input.setSelectionRange(newCursor, newCursor);
+        calculateLoanEd();
+    }
+
+    function resetEdForm() {
+        const productPriceInput = document.getElementById('product-price');
+        const downPaymentPercentageInput = document.getElementById('down-payment-percentage');
+        const downPaymentInput = document.getElementById('down-payment');
+        const loanTermSelect = document.getElementById('loan-term');
+        const includeInsuranceCheckbox = document.getElementById('include-insurance');
+        
+        productPriceInput.value = '';
+        downPaymentPercentageInput.value = '';
+        downPaymentInput.value = '';
+        loanTermSelect.value = '6';
+        includeInsuranceCheckbox.checked = true;
+        productPriceInput.focus();
+        calculateLoanEd();
     }
 
   </script>
