@@ -53,12 +53,17 @@
         padding: 1rem;
         margin-bottom: 1.5rem;
     }
-    .contract-files-container .contract-id {
-        font-weight: bold;
-        color: var(--info);
+    .contract-files-container .contract-info-header {
+        color: var(--ink);
         margin-bottom: 1rem;
         text-align: center;
         font-size: 1.1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--border);
+    }
+    .contract-files-container .contract-info-header strong {
+        color: var(--info);
+        font-weight: 700;
     }
     .file-item {
         background-color: var(--card);
@@ -231,7 +236,7 @@
     
     /* Custom color overrides */
     [data-theme="dark"] #contract-files-display > p.text-muted {
-        color: #f8fafc; /* Brighter white for placeholder */
+        color: #f8fafc !important; /* Brighter white for placeholder */
     }
     
     [data-theme="dark"] #calculator-tab-pane .calculator-input {
@@ -483,6 +488,8 @@
     };
     const FONT_URL = 'https://rawcdn.githack.com/shikinora2/VietQR-HDSAISON/f0381eb2e75227df3ceeb4ff3e8979f11229af35/SVN-Times%20New%20Roman%20Bold.ttf';
     const POS_STORAGE_KEY = 'selectedPos';
+    const CACHED_RESOURCES = {};
+
 
     // --- Helper & Utility Functions ---
     function stripVietnamese(str) {
@@ -502,6 +509,34 @@
         return Number(String(str).replace(/[^0-9]/g, '')) || 0;
     }
 
+    // --- Preload Essential Resources ---
+    async function preloadEssentialResources() {
+        const originalBtnHTML = uploadPdfLabel.innerHTML;
+        uploadPdfLabel.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang tải tài nguyên...`;
+        uploadPdfLabel.classList.add('disabled');
+        pdfUpload.disabled = true;
+
+        try {
+            const [fontBytes, template1, template2] = await Promise.all([
+                fetch(FONT_URL).then(res => res.arrayBuffer()),
+                fetch(POS_INFO.POS24414.templateUrl).then(res => res.arrayBuffer()),
+                fetch(POS_INFO.POS13858.templateUrl).then(res => res.arrayBuffer())
+            ]);
+            CACHED_RESOURCES.font = fontBytes;
+            CACHED_RESOURCES.POS24414 = template1;
+            CACHED_RESOURCES.POS13858 = template2;
+
+            uploadPdfLabel.innerHTML = originalBtnHTML;
+            uploadPdfLabel.classList.remove('disabled');
+            pdfUpload.disabled = false;
+            showToast('Tài nguyên đã sẵn sàng!', 'info');
+        } catch (error) {
+            console.error('Không thể tải tài nguyên cần thiết:', error);
+            uploadPdfLabel.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Lỗi tải tài nguyên`;
+            showToast('Lỗi tải tài nguyên, vui lòng tải lại trang.');
+        }
+    }
+
 
     // --- Event Listeners ---
     uploadPdfLabel.addEventListener('click', (e) => {
@@ -515,6 +550,7 @@
     
     document.addEventListener('DOMContentLoaded', () => {
         handleSharedLink();
+        preloadEssentialResources();
         
         const posSelect = document.getElementById('pos-select');
         const posAddress = document.getElementById('pos-address');
@@ -594,9 +630,10 @@
     function updatePlaceholders() {
         qrPlaceholder.style.display = rowsEl.children.length === 0 ? 'block' : 'none';
         const fileDisplay = document.getElementById('contract-files-display');
-        const placeholder = fileDisplay.querySelector('p');
+        const placeholder = fileDisplay.querySelector(':scope > p.text-muted');
         if (placeholder) {
-            placeholder.style.display = fileDisplay.children.length > 1 ? 'none' : 'block';
+            const hasContracts = fileDisplay.querySelector('.contract-files-container');
+            placeholder.style.display = hasContracts ? 'none' : 'block';
         }
     }
 
@@ -606,30 +643,32 @@
         showToast('Đang cập nhật file PDK theo POS mới...', 'info');
         try {
             const selectedPos = document.getElementById('pos-select').value;
-            const pdfTemplateUrl = POS_INFO[selectedPos].templateUrl;
+            const templateBytes = CACHED_RESOURCES[selectedPos];
+            const fontBytes = CACHED_RESOURCES.font;
 
-            const [templateResponse, fontResponse] = await Promise.all([ fetch(pdfTemplateUrl), fetch(FONT_URL) ]);
-            if (!templateResponse.ok || !fontResponse.ok) throw new Error("Không thể tải tài nguyên cho POS.");
-            
-            const [templateBytes, fontBytes] = await Promise.all([ templateResponse.arrayBuffer(), fontResponse.arrayBuffer() ]);
+            if (!templateBytes || !fontBytes) {
+                throw new Error("Tài nguyên cần thiết chưa được tải. Vui lòng thử lại.");
+            }
 
             for (const [rowEl, contractData] of contractDataStore.entries()) {
-                const { pdkData } = contractData;
-                if (!pdkData || !pdkData.shd) continue;
+                const { pdkData, qrData } = contractData;
+                if (!pdkData || !pdkData.shd || !qrData || !qrData.contract) continue;
 
-                const newPdkBytes = await generatePdkPdfBytes(pdkData, templateBytes, fontBytes);
+                const newPdkBytes = await generatePdkPdfBytes(pdkData, templateBytes.slice(0), fontBytes.slice(0));
                 const newPdkBlobUrl = URL.createObjectURL(new Blob([newPdkBytes], { type: 'application/pdf' }));
                 
-                const contractId = pdkData.shd;
-                const fileSet = contractFilesStore.get(contractId);
+                const storeKey = pdkData.shd;
+                const containerId = qrData.contract;
+
+                const fileSet = contractFilesStore.get(storeKey);
                 if (!fileSet) continue;
 
                 if (fileSet.pdk && fileSet.pdk.url) URL.revokeObjectURL(fileSet.pdk.url);
 
                 fileSet.pdk.url = newPdkBlobUrl;
-                contractFilesStore.set(contractId, fileSet);
+                contractFilesStore.set(storeKey, fileSet);
 
-                const fileContainer = document.querySelector(`.contract-files-container[data-contract-id="${contractId}"]`);
+                const fileContainer = document.querySelector(`.contract-files-container[data-contract-id="${containerId}"]`);
                 if (fileContainer) {
                     const pdkItem = fileContainer.querySelector('.file-item[data-file-type="pdk"]'); 
                     if (pdkItem) {
@@ -646,7 +685,7 @@
             showToast('Đã cập nhật tất cả file PDK!', 'info');
         } catch (error) {
             console.error("Lỗi khi cập nhật file PDK:", error);
-            showToast("Lỗi khi cập nhật file PDK.");
+            showToast(`Lỗi khi cập nhật file PDK: ${error.message}`);
         }
     }
 
@@ -657,16 +696,16 @@
         if (files.length === 0) return;
 
         const originalBtnHTML = uploadPdfLabel.innerHTML;
-        uploadPdfLabel.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...`;
         uploadPdfLabel.classList.add('disabled');
         let successCount = 0;
+        let errorCount = 0;
 
-        for (const file of files) {
-            if (file.type !== 'application/pdf') {
-                showToast(`File "${file.name}" không phải là PDF và đã bị bỏ qua.`);
-                continue;
-            }
+        for (const [index, file] of Array.from(files).entries()) {
+            uploadPdfLabel.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Xử lý ${index + 1}/${files.length}`;
             try {
+                if (file.type !== 'application/pdf') {
+                    throw new Error("File không phải là PDF");
+                }
                 const pdfBuffer = await file.arrayBuffer();
                 let paymentPageNum = -1, paymentPageText = '', insurancePageNum = -1, fullText = '';
                 
@@ -690,16 +729,14 @@
                 
                 const allData = extractAllDataFromPdfText(fullText, paymentPageText);
 
-                if (!allData.qrData || !allData.pdkData) throw new Error(`Không tìm thấy đủ thông tin.`);
+                if (!allData.qrData || !allData.pdkData) throw new Error(`Không tìm thấy đủ thông tin trong file.`);
                 
-                // Add QR Row to Tab 3
                 const rowEl = addRow();
                 rowEl.querySelector(".contractInput").value = allData.qrData.contract;
                 rowEl.querySelector(".nameInput").value = allData.qrData.name;
                 rowEl.querySelector(".amountInput").value = formatThousandDots(allData.qrData.amount);
                 rowEl.querySelector(".generateBtn").click();
                 
-                // Generate and Display Files in Tab 1
                 allData.paymentPage = paymentPageNum;
                 allData.insurancePage = insurancePageNum;
                 const contractFullData = { ...allData, pdfBuffer };
@@ -707,21 +744,27 @@
 
                 const qrUrl = buildQRUrl(allData.qrData, "compact.png");
                 const fileSet = await generateContractFileSet(contractFullData, qrUrl);
-                displayContractFilesInUI(fileSet, allData.qrData.contract);
+                displayContractFilesInUI(fileSet, allData.qrData);
                 
                 successCount++;
 
             } catch (error) {
+                errorCount++;
                 console.error(`Lỗi xử lý file "${file.name}":`, error);
-                showToast(`Không thể xử lý file "${file.name}". ${error.message}`);
+                showToast(`Lỗi file "${file.name}": ${error.message}`);
             }
         }
         
-        if (successCount > 0) showToast(`Đã xử lý thành công ${successCount} file PDF.`, 'info');
         uploadPdfLabel.innerHTML = originalBtnHTML;
         uploadPdfLabel.classList.remove('disabled');
         event.target.value = '';
         updatePlaceholders();
+
+        if (files.length > 1) {
+            showToast(`Hoàn tất: ${successCount} thành công, ${errorCount} thất bại.`, errorCount > 0 ? 'error' : 'info');
+        } else if (successCount > 0) {
+            showToast(`Đã xử lý thành công file PDF.`, 'info');
+        }
     }
     
     function toTitleCase(str) {
@@ -757,54 +800,68 @@
     
     async function generateContractFileSet(contractData, qrUrl) {
         const { pdfBuffer, paymentPage, insurancePage, pdkData } = contractData;
-        const originalPdfDoc = await PDFDocument.load(pdfBuffer);
-        const totalPages = originalPdfDoc.getPageCount();
         const fileSet = {};
         
-        // --- 1. Hợp đồng Tín dụng (Trang 1-4) ---
-        const hopDongDoc = await PDFDocument.create();
-        const hopDongPages = await hopDongDoc.copyPages(originalPdfDoc, [0, 1, 2, 3]);
-        hopDongPages.forEach(page => hopDongDoc.addPage(page));
-        const hopDongBytes = await hopDongDoc.save();
-        fileSet.hopDong = { url: URL.createObjectURL(new Blob([hopDongBytes], { type: 'application/pdf' })), name: `HopDongTinDung_${pdkData.shd}.pdf` };
+        try {
+            const originalPdfDoc = await PDFDocument.load(pdfBuffer);
+            const totalPages = originalPdfDoc.getPageCount();
 
-        // --- 2. Hướng dẫn Thanh toán (1 trang + QR) ---
-        const thanhToanDoc = await PDFDocument.create();
-        const [thanhToanPage] = await thanhToanDoc.copyPages(originalPdfDoc, [paymentPage - 1]);
-        thanhToanDoc.addPage(thanhToanPage);
-        const qrImageBytes = await fetch(qrUrl).then(res => res.arrayBuffer());
-        const qrImage = await thanhToanDoc.embedPng(qrImageBytes);
-        const { width, height } = thanhToanPage.getSize();
-        const qrDims = qrImage.scale(0.25);
-        thanhToanPage.drawImage(qrImage, { x: width - qrDims.width - 30, y: height - qrDims.height - 25, width: qrDims.width, height: qrDims.height });
-        const thanhToanBytes = await thanhToanDoc.save();
-        fileSet.thanhToan = { url: URL.createObjectURL(new Blob([thanhToanBytes], { type: 'application/pdf' })), name: `HuongDanThanhToan_${pdkData.shd}.pdf` };
+            // --- 1. Hợp đồng Tín dụng (Trang 1-4) ---
+            const hopDongDoc = await PDFDocument.create();
+            const hopDongPages = await hopDongDoc.copyPages(originalPdfDoc, [0, 1, 2, 3]);
+            hopDongPages.forEach(page => hopDongDoc.addPage(page));
+            const hopDongBytes = await hopDongDoc.save();
+            fileSet.hopDong = { url: URL.createObjectURL(new Blob([hopDongBytes], { type: 'application/pdf' })), name: `HopDongTinDung_${pdkData.shd}.pdf` };
 
-        // --- 3. Yêu cầu Bảo hiểm (2 trang cuối) ---
-        if (insurancePage > 0 && insurancePage + 1 <= totalPages) {
-            const baoHiemDoc = await PDFDocument.create();
-            const baoHiemPages = await baoHiemDoc.copyPages(originalPdfDoc, [insurancePage - 1, insurancePage]);
-            baoHiemPages.forEach(page => baoHiemDoc.addPage(page));
-            const baoHiemBytes = await baoHiemDoc.save();
-            fileSet.baoHiem = { url: URL.createObjectURL(new Blob([baoHiemBytes], { type: 'application/pdf' })), name: `YeuCauBaoHiem_${pdkData.shd}.pdf` };
+            // --- 2. Hướng dẫn Thanh toán (1 trang + QR) ---
+            const thanhToanDoc = await PDFDocument.create();
+            const [thanhToanPage] = await thanhToanDoc.copyPages(originalPdfDoc, [paymentPage - 1]);
+            thanhToanDoc.addPage(thanhToanPage);
+            const qrImageBytes = await fetch(qrUrl).then(res => res.arrayBuffer());
+            const qrImage = await thanhToanDoc.embedPng(qrImageBytes);
+            const { width, height } = thanhToanPage.getSize();
+            const qrDims = qrImage.scale(0.25);
+            thanhToanPage.drawImage(qrImage, { x: width - qrDims.width - 30, y: height - qrDims.height - 25, width: qrDims.width, height: qrDims.height });
+            const thanhToanBytes = await thanhToanDoc.save();
+            fileSet.thanhToan = { url: URL.createObjectURL(new Blob([thanhToanBytes], { type: 'application/pdf' })), name: `HuongDanThanhToan_${pdkData.shd}.pdf` };
+
+            // --- 3. Yêu cầu Bảo hiểm (2 trang cuối) ---
+            if (insurancePage > 0 && insurancePage + 1 <= totalPages) {
+                const baoHiemDoc = await PDFDocument.create();
+                const baoHiemPages = await baoHiemDoc.copyPages(originalPdfDoc, [insurancePage - 1, insurancePage]);
+                baoHiemPages.forEach(page => baoHiemDoc.addPage(page));
+                const baoHiemBytes = await baoHiemDoc.save();
+                fileSet.baoHiem = { url: URL.createObjectURL(new Blob([baoHiemBytes], { type: 'application/pdf' })), name: `YeuCauBaoHiem_${pdkData.shd}.pdf` };
+            }
+            
+            // --- 4. Generate PDK 0% PDF ---
+            const selectedPos = document.getElementById('pos-select').value;
+            const templateBytes = CACHED_RESOURCES[selectedPos];
+            const fontBytes = CACHED_RESOURCES.font;
+            if (!templateBytes || !fontBytes) throw new Error("Tài nguyên PDK chưa sẵn sàng.");
+
+            const pdkBytes = await generatePdkPdfBytes(pdkData, templateBytes.slice(0), fontBytes.slice(0));
+            fileSet.pdk = { url: URL.createObjectURL(new Blob([pdkBytes], { type: 'application/pdf' })), name: `PDK_0%_${pdkData.shd}.pdf` };
+            
+            contractFilesStore.set(pdkData.shd, fileSet);
+            return fileSet;
+        } catch (err) {
+            console.error("Lỗi khi tạo bộ file hợp đồng:", err);
+            throw new Error(`Tạo file thất bại. ${err.message}.`);
         }
-        
-        // --- 4. Generate PDK 0% PDF ---
-        const selectedPos = document.getElementById('pos-select').value;
-        const [templateResponse, fontResponse] = await Promise.all([fetch(POS_INFO[selectedPos].templateUrl), fetch(FONT_URL)]);
-        const [templateBytes, fontBytes] = await Promise.all([templateResponse.arrayBuffer(), fontResponse.arrayBuffer()]);
-        const pdkBytes = await generatePdkPdfBytes(pdkData, templateBytes, fontBytes);
-        fileSet.pdk = { url: URL.createObjectURL(new Blob([pdkBytes], { type: 'application/pdf' })), name: `PDK_0%_${pdkData.shd}.pdf` };
-        
-        contractFilesStore.set(pdkData.shd, fileSet); // Store for later use
-        return fileSet;
     }
     
-    function displayContractFilesInUI(fileSet, contractId) {
+    function displayContractFilesInUI(fileSet, contractInfo) {
+        if (!contractInfo || !contractInfo.contract || !contractInfo.name) {
+            console.error("displayContractFilesInUI: Dữ liệu hợp đồng không hợp lệ.", contractInfo);
+            showToast("Không thể hiển thị thông tin hợp đồng do thiếu dữ liệu.");
+            return; 
+        }
+
         const container = document.getElementById('contract-files-display');
         const wrapper = document.createElement('div');
         wrapper.className = 'contract-files-container';
-        wrapper.dataset.contractId = contractId;
+        wrapper.dataset.contractId = contractInfo.contract;
 
         const fileItems = [
             { id: 'hopDong', icon: 'fa-file-contract', text: 'Hợp Đồng Tín Dụng' },
@@ -827,10 +884,12 @@
         }).join('');
 
         wrapper.innerHTML = `
-            <p class="contract-id">Số hợp đồng: ${contractId}</p>
+            <p class="contract-info-header">
+                <strong>${contractInfo.contract}</strong> - ${contractInfo.name}
+            </p>
             ${filesHtml}
         `;
-        container.prepend(wrapper); // Add new ones to the top
+        container.prepend(wrapper);
     }
 
     function addRow(isManual = false) {
@@ -889,11 +948,15 @@
 
         btnDelRow.addEventListener("click", () => {
             if (contractDataStore.has(el)) {
-                 const contractIdToDelete = contractDataStore.get(el).pdkData.shd;
-                 const fileDisplay = document.querySelector(`.contract-files-container[data-contract-id="${contractIdToDelete}"]`);
+                 const data = contractDataStore.get(el);
+                 const containerId = data.qrData.contract;
+                 const storeKey = data.pdkData.shd;
+                 
+                 const fileDisplay = document.querySelector(`.contract-files-container[data-contract-id="${containerId}"]`);
                  if (fileDisplay) fileDisplay.remove();
+                 
                  contractDataStore.delete(el);
-                 contractFilesStore.delete(contractIdToDelete);
+                 contractFilesStore.delete(storeKey);
             }
             el.remove();
             updatePlaceholders();
