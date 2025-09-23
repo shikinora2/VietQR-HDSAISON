@@ -35,7 +35,7 @@
     .actions-group { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; margin-top: auto; }
 
     .row-item .form-control, .soft-panel .form-control, .form-select { border-radius:12px; background:var(--card); color:var(--ink); border-color:var(--border); }
-    [data-theme="dark"] .form-select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e"); }
+    .form-select { -webkit-appearance: none; -moz-appearance: none; appearance: none; background-image: none !important; }
     .row-item .form-control::placeholder, .soft-panel .form-control::placeholder { color:var(--muted); }
     .row-item .form-control.is-invalid { border-color: var(--danger); }
     .row-item .form-control:focus, .soft-panel .form-control:focus, .form-select:focus { box-shadow: none; border-color: var(--border); }
@@ -76,10 +76,6 @@
     .toast-notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background-color: var(--danger); color: white; padding: 12px 20px; border-radius: 8px; z-index: 10000; font-weight: 600; font-size: 0.9rem; opacity: 0; transition: opacity 0.3s, top 0.3s; pointer-events: none; }
     .toast-notification.show { top: 30px; opacity: 1; }
     .toast-notification.info { background-color: var(--info); color: var(--ink); }
-
-    .instructions .list-group-item { background: transparent; border-color: var(--border); color: var(--ink); font-size: 0.85rem; }
-    .instructions .fa-solid { color: var(--info); }
-    #instructionsContent.show { display: block !important; }
 
     /* Dark mode button overrides */
     [data-theme="dark"] .btn-secondary {
@@ -201,21 +197,14 @@
 
       <div class="tab-content" id="myTabContent">
         <div class="tab-pane fade show active" id="qr-tab-pane" role="tabpanel" aria-labelledby="qr-tab" tabindex="0">
-          <div class="soft-panel my-4 instructions">
-            <div class="d-flex justify-content-between align-items-center" style="cursor: pointer;" id="toggleInstructionsBtn">
-                <h5 class="hdr mb-0">Hướng dẫn sử dụng</h5>
-                <button class="btn btn-sm btn-outline-secondary">
-                    <i class="fa-solid fa-chevron-down"></i>
-                </button>
+           <div class="soft-panel my-4">
+                <label for="pos-select" class="hdr mb-2">Chọn POS</label>
+                <select class="form-select" id="pos-select">
+                    <option value="POS24414">POS24414</option>
+                    <option value="POS13858">POS13858</option>
+                </select>
+                <p id="pos-address" class="text-muted small mt-2 mb-0"></p>
             </div>
-            <div id="instructionsContent" class="d-none mt-2">
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item d-flex align-items-start"><i class="fa-solid fa-file-pdf fa-fw mt-1 me-3"></i><div><strong>Tải PDF (Nhanh):</strong> Nhấn nút "Tải PDF" và chọn 1 hoặc nhiều file. Thông tin sẽ được tự động điền vào các dòng và cả ở tab PDK 0%.</div></li>
-                    <li class="list-group-item d-flex align-items-start"><i class="fa-solid fa-keyboard fa-fw mt-1 me-3"></i><div><strong>Nhập thủ công:</strong> Nhấn "+ Thêm hợp đồng" để tạo dòng mới, sau đó điền thông tin và nhấn "Tạo QR".</div></li>
-                    <li class="list-group-item d-flex align-items-start"><i class="fa-solid fa-print fa-fw mt-1 me-3"></i><div><strong>In & Tải File:</strong> Nhấn nút <i class="fa-solid fa-print text-success"></i> để mở trang xem trước, in và tải xuống tất cả các file (HĐ gốc, PDK 0%,...).</div></li>
-                </ul>
-            </div>
-          </div>
           
           <div id="toast" class="toast-notification"></div>
     
@@ -352,6 +341,11 @@
     const PDF_TEMPLATE_URL = 'https://rawcdn.githack.com/shikinora2/VietQR-HDSAISON/77b5d7f3d2c3d2bcac91e4ef69f2b20f1725abb7/PDK0IR%20-%20DMCL%20(2).pdf';
     const FONT_URL = 'https://rawcdn.githack.com/shikinora2/VietQR-HDSAISON/f0381eb2e75227df3ceeb4ff3e8979f11229af35/SVN-Times%20New%20Roman%20Bold.ttf';
 
+    const POS_INFO = {
+        "POS24414": "Số 5 Lý Thường Kiệt, KP. Thắng Lợi 1, P. Dĩ An, TP. Dĩ An, Bình Dương",
+        "POS13858": "5A/2, Đường DT743, KP.1B, P. An Phú, Thuận An, Bình Dương"
+    };
+
     // --- Event Listeners ---
     if (uploadPdfLabel) {
         uploadPdfLabel.addEventListener('click', (e) => {
@@ -370,6 +364,21 @@
     document.addEventListener('DOMContentLoaded', () => {
         handleSharedLink();
         document.getElementById('export-pdk-pdf-btn').addEventListener('click', exportAllPdfs);
+        
+        const posSelect = document.getElementById('pos-select');
+        const posAddress = document.getElementById('pos-address');
+
+        function updatePosAddress() {
+            const selectedPos = posSelect.value;
+            if (posAddress && POS_INFO[selectedPos]) {
+                posAddress.textContent = POS_INFO[selectedPos];
+            }
+        }
+
+        if (posSelect) {
+            posSelect.addEventListener('change', updatePosAddress);
+            updatePosAddress(); // Initial call
+        }
     });
     
     // --- PDK 0% PDF Generation ---
@@ -638,52 +647,6 @@
             updateStt('#pdk-results-tbody');
         };
         actionCell.appendChild(deleteBtn);
-    }
-
-    async function createAndPrintSinglePagePdf(pdfBuffer, qrUrl, pageNumber) {
-        const printWindow = window.open("", "_blank");
-        if (!printWindow) {
-            showToast("Trình duyệt đã chặn popup. Vui lòng cho phép popup.");
-            return;
-        }
-        printWindow.document.write('<!DOCTYPE html><html lang="vi"><head><title>Đang tạo PDF...</title><style>body{font-family:sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;font-size:1.2rem;color:#333;}</style></head><body><p>⏳ Đang chuẩn bị file PDF, vui lòng chờ trong giây lát...</p></body></html>');
-
-        try {
-            const originalPdfDoc = await PDFDocument.load(pdfBuffer);
-            const newPdfDoc = await PDFDocument.create();
-
-            const pageIndex = pageNumber > 0 ? pageNumber - 1 : originalPdfDoc.getPageCount() - 1;
-            
-            if (pageIndex < 0 || pageIndex >= originalPdfDoc.getPageCount()) {
-                throw new Error(`Trang ${pageNumber} không hợp lệ.`);
-            }
-
-            const [copiedPage] = await newPdfDoc.copyPages(originalPdfDoc, [pageIndex]);
-            newPdfDoc.addPage(copiedPage);
-
-            const qrImageBytes = await fetch(qrUrl).then(res => res.arrayBuffer());
-            const qrImage = await newPdfDoc.embedPng(qrImageBytes);
-            
-            const { width, height } = copiedPage.getSize();
-            const qrDims = qrImage.scale(0.25);
-
-            copiedPage.drawImage(qrImage, {
-                x: width - qrDims.width - 30,
-                y: height - qrDims.height - 25,
-                width: qrDims.width,
-                height: qrDims.height,
-            });
-
-            const pdfBytes = await newPdfDoc.save();
-            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-            const url = URL.createObjectURL(blob);
-            printWindow.location.href = url;
-
-        } catch (error) {
-            console.error("Lỗi khi tạo PDF chỉ có trang thanh toán:", error);
-            printWindow.document.body.innerHTML = `<p>❌ Đã xảy ra lỗi khi tạo PDF. Vui lòng thử lại.</p>`;
-            showToast("Lỗi khi tạo file PDF để in.");
-        }
     }
 
     async function createAndPreviewSplitPdf(contractData, qrUrl, contractId) {
@@ -1091,3 +1054,4 @@
   </script>
 </body>
 </html>
+
