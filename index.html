@@ -44,6 +44,58 @@
     .qr-thumb{ width:84px; height:84px; border-radius:12px; object-fit:contain; display:none; cursor:zoom-in; border:1px solid var(--border); background:#fff; }
 
     .error-msg { color: var(--danger); font-size: 0.8rem; margin-top: 4px; display: none; }
+    
+    /* Styles for file display in Tab 1 */
+    .contract-files-container {
+        background-color: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .contract-files-container .contract-id {
+        font-weight: bold;
+        color: var(--info);
+        margin-bottom: 1rem;
+        text-align: center;
+        font-size: 1.1rem;
+    }
+    .file-item {
+        background-color: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+        transition: background-color 0.2s;
+    }
+    .file-item:hover {
+        background-color: #ffffff08;
+    }
+    .file-item .file-name {
+        flex-grow: 1;
+        text-decoration: none;
+        color: var(--ink);
+        font-weight: 500;
+    }
+     .file-item .file-name i {
+        color: var(--muted);
+        margin-right: 12px;
+        width: 20px;
+        text-align: center;
+     }
+    .file-item .file-actions a {
+        color: var(--muted);
+        text-decoration: none;
+        margin-left: 1rem;
+        font-size: 1.1rem;
+    }
+    .file-item .file-actions a:hover {
+        color: var(--ink);
+    }
+
 
     /* --- Lightbox Styles --- */
     .lightbox{ position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; padding:18px; opacity:0; pointer-events:none; transition:opacity .2s ease-out; z-index:9999; }
@@ -176,34 +228,6 @@
         isolation: isolate;
         background: #ffffff10;
     }
-
-    /* Dark mode table overrides */
-    [data-theme="dark"] .table {
-        --bs-table-bg: transparent;
-        --bs-table-border-color: var(--border);
-        --bs-table-color: var(--ink);
-    }
-
-    [data-theme="dark"] .table-bordered th,
-    [data-theme="dark"] .table-bordered td {
-        border-color: var(--border);
-    }
-
-    [data-theme="dark"] .table thead th {
-        color: var(--muted);
-        font-weight: 600;
-        white-space: nowrap;
-    }
-
-    [data-theme="dark"] .table tbody tr:first-child td {
-        border-top: none;
-    }
-    [data-theme="dark"] .table td, [data-theme="dark"] .table th {
-        padding: 1rem 0.5rem;
-    }
-    .date-col {
-        white-space: nowrap;
-    }
   </style>
   
   <!-- Thư viện PDF.js và pdf-lib -->
@@ -219,27 +243,27 @@
     <div class="app-card mx-auto" style="max-width:1100px">
       <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
         <h3 class="title mb-0">Bộ công cụ HDSAISON</h3>
-        <div class="d-flex align-items-center gap-3">
-          <label for="pdfFile" class="btn btn-secondary px-3" id="uploadPdfLabel">
-              <i class="fa-solid fa-file-pdf"></i> Tải PDF Hợp đồng
-          </label>
-          <input type="file" id="pdfFile" accept=".pdf" class="d-none" multiple />
-          <button id="addRow" class="btn btn-success px-3">+ Thêm hợp đồng</button>
-        </div>
+        <label for="pdfFile" class="btn btn-secondary px-3" id="uploadPdfLabel">
+            <i class="fa-solid fa-file-pdf"></i> Tải PDF Hợp đồng
+        </label>
+        <input type="file" id="pdfFile" accept=".pdf" class="d-none" multiple />
       </div>
 
       <ul class="nav nav-tabs" id="myTab" role="tablist">
         <li class="nav-item" role="presentation">
-          <button class="nav-link active" id="qr-tab" data-bs-toggle="tab" data-bs-target="#qr-tab-pane" type="button" role="tab" aria-controls="qr-tab-pane" aria-selected="true">Tạo mã QR</button>
+          <button class="nav-link active" id="print-contract-tab" data-bs-toggle="tab" data-bs-target="#print-contract-tab-pane" type="button" role="tab" aria-controls="print-contract-tab-pane" aria-selected="true">In bộ hợp đồng</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="qr-generator-tab" data-bs-toggle="tab" data-bs-target="#qr-generator-tab-pane" type="button" role="tab" aria-controls="qr-generator-tab-pane" aria-selected="false">Tạo mã QR</button>
         </li>
          <li class="nav-item" role="presentation">
           <button class="nav-link" id="calculator-tab" data-bs-toggle="tab" data-bs-target="#calculator-tab-pane" type="button" role="tab" aria-controls="calculator-tab-pane" aria-selected="false">Tính Khoản Vay (ED)</button>
         </li>
       </ul>
 
-      <div class="tab-content" id="myTabContent">
-        <div class="tab-pane fade show active" id="qr-tab-pane" role="tabpanel" aria-labelledby="qr-tab" tabindex="0">
-           <div class="soft-panel my-4">
+      <div class="tab-content pt-3" id="myTabContent">
+        <div class="tab-pane fade show active" id="print-contract-tab-pane" role="tabpanel" aria-labelledby="print-contract-tab" tabindex="0">
+           <div class="soft-panel my-3">
                 <label for="pos-select" class="hdr mb-2">Chọn POS</label>
                 <select class="form-select" id="pos-select">
                     <option value="POS24414">POS24414</option>
@@ -247,52 +271,29 @@
                 </select>
                 <p id="pos-address" class="small mt-2 mb-0"></p>
             </div>
-          
-          <div id="toast" class="toast-notification"></div>
-    
-          <div class="d-none d-md-flex align-items-center justify-content-between px-3 mb-2">
-            <div class="d-flex align-items-center gap-2" style="flex-grow: 1;">
-              <div class="hdr" style="flex: 1 1 230px;">Số hợp đồng</div>
-              <div class="hdr" style="flex: 1 1 260px;">Họ tên</div>
-              <div class="hdr" style="flex: 1 1 170px;">Số tiền (VND)</div>
+            <div id="contract-files-display">
+                <p class="text-center text-muted mt-4">Tải lên file PDF hợp đồng để các file được xử lý tự động hiển thị tại đây.</p>
             </div>
-            <div style="width: 220px;"> <!-- Placeholder for alignment -->
-            </div>
-          </div>
-    
-          <div id="rows"></div>
         </div>
-        <div class="tab-pane fade" id="pdk-cho-lon-tab-pane" role="tabpanel" aria-labelledby="pdk-cho-lon-tab" tabindex="0" style="display: none !important;">
-          <div class="soft-panel my-4">
-             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-              <h5 class="mt-2 mb-2">Thông tin Phiếu Đăng Ký 0%</h5>
-               <button id="export-pdk-pdf-btn" class="btn btn-sm btn-primary mb-3"><i class="fa-solid fa-file-pdf me-2"></i>Xem trước & In tất cả PDK</button>
-            </div>
-            
-            <p class="text-muted small">Dữ liệu trong bảng này được tự động cập nhật khi bạn tải file hợp đồng ở tab "Tạo mã QR". Bạn có thể nhấn nút "Xem trước & In" để mở tất cả các file PDK trong tab mới.</p>
-            <div class="table-responsive mt-3">
-              <table class="table table-bordered" id="pdk-info-table">
-                <thead>
-                  <tr>
-                    <th>STT</th>
-                    <th>Số HĐ</th>
-                    <th>Tên KH</th>
-                    <th>SĐT</th>
-                    <th>Sản phẩm</th>
-                    <th>Giá bán</th>
-                    <th>Trả trước</th>
-                    <th>Tiền vay</th>
-                    <th>Thời hạn</th>
-                    <th>Xóa</th>
-                  </tr>
-                </thead>
-                <tbody id="pdk-results-tbody">
-                  <!-- Dữ liệu sẽ được chèn vào đây -->
-                </tbody>
-              </table>
-            </div>
-          </div>
+        
+        <div class="tab-pane fade" id="qr-generator-tab-pane" role="tabpanel" aria-labelledby="qr-generator-tab" tabindex="0">
+             <div class="d-flex justify-content-end my-3">
+                <button id="addRow" class="btn btn-success px-3">+ Thêm thủ công</button>
+             </div>
+             
+             <div class="d-none d-md-flex align-items-center justify-content-between px-3 mb-2">
+                <div class="d-flex align-items-center gap-2" style="flex-grow: 1;">
+                  <div class="hdr" style="flex: 1 1 230px;">Số hợp đồng</div>
+                  <div class="hdr" style="flex: 1 1 260px;">Họ tên</div>
+                  <div class="hdr" style="flex: 1 1 170px;">Số tiền (VND)</div>
+                </div>
+                <div style="width: 180px;"> <!-- Placeholder for alignment -->
+                </div>
+             </div>
+             <div id="rows"></div>
+             <p id="qr-placeholder" class="text-center text-muted mt-4" style="display: none;">Chưa có mã QR nào. <br/>Tải file PDF hợp đồng hoặc thêm thủ công để bắt đầu.</p>
         </div>
+
         <div class="tab-pane fade p-3" id="calculator-tab-pane" role="tabpanel" aria-labelledby="calculator-tab" tabindex="0">
              <div class="soft-panel my-4">
                 <div class="calculator-form-group">
@@ -384,8 +385,11 @@
     <div class="lightbox-inner">
       <img id="lbImg" alt="VietQR phóng to"/>
       <div class="lightbox-actions">
-          <button type="button" class="btn-lightbox download-qr" title="Tải ảnh QR">
+          <a class="btn-lightbox download-qr" href="#" download title="Tải ảnh QR">
               <i class="fa-solid fa-download"></i> Tải xuống
+          </a>
+           <button type="button" class="btn-lightbox print-qr" title="In mã QR">
+              <i class="fa-solid fa-print"></i> In QR
           </button>
           <button type="button" class="btn-lightbox" id="shareBtn" title="Chia sẻ">
               <i class="fa-solid fa-share-nodes"></i> Chia sẻ
@@ -396,6 +400,8 @@
       </div>
     </div>
   </div>
+  
+  <div id="toast" class="toast-notification"></div>
 
   <template id="rowTemplate">
     <div class="row-item">
@@ -418,7 +424,6 @@
         <div class="actions-group">
             <button class="btn btn-primary generateBtn">Tạo QR</button>
             <img class="qr-thumb" alt="QR preview" title="Click để phóng to"/>
-            <button class="btn btn-success printFullBtn" disabled title="In & Tải xuống tất cả file (HĐ, QR, PDK 0%)"><i class="fa-solid fa-print"></i></button>
             <button class="btn btn-outline-danger deleteRowBtn" title="Xoá dòng"><i class="fa-solid fa-trash-can"></i></button>
         </div>
       </div>
@@ -443,7 +448,10 @@
     const lbClose = document.getElementById("lbClose");
     const shareBtn = document.getElementById("shareBtn");
     const downloadQrBtn = lb.querySelector(".download-qr");
+    const printQrBtn = lb.querySelector(".print-qr");
     const contractDataStore = new Map();
+    const contractFilesStore = new Map();
+    const qrPlaceholder = document.getElementById("qr-placeholder");
 
     const POS_INFO = {
         "POS24414": {
@@ -478,89 +486,67 @@
 
 
     // --- Event Listeners ---
-    if (uploadPdfLabel) {
-        uploadPdfLabel.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (!uploadPdfLabel.classList.contains('disabled')) {
-                pdfUpload.click();
-            }
-        });
-    }
-    if (pdfUpload) {
-        pdfUpload.addEventListener('change', handlePdfUpload);
-    }
-     if (addRowEl) {
-        addRowEl.addEventListener("click", () => addRow(true));
-    }
+    uploadPdfLabel.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (!uploadPdfLabel.classList.contains('disabled')) {
+            pdfUpload.click();
+        }
+    });
+    pdfUpload.addEventListener('change', handlePdfUpload);
+    addRowEl.addEventListener("click", () => addRow(true));
+    
     document.addEventListener('DOMContentLoaded', () => {
         handleSharedLink();
-        document.getElementById('export-pdk-pdf-btn').addEventListener('click', exportAllPdfs);
         
         const posSelect = document.getElementById('pos-select');
         const posAddress = document.getElementById('pos-address');
 
         function updatePosAddress() {
             const selectedPos = posSelect.value;
-            if (posAddress && POS_INFO[selectedPos]) {
-                posAddress.textContent = POS_INFO[selectedPos].address;
-            }
+            posAddress.textContent = POS_INFO[selectedPos]?.address || '';
         }
 
-        if (posSelect) {
-            const savedPos = localStorage.getItem(POS_STORAGE_KEY);
-            if (savedPos) {
-                posSelect.value = savedPos;
-            }
-            
-            posSelect.addEventListener('change', () => {
-                updatePosAddress();
-                localStorage.setItem(POS_STORAGE_KEY, posSelect.value);
-            });
-            updatePosAddress(); // Initial call
-        }
+        const savedPos = localStorage.getItem(POS_STORAGE_KEY);
+        if (savedPos) posSelect.value = savedPos;
+        
+        posSelect.addEventListener('change', () => {
+            updatePosAddress();
+            localStorage.setItem(POS_STORAGE_KEY, posSelect.value);
+            updateAllPdkFiles(); // Real-time update PDK file on POS change
+        });
+        updatePosAddress();
         
         // Loan Calculator ED Listeners
-        const loanProgramSelect = document.getElementById('loan-program');
-        const productPriceInput = document.getElementById('product-price');
-        const downPaymentPercentageInput = document.getElementById('down-payment-percentage');
-        const downPaymentInput = document.getElementById('down-payment');
-        const loanTermSelect = document.getElementById('loan-term');
-        const includeInsuranceCheckbox = document.getElementById('include-insurance');
-        const clearEdBtn = document.getElementById('clear-ed');
-
-        [loanProgramSelect, loanTermSelect, includeInsuranceCheckbox].forEach(el => el.addEventListener('change', calculateLoanEd));
-        clearEdBtn.addEventListener('click', resetEdForm);
-        productPriceInput.addEventListener('input', formatCurrencyOnLoanInput);
-        downPaymentInput.addEventListener('input', (e) => {
-            downPaymentPercentageInput.value = '';
+        ['loan-program', 'loan-term', 'include-insurance'].forEach(id => document.getElementById(id).addEventListener('change', calculateLoanEd));
+        document.getElementById('clear-ed').addEventListener('click', resetEdForm);
+        document.getElementById('product-price').addEventListener('input', formatCurrencyOnLoanInput);
+        document.getElementById('down-payment').addEventListener('input', (e) => {
+            document.getElementById('down-payment-percentage').value = '';
             formatCurrencyOnLoanInput(e);
         });
-        downPaymentPercentageInput.addEventListener('input', () => {
-            const productPrice = parseNumber(productPriceInput.value);
-            downPaymentPercentageInput.value = downPaymentPercentageInput.value.replace(/[^0-9]/g, '');
-            const percentage = parseFloat(downPaymentPercentageInput.value);
+        document.getElementById('down-payment-percentage').addEventListener('input', () => {
+            const productPrice = parseNumber(document.getElementById('product-price').value);
+            const percentageInput = document.getElementById('down-payment-percentage');
+            percentageInput.value = percentageInput.value.replace(/[^0-9]/g, '');
+            const percentage = parseFloat(percentageInput.value);
             if (productPrice > 0 && !isNaN(percentage) && percentage >= 0 && percentage <= 100) {
-                const downPaymentAmount = productPrice * (percentage / 100);
-                downPaymentInput.value = downPaymentAmount.toLocaleString('vi-VN');
+                document.getElementById('down-payment').value = (productPrice * (percentage / 100)).toLocaleString('vi-VN');
             } else {
-                downPaymentInput.value = '';
+                document.getElementById('down-payment').value = '';
             }
             calculateLoanEd();
         });
         calculateLoanEd();
+        
+        // Add initial empty row for manual QR creation
+        addRow(true);
     });
     
     // --- PDK 0% PDF Generation ---
     const PDK_COORDS = {
-      "tenKH": { "x": 143.32, "y": 616.87 },
-      "sdt": { "x": 143.32, "y": 603.04 },
-      "sanPham": { "x": 117.31, "y": 465.25 },
-      "giaBan": { "x": 112.88, "y": 444.78 },
-      "ngayGiaoDich": { "x": 140.00, "y": 425.97 },
-      "tienVay": { "x": 122.84, "y": 385.57 },
-      "traTruoc": { "x": 145.53, "y": 366.20 },
-      "thoiHan": { "x": 147.19, "y": 345.73 },
-      "shd": { "x": 146.08, "y": 325.81 }
+      "tenKH": { "x": 143.32, "y": 616.87 }, "sdt": { "x": 143.32, "y": 603.04 }, "sanPham": { "x": 117.31, "y": 465.25 },
+      "giaBan": { "x": 112.88, "y": 444.78 }, "ngayGiaoDich": { "x": 140.00, "y": 425.97 }, "tienVay": { "x": 122.84, "y": 385.57 },
+      "traTruoc": { "x": 145.53, "y": 366.20 }, "thoiHan": { "x": 147.19, "y": 345.73 }, "shd": { "x": 146.08, "y": 325.81 }
     };
     
     function formatCurrency(numStr) {
@@ -574,8 +560,6 @@
         pdfDoc.registerFontkit(fontkit);
         const font = await pdfDoc.embedFont(fontBytes, { subset: true });
         const page = pdfDoc.getPages()[0];
-        const FONT_SIZE = 13;
-        const COLOR = rgb(0, 0, 0);
         const today = new Date().toLocaleDateString('vi-VN');
         
         for (const key in PDK_COORDS) {
@@ -583,71 +567,71 @@
             if (['giaBan', 'tienVay', 'traTruoc'].includes(key)) {
                 text = formatCurrency(text);
             }
-            page.drawText(text, { ...PDK_COORDS[key], font, size: FONT_SIZE, color: COLOR, maxWidth: 400 });
+            page.drawText(text, { ...PDK_COORDS[key], font, size: 13, color: rgb(0, 0, 0), maxWidth: 400 });
         }
         
         return await pdfDoc.save();
     }
-
-    async function exportAllPdfs() {
-        const tableBody = document.getElementById('pdk-results-tbody');
-        const exportBtn = document.getElementById('export-pdk-pdf-btn');
-        const selectedPos = document.getElementById('pos-select').value;
-        const pdfTemplateUrl = POS_INFO[selectedPos].templateUrl;
-
-        if (tableBody.rows.length === 0) {
-            showToast('Không có dữ liệu để xuất file PDF.');
-            return;
-        }
-
-        const originalBtnHTML = exportBtn.innerHTML;
-        exportBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...`;
-        exportBtn.disabled = true;
-
-        try {
-            showToast('Đang tải tài nguyên cần thiết...', 'info');
-            const [templateResponse, fontResponse] = await Promise.all([
-                fetch(pdfTemplateUrl),
-                fetch(FONT_URL)
-            ]);
-
-            if (!templateResponse.ok) throw new Error('Không thể tải file PDF mẫu.');
-            if (!fontResponse.ok) throw new Error('Không thể tải file font.');
-
-            const [templateBytes, fontBytes] = await Promise.all([
-                templateResponse.arrayBuffer(),
-                fontResponse.arrayBuffer()
-            ]);
-            
-            showToast(`Bắt đầu xuất ${tableBody.rows.length} file PDF...`, 'info');
-
-            for (const row of tableBody.rows) {
-                 const rowData = {
-                    shd: row.cells[1].textContent,
-                    tenKH: row.cells[2].textContent,
-                    sdt: row.cells[3].textContent,
-                    sanPham: row.cells[4].textContent,
-                    giaBan: row.cells[5].textContent,
-                    traTruoc: row.cells[6].textContent,
-                    tienVay: row.cells[7].textContent,
-                    thoiHan: row.cells[8].textContent
-                };
-                
-                const pdfBytes = await generatePdkPdfBytes(rowData, templateBytes, fontBytes);
-                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-                const url = URL.createObjectURL(blob);
-                window.open(url, '_blank');
-            }
-            showToast(`Đã mở ${tableBody.rows.length} file PDF trong tab mới.`, 'info');
-
-        } catch (error) {
-            console.error('Lỗi khi xuất PDF:', error);
-            showToast(error.message || 'Có lỗi xảy ra khi xuất PDF.');
-        } finally {
-            exportBtn.innerHTML = originalBtnHTML;
-            exportBtn.disabled = false;
+    
+    function updatePlaceholders() {
+        qrPlaceholder.style.display = rowsEl.children.length === 0 ? 'block' : 'none';
+        const fileDisplay = document.getElementById('contract-files-display');
+        const placeholder = fileDisplay.querySelector('p');
+        if (placeholder) {
+            placeholder.style.display = fileDisplay.children.length > 1 ? 'none' : 'block';
         }
     }
+
+    async function updateAllPdkFiles() {
+        if (contractDataStore.size === 0) return;
+
+        showToast('Đang cập nhật file PDK theo POS mới...', 'info');
+        try {
+            const selectedPos = document.getElementById('pos-select').value;
+            const pdfTemplateUrl = POS_INFO[selectedPos].templateUrl;
+
+            const [templateResponse, fontResponse] = await Promise.all([ fetch(pdfTemplateUrl), fetch(FONT_URL) ]);
+            if (!templateResponse.ok || !fontResponse.ok) throw new Error("Không thể tải tài nguyên cho POS.");
+            
+            const [templateBytes, fontBytes] = await Promise.all([ templateResponse.arrayBuffer(), fontResponse.arrayBuffer() ]);
+
+            for (const [rowEl, contractData] of contractDataStore.entries()) {
+                const { pdkData } = contractData;
+                if (!pdkData || !pdkData.shd) continue;
+
+                const newPdkBytes = await generatePdkPdfBytes(pdkData, templateBytes, fontBytes);
+                const newPdkBlobUrl = URL.createObjectURL(new Blob([newPdkBytes], { type: 'application/pdf' }));
+                
+                const contractId = pdkData.shd;
+                const fileSet = contractFilesStore.get(contractId);
+                if (!fileSet) continue;
+
+                if (fileSet.pdk && fileSet.pdk.url) URL.revokeObjectURL(fileSet.pdk.url);
+
+                fileSet.pdk.url = newPdkBlobUrl;
+                contractFilesStore.set(contractId, fileSet);
+
+                const fileContainer = document.querySelector(`.contract-files-container[data-contract-id="${contractId}"]`);
+                if (fileContainer) {
+                    const pdkItem = fileContainer.querySelector('.file-item[data-file-type="pdk"]'); 
+                    if (pdkItem) {
+                        const link = pdkItem.querySelector('a.file-name');
+                        const printLink = pdkItem.querySelector('.file-actions a[title="In"]');
+                        const downloadLink = pdkItem.querySelector('.file-actions a[title="Tải về"]');
+
+                        if (link) link.href = newPdkBlobUrl;
+                        if (printLink) printLink.href = newPdkBlobUrl;
+                        if (downloadLink) downloadLink.href = newPdkBlobUrl;
+                    }
+                }
+            }
+            showToast('Đã cập nhật tất cả file PDK!', 'info');
+        } catch (error) {
+            console.error("Lỗi khi cập nhật file PDK:", error);
+            showToast("Lỗi khi cập nhật file PDK.");
+        }
+    }
+
 
     // --- Core Functions ---
     async function handlePdfUpload(event) {
@@ -658,7 +642,6 @@
         uploadPdfLabel.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...`;
         uploadPdfLabel.classList.add('disabled');
         let successCount = 0;
-        let isFirstFileInBatch = true; 
 
         for (const file of files) {
             if (file.type !== 'application/pdf') {
@@ -667,11 +650,7 @@
             }
             try {
                 const pdfBuffer = await file.arrayBuffer();
-                
-                let paymentPageNum = -1;
-                let paymentPageText = '';
-                let insurancePageNum = -1;
-                let fullText = '';
+                let paymentPageNum = -1, paymentPageText = '', insurancePageNum = -1, fullText = '';
                 
                 const pdf = await pdfjsLib.getDocument(new Uint8Array(pdfBuffer)).promise;
                 for (let i = 1; i <= pdf.numPages; i++) {
@@ -684,308 +663,167 @@
                         paymentPageNum = i; 
                         paymentPageText = pageText;
                     }
-                    if (pageText.includes('BẢN YÊU CẦU BẢO HIỂM')) {
-                        if (insurancePageNum === -1) insurancePageNum = i;
+                    if (pageText.includes('BẢN YÊU CẦU BẢO HIỂM') && insurancePageNum === -1) {
+                        insurancePageNum = i;
                     }
                 }
 
-                if (!paymentPageText) {
-                    showToast(`Không tìm thấy trang Hướng Dẫn Thanh Toán trong file "${file.name}".`);
-                    continue;
-                }
-
+                if (!paymentPageText) throw new Error(`Không tìm thấy trang Hướng Dẫn Thanh Toán.`);
+                
                 const allData = extractAllDataFromPdfText(fullText, paymentPageText);
 
-                if (!allData.qrData || !allData.pdkData) {
-                    showToast(`Không tìm thấy đủ thông tin trong file "${file.name}".`);
-                    continue;
-                }
+                if (!allData.qrData || !allData.pdkData) throw new Error(`Không tìm thấy đủ thông tin.`);
                 
-                let rowEl;
-                if (isFirstFileInBatch && rowsEl.children.length === 1) {
-                    const firstRow = rowsEl.querySelector('.row-item');
-                    const inputs = firstRow.querySelectorAll('.form-control');
-                    const allEmpty = Array.from(inputs).every(i => i.value === '');
-                    if (allEmpty) {
-                        rowEl = firstRow;
-                    }
-                }
-                if (!rowEl) {
-                    rowEl = addRow();
-                }
-
-                allData.paymentPage = paymentPageNum;
-                allData.insurancePage = insurancePageNum;
-                contractDataStore.set(rowEl, { ...allData, pdfBuffer });
-
-                // Populate QR Tab
+                // Add QR Row to Tab 3
+                const rowEl = addRow();
                 rowEl.querySelector(".contractInput").value = allData.qrData.contract;
                 rowEl.querySelector(".nameInput").value = allData.qrData.name;
                 rowEl.querySelector(".amountInput").value = formatThousandDots(allData.qrData.amount);
                 rowEl.querySelector(".generateBtn").click();
-                rowEl.querySelector(".printFullBtn").disabled = false;
                 
-                // Populate PDK Tab
-                populatePdkRow(allData.pdkData);
+                // Generate and Display Files in Tab 1
+                allData.paymentPage = paymentPageNum;
+                allData.insurancePage = insurancePageNum;
+                const contractFullData = { ...allData, pdfBuffer };
+                contractDataStore.set(rowEl, contractFullData);
+
+                const qrUrl = buildQRUrl(allData.qrData, "compact.png");
+                const fileSet = await generateContractFileSet(contractFullData, qrUrl);
+                displayContractFilesInUI(fileSet, allData.qrData.contract);
                 
                 successCount++;
-                isFirstFileInBatch = false;
 
             } catch (error) {
                 console.error(`Lỗi xử lý file "${file.name}":`, error);
-                showToast(`Không thể xử lý file "${file.name}".`);
+                showToast(`Không thể xử lý file "${file.name}". ${error.message}`);
             }
         }
         
         if (successCount > 0) showToast(`Đã xử lý thành công ${successCount} file PDF.`, 'info');
-        
         uploadPdfLabel.innerHTML = originalBtnHTML;
         uploadPdfLabel.classList.remove('disabled');
         event.target.value = '';
+        updatePlaceholders();
     }
     
     function toTitleCase(str) {
-        if (!str) return '';
-        return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        return (str || '').toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     }
     
     function extractAllDataFromPdfText(fullText, paymentPageText) {
-        // QR Data Extraction
-        const contractRegexQR = /Số Hợp Đồng:\s*([A-Z0-9]+)/;
-        const nameRegexQR = /Họ tên:\s*(.*?)\s*Thông tin Khoản Vay:/;
-        const amountRegexQR = /Khoản Thanh Toán Hàng Tháng:\s*([\d,.]+)\s*VNĐ/;
-
-        const contractMatchQR = paymentPageText.match(contractRegexQR);
-        const nameMatchQR = paymentPageText.match(nameRegexQR);
-        const amountMatchQR = paymentPageText.match(amountRegexQR);
-        
-        const qrData = (contractMatchQR && nameMatchQR && amountMatchQR) ? {
-            contract: contractMatchQR[1].trim(),
-            name: nameMatchQR[1].trim(),
-            amount: amountMatchQR[1].trim(),
-        } : null;
-        
-        // PDK Data Extraction
-        const pdkContractRegex = /Số:\s*([A-Z0-9]+)/;
-        const pdkNameRegex = /1\.1\.\s*Họ tên:\s*(.*?)\s*1\.2\./;
-        const pdkPhoneRegex = /1\.7\.\s*Điện thoại di động:\s*(\d+)/;
-        const pdkProductRegex = /5\.9\.1\. Sản Phẩm Được Tài Trợ 1:\s*(.*?)(?:\s*Tổng Giá Bán|\s*5\.9\.2\.)/;
-        const pdkPriceRegex = /2\.2\. Tổng giá trị Sản Phẩm Được Tài Trợ:\s*([0-9,.]+(?:\s*VNĐ)?)/;
-        const pdkPrepaidRegex = /2\.3\. Khoản Tiền Mặt Trả Trước:\s*([0-9,.]+(?:\s*VNĐ)?)/;
-        const pdkLoanRegex = /2\.4\. Số tiền đề nghị vay:\s*([0-9,.]+(?:\s*VNĐ)?)/;
-        const pdkTermRegex = /2\.5\. Thời Hạn Vay:\s*(.*?)\s*3\./;
-        
-        const findValue = (text, regex) => {
-            const match = text.match(regex);
-            return match ? match[1].replace('VNĐ', '').trim() : null;
+        const qrData = {
+            contract: paymentPageText.match(/Số Hợp Đồng:\s*([A-Z0-9]+)/)?.[1]?.trim(),
+            name: paymentPageText.match(/Họ tên:\s*(.*?)\s*Thông tin Khoản Vay:/)?.[1]?.trim(),
+            amount: paymentPageText.match(/Khoản Thanh Toán Hàng Tháng:\s*([\d,.]+)\s*VNĐ/)?.[1]?.trim(),
         };
-
-        let tenKH = findValue(fullText, pdkNameRegex);
-        if (tenKH) tenKH = toTitleCase(tenKH);
-
+        
+        const findValue = (regex) => fullText.match(regex)?.[1]?.replace('VNĐ', '').trim() || null;
+        let tenKH = findValue(/1\.1\.\s*Họ tên:\s*(.*?)\s*1\.2\./);
+        
         const pdkData = {
-            shd: findValue(fullText, pdkContractRegex),
-            tenKH: tenKH,
-            sdt: findValue(fullText, pdkPhoneRegex),
-            sanPham: findValue(fullText, pdkProductRegex)?.split(',').map(item => item.trim().replace(/^\d+-/, '')).join(', '),
-            giaBan: findValue(fullText, pdkPriceRegex),
-            traTruoc: findValue(fullText, pdkPrepaidRegex),
-            tienVay: findValue(fullText, pdkLoanRegex),
-            thoiHan: findValue(fullText, pdkTermRegex)
+            shd: findValue(/Số:\s*([A-Z0-9]+)/),
+            tenKH: tenKH ? toTitleCase(tenKH) : null,
+            sdt: findValue(/1\.7\.\s*Điện thoại di động:\s*(\d+)/),
+            sanPham: findValue(/5\.9\.1\. Sản Phẩm Được Tài Trợ 1:\s*(.*?)(?:\s*Tổng Giá Bán|\s*5\.9\.2\.)/)?.split(',').map(item => item.trim().replace(/^\d+-/, '')).join(', '),
+            giaBan: findValue(/2\.2\. Tổng giá trị Sản Phẩm Được Tài Trợ:\s*([0-9,.]+(?:\s*VNĐ)?)/),
+            traTruoc: findValue(/2\.3\. Khoản Tiền Mặt Trả Trước:\s*([0-9,.]+(?:\s*VNĐ)?)/),
+            tienVay: findValue(/2\.4\. Số tiền đề nghị vay:\s*([0-9,.]+(?:\s*VNĐ)?)/),
+            thoiHan: findValue(/2\.5\. Thời Hạn Vay:\s*(.*?)\s*3\./)
         };
-        
-        const hasAllPdkData = Object.values(pdkData).every(val => val !== null);
         
         return {
-            qrData,
-            pdkData: hasAllPdkData ? pdkData : null
+            qrData: Object.values(qrData).every(Boolean) ? qrData : null,
+            pdkData: Object.values(pdkData).every(Boolean) ? pdkData : null
         };
     }
     
-    function populatePdkRow(pdkData) {
-        const tbody = document.getElementById('pdk-results-tbody');
-        const row = tbody.insertRow();
-        row.insertCell().textContent = tbody.rows.length;
-        Object.values(pdkData).forEach(value => {
-            row.insertCell().textContent = value;
-        });
+    async function generateContractFileSet(contractData, qrUrl) {
+        const { pdfBuffer, paymentPage, insurancePage, pdkData } = contractData;
+        const originalPdfDoc = await PDFDocument.load(pdfBuffer);
+        const totalPages = originalPdfDoc.getPageCount();
+        const fileSet = {};
         
-        const actionCell = row.insertCell();
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'btn btn-sm btn-outline-danger';
-        deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
-        deleteBtn.onclick = () => {
-            row.remove();
-            updateStt('#pdk-results-tbody');
-        };
-        actionCell.appendChild(deleteBtn);
+        // --- 1. Hợp đồng Tín dụng (Trang 1-4) ---
+        const hopDongDoc = await PDFDocument.create();
+        const hopDongPages = await hopDongDoc.copyPages(originalPdfDoc, [0, 1, 2, 3]);
+        hopDongPages.forEach(page => hopDongDoc.addPage(page));
+        const hopDongBytes = await hopDongDoc.save();
+        fileSet.hopDong = { url: URL.createObjectURL(new Blob([hopDongBytes], { type: 'application/pdf' })), name: `HopDongTinDung_${pdkData.shd}.pdf` };
+
+        // --- 2. Hướng dẫn Thanh toán (1 trang + QR) ---
+        const thanhToanDoc = await PDFDocument.create();
+        const [thanhToanPage] = await thanhToanDoc.copyPages(originalPdfDoc, [paymentPage - 1]);
+        thanhToanDoc.addPage(thanhToanPage);
+        const qrImageBytes = await fetch(qrUrl).then(res => res.arrayBuffer());
+        const qrImage = await thanhToanDoc.embedPng(qrImageBytes);
+        const { width, height } = thanhToanPage.getSize();
+        const qrDims = qrImage.scale(0.25);
+        thanhToanPage.drawImage(qrImage, { x: width - qrDims.width - 30, y: height - qrDims.height - 25, width: qrDims.width, height: qrDims.height });
+        const thanhToanBytes = await thanhToanDoc.save();
+        fileSet.thanhToan = { url: URL.createObjectURL(new Blob([thanhToanBytes], { type: 'application/pdf' })), name: `HuongDanThanhToan_${pdkData.shd}.pdf` };
+
+        // --- 3. Yêu cầu Bảo hiểm (2 trang cuối) ---
+        if (insurancePage > 0 && insurancePage + 1 <= totalPages) {
+            const baoHiemDoc = await PDFDocument.create();
+            const baoHiemPages = await baoHiemDoc.copyPages(originalPdfDoc, [insurancePage - 1, insurancePage]);
+            baoHiemPages.forEach(page => baoHiemDoc.addPage(page));
+            const baoHiemBytes = await baoHiemDoc.save();
+            fileSet.baoHiem = { url: URL.createObjectURL(new Blob([baoHiemBytes], { type: 'application/pdf' })), name: `YeuCauBaoHiem_${pdkData.shd}.pdf` };
+        }
+        
+        // --- 4. Generate PDK 0% PDF ---
+        const selectedPos = document.getElementById('pos-select').value;
+        const [templateResponse, fontResponse] = await Promise.all([fetch(POS_INFO[selectedPos].templateUrl), fetch(FONT_URL)]);
+        const [templateBytes, fontBytes] = await Promise.all([templateResponse.arrayBuffer(), fontResponse.arrayBuffer()]);
+        const pdkBytes = await generatePdkPdfBytes(pdkData, templateBytes, fontBytes);
+        fileSet.pdk = { url: URL.createObjectURL(new Blob([pdkBytes], { type: 'application/pdf' })), name: `PDK_0%_${pdkData.shd}.pdf` };
+        
+        contractFilesStore.set(pdkData.shd, fileSet); // Store for later use
+        return fileSet;
     }
+    
+    function displayContractFilesInUI(fileSet, contractId) {
+        const container = document.getElementById('contract-files-display');
+        const wrapper = document.createElement('div');
+        wrapper.className = 'contract-files-container';
+        wrapper.dataset.contractId = contractId;
 
-    async function createAndPreviewSplitPdf(contractData, qrUrl, contractId) {
-        const previewWindow = window.open("", "_blank");
-        if (!previewWindow) {
-            showToast("Trình duyệt đã chặn popup. Vui lòng cho phép popup.");
-            return;
-        }
-        previewWindow.document.write('<!DOCTYPE html><html lang="vi"><head><title>Đang tách file...</title><style>body{font-family:sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;font-size:1.2rem;color:#333;}</style></head><body><p>⏳ Đang chuẩn bị các file PDF, vui lòng chờ trong giây lát...</p></body></html>');
+        const fileItems = [
+            { id: 'hopDong', icon: 'fa-file-contract', text: 'Hợp Đồng Tín Dụng' },
+            { id: 'thanhToan', icon: 'fa-qrcode', text: 'Hướng Dẫn Thanh Toán (có QR)' },
+            { id: 'baoHiem', icon: 'fa-shield-halved', text: 'Bản Yêu Cầu Bảo Hiểm' },
+            { id: 'pdk', icon: 'fa-file-pen', text: 'Phiếu Đăng Ký 0%' }
+        ];
+        
+        let filesHtml = fileItems.map(item => {
+            if (!fileSet[item.id]) return '';
+            const { url, name } = fileSet[item.id];
+            return `
+            <div class="file-item" data-file-type="${item.id}">
+                <a href="${url}" target="_blank" class="file-name"><i class="fa-solid ${item.icon} fa-fw"></i>${item.text}</a>
+                <div class="file-actions">
+                    <a href="${url}" target="_blank" title="In"><i class="fa-solid fa-print"></i></a>
+                    <a href="${url}" download="${name}" title="Tải về"><i class="fa-solid fa-download"></i></a>
+                </div>
+            </div>`;
+        }).join('');
 
-        try {
-            const { pdfBuffer, paymentPage, insurancePage } = contractData;
-            const originalPdfDoc = await PDFDocument.load(pdfBuffer);
-            const totalPages = originalPdfDoc.getPageCount();
-
-            // --- 1. Hợp đồng Tín dụng (Trang 1-4) ---
-            const hopDongDoc = await PDFDocument.create();
-            const hopDongPages = await hopDongDoc.copyPages(originalPdfDoc, [0, 1, 2, 3]);
-            hopDongPages.forEach(page => hopDongDoc.addPage(page));
-            const hopDongBytes = await hopDongDoc.save();
-            const hopDongUrl = URL.createObjectURL(new Blob([hopDongBytes], { type: 'application/pdf' }));
-            
-            // --- 2. Hướng dẫn Thanh toán (1 trang + QR) ---
-            const thanhToanDoc = await PDFDocument.create();
-            const [thanhToanPage] = await thanhToanDoc.copyPages(originalPdfDoc, [paymentPage - 1]);
-            thanhToanDoc.addPage(thanhToanPage);
-            const qrImageBytes = await fetch(qrUrl).then(res => res.arrayBuffer());
-            const qrImage = await thanhToanDoc.embedPng(qrImageBytes);
-            const { width, height } = thanhToanPage.getSize();
-            const qrDims = qrImage.scale(0.25);
-            thanhToanPage.drawImage(qrImage, { x: width - qrDims.width - 30, y: height - qrDims.height - 25, width: qrDims.width, height: qrDims.height });
-            const thanhToanBytes = await thanhToanDoc.save();
-            const thanhToanUrl = URL.createObjectURL(new Blob([thanhToanBytes], { type: 'application/pdf' }));
-
-            // --- 3. Yêu cầu Bảo hiểm (2 trang cuối) ---
-            let baoHiemUrl = '';
-            if (insurancePage > 0 && insurancePage + 1 <= totalPages) {
-                const baoHiemDoc = await PDFDocument.create();
-                const baoHiemPages = await baoHiemDoc.copyPages(originalPdfDoc, [insurancePage - 1, insurancePage]);
-                baoHiemPages.forEach(page => baoHiemDoc.addPage(page));
-                const baoHiemBytes = await baoHiemDoc.save();
-                baoHiemUrl = URL.createObjectURL(new Blob([baoHiemBytes], { type: 'application/pdf' }));
-            }
-            
-            // --- 4. Generate PDK 0% PDF ---
-            const selectedPos = document.getElementById('pos-select').value;
-            const pdfTemplateUrl = POS_INFO[selectedPos].templateUrl;
-
-            const [templateResponse, fontResponse] = await Promise.all([
-                fetch(pdfTemplateUrl),
-                fetch(FONT_URL)
-            ]);
-            const [templateBytes, fontBytes] = await Promise.all([
-                templateResponse.arrayBuffer(),
-                fontResponse.arrayBuffer()
-            ]);
-            const pdkBytes = await generatePdkPdfBytes(contractData.pdkData, templateBytes, fontBytes);
-            const pdkUrl = URL.createObjectURL(new Blob([pdkBytes], { type: 'application/pdf' }));
-            
-            const previewHtml = `
-                <!DOCTYPE html>
-                <html lang="vi">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>Tải xuống & In Hợp đồng ${contractId}</title>
-                    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
-                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-                    <style>
-                        body { background-color: #0f172a; color: #e5e7eb; font-family: system-ui, sans-serif; }
-                        .container { max-width: 700px; }
-                        .card { background-color: #111827; border: 1px solid #263143; }
-                        .card h3 { color: #ffffff; }
-                        .card .contract-id { color: #e5e7eb; }
-                        .list-group-item {
-                            background-color: #1f2937 !important;
-                            color: #e5e7eb !important;
-                            border-color: #374151 !important;
-                        }
-                        .file-link {
-                            color: #e5e7eb;
-                            text-decoration: none;
-                            flex-grow: 1;
-                            transition: color .2s;
-                        }
-                        .file-link:hover {
-                            color: #93c5fd;
-                        }
-                        .action-btn {
-                            color: #9ca3af;
-                            text-decoration: none;
-                            font-size: 1.1rem;
-                            transition: color .2s;
-                        }
-                        .action-btn:hover {
-                            color: #e5e7eb;
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="container py-5">
-                        <div class="card p-4 rounded-4">
-                            <h3 class="mb-4 text-center">Tải xuống & In Hợp đồng</h3>
-                            <p class="text-center contract-id mb-4">Số hợp đồng: <strong>${contractId}</strong></p>
-                            <div class="list-group">
-                                <div class="list-group-item d-flex justify-content-between align-items-center">
-                                    <a href="${hopDongUrl}" target="_blank" class="file-link">
-                                        <span><i class="fa-solid fa-file-contract fa-fw me-3"></i>Hợp Đồng Tín Dụng</span>
-                                    </a>
-                                    <div class="actions">
-                                        <a href="${hopDongUrl}" target="_blank" class="action-btn me-3" title="In"><i class="fa-solid fa-print"></i></a>
-                                        <a href="${hopDongUrl}" download="HopDongTinDung_${contractId}.pdf" class="action-btn" title="Tải về"><i class="fa-solid fa-download"></i></a>
-                                    </div>
-                                </div>
-                                <div class="list-group-item d-flex justify-content-between align-items-center">
-                                    <a href="${thanhToanUrl}" target="_blank" class="file-link">
-                                       <span><i class="fa-solid fa-qrcode fa-fw me-3"></i>Hướng Dẫn Thanh Toán (có QR)</span>
-                                    </a>
-                                     <div class="actions">
-                                        <a href="${thanhToanUrl}" target="_blank" class="action-btn me-3" title="In"><i class="fa-solid fa-print"></i></a>
-                                        <a href="${thanhToanUrl}" download="HuongDanThanhToan_${contractId}.pdf" class="action-btn" title="Tải về"><i class="fa-solid fa-download"></i></a>
-                                    </div>
-                                </div>
-                                ${baoHiemUrl ? `
-                                <div class="list-group-item d-flex justify-content-between align-items-center">
-                                     <a href="${baoHiemUrl}" target="_blank" class="file-link">
-                                        <span><i class="fa-solid fa-shield-halved fa-fw me-3"></i>Bản Yêu Cầu Bảo Hiểm</span>
-                                    </a>
-                                    <div class="actions">
-                                        <a href="${baoHiemUrl}" target="_blank" class="action-btn me-3" title="In"><i class="fa-solid fa-print"></i></a>
-                                        <a href="${baoHiemUrl}" download="YeuCauBaoHiem_${contractId}.pdf" class="action-btn" title="Tải về"><i class="fa-solid fa-download"></i></a>
-                                    </div>
-                                </div>` : ''}
-                                <div class="list-group-item d-flex justify-content-between align-items-center">
-                                     <a href="${pdkUrl}" target="_blank" class="file-link">
-                                        <span><i class="fa-solid fa-file-pen fa-fw me-3"></i>Phiếu Đăng Ký 0%</span>
-                                    </a>
-                                    <div class="actions">
-                                        <a href="${pdkUrl}" target="_blank" class="action-btn me-3" title="In"><i class="fa-solid fa-print"></i></a>
-                                        <a href="${pdkUrl}" download="PDK_0%_${contractId}.pdf" class="action-btn" title="Tải về"><i class="fa-solid fa-download"></i></a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </body>
-                </html>
-            `;
-
-            previewWindow.document.open();
-            previewWindow.document.write(previewHtml);
-            previewWindow.document.close();
-
-        } catch (error) {
-            console.error("Lỗi khi tách file PDF:", error);
-            previewWindow.document.body.innerHTML = `<p>❌ Đã xảy ra lỗi khi tách file PDF. Vui lòng thử lại.</p>`;
-            showToast("Lỗi khi tách file PDF.");
-        }
+        wrapper.innerHTML = `
+            <p class="contract-id">Số hợp đồng: ${contractId}</p>
+            ${filesHtml}
+        `;
+        container.prepend(wrapper); // Add new ones to the top
     }
 
     function addRow(isManual = false) {
         const node = tpl.content.cloneNode(true);
         const el = node.querySelector(".row-item");
-        const inputContract = el.querySelector(".contractInput");
-        const inputName = el.querySelector(".nameInput");
-        const inputAmount = el.querySelector(".amountInput");
+        const inputs = {
+            contract: el.querySelector(".contractInput"),
+            name: el.querySelector(".nameInput"),
+            amount: el.querySelector(".amountInput")
+        };
         const btnGen = el.querySelector(".generateBtn");
-        const btnPrintFull = el.querySelector(".printFullBtn");
         const btnDelRow = el.querySelector(".deleteRowBtn");
         const img = el.querySelector(".qr-thumb");
         const errorMessages = {
@@ -993,47 +831,33 @@
             amount: el.querySelector(".amountInput + .error-msg"),
         };
 
-        [inputContract, inputName, inputAmount].forEach(input => {
-            input.addEventListener("keydown", (e) => {
-                if (e.key === "Enter") {
-                    e.preventDefault();
-                    btnGen.click();
-                }
-            });
+        Object.values(inputs).forEach(input => {
+            input.addEventListener("keydown", e => e.key === "Enter" && (e.preventDefault(), btnGen.click()));
         });
-
-        inputAmount.addEventListener("input", () => {
-            const value = inputAmount.value;
-            const caretPos = inputAmount.selectionStart;
+        
+        inputs.amount.addEventListener("input", () => {
+            const { value, selectionStart } = inputs.amount;
             const originalLength = value.length;
-
-            const formattedValue = formatThousandDots(value);
-            inputAmount.value = formattedValue;
-
-            const newLength = formattedValue.length;
-            if (caretPos !== null) {
-                const newCaretPos = caretPos + (newLength - originalLength);
-                inputAmount.setSelectionRange(newCaretPos, newCaretPos);
+            inputs.amount.value = formatThousandDots(value);
+            if (selectionStart !== null) {
+                inputs.amount.setSelectionRange(selectionStart + (inputs.amount.value.length - originalLength), selectionStart + (inputs.amount.value.length - originalLength));
             }
         });
 
-        function validate() {
+        const validate = () => {
             let valid = true;
-            errorMessages.contract.style.display = "none";
-            errorMessages.amount.style.display = "none";
-            inputContract.classList.remove("is-invalid");
-            inputAmount.classList.remove("is-invalid");
-
-            if (!inputContract.value.trim()) {
+            Object.values(errorMessages).forEach(msg => msg.style.display = 'none');
+            Object.values(inputs).forEach(input => input.classList.remove('is-invalid'));
+            if (!inputs.contract.value.trim()) {
                 errorMessages.contract.textContent = "Số hợp đồng không được để trống.";
                 errorMessages.contract.style.display = "block";
-                inputContract.classList.add("is-invalid");
+                inputs.contract.classList.add("is-invalid");
                 valid = false;
             }
-            if (!digitsOnly(inputAmount.value)) {
+            if (!digitsOnly(inputs.amount.value)) {
                 errorMessages.amount.textContent = "Số tiền không được để trống.";
                 errorMessages.amount.style.display = "block";
-                inputAmount.classList.add("is-invalid");
+                inputs.amount.classList.add("is-invalid");
                 valid = false;
             }
             return valid;
@@ -1041,106 +865,65 @@
 
         btnGen.addEventListener("click", () => {
             if (!validate()) return;
-            const data = { contract: inputContract.value, name: inputName.value, amount: inputAmount.value };
-            const qrUrl = buildQRUrl(data);
-            img.src = qrUrl;
+            img.src = buildQRUrl({ contract: inputs.contract.value, name: inputs.name.value, amount: inputs.amount.value });
             img.style.display = "block";
-        });
-        
-        btnPrintFull.addEventListener("click", async () => {
-            if (!contractDataStore.has(el)) {
-                 showToast("Chức năng này chỉ dành cho các hợp đồng được tải lên từ file PDF.");
-                return;
-            }
-            const contractData = contractDataStore.get(el);
-            const qrUrl = buildQRUrl(contractData.qrData, "compact.png");
-            const contractId = contractData.qrData.contract;
-            await createAndPreviewSplitPdf(contractData, qrUrl, contractId);
         });
 
         btnDelRow.addEventListener("click", () => {
             if (contractDataStore.has(el)) {
                  const contractIdToDelete = contractDataStore.get(el).pdkData.shd;
-                 const pdkTableBody = document.getElementById('pdk-results-tbody');
-                 Array.from(pdkTableBody.rows).forEach(row => {
-                     if (row.cells[1].textContent === contractIdToDelete) {
-                         row.remove();
-                     }
-                 });
-                 updateStt('#pdk-results-tbody');
-                contractDataStore.delete(el);
+                 const fileDisplay = document.querySelector(`.contract-files-container[data-contract-id="${contractIdToDelete}"]`);
+                 if (fileDisplay) fileDisplay.remove();
+                 contractDataStore.delete(el);
+                 contractFilesStore.delete(contractIdToDelete);
             }
-            el.style.transition = 'opacity 0.3s, transform 0.3s';
-            el.style.opacity = '0';
-            el.style.transform = 'scale(0.95)';
-            setTimeout(() => el.remove(), 300);
+            el.remove();
+            updatePlaceholders();
         });
 
         img.addEventListener("click", () => {
             if (!img.src) return;
-            lbImg.src = img.src;
+            lbImg.src = img.src.replace('compact.png', 'print.png'); // Show higher quality in lightbox
             lb.classList.add("show");
-            lb.setAttribute("aria-hidden", "false");
-            downloadQrBtn.href = img.src;
             
-            const data = { contract: inputContract.value, name: inputName.value, amount: inputAmount.value };
-            const shareUrl = buildShareLink(data);
-            shareBtn.onclick = () => copyToClipboard(shareUrl, "Đã sao chép link chia sẻ!");
+            const data = { contract: inputs.contract.value, name: inputs.name.value, amount: inputs.amount.value };
+            downloadQrBtn.href = lbImg.src;
+            downloadQrBtn.download = `QR_${data.contract}.png`;
+
+            const contractId = data.contract;
+            const fileSet = contractFilesStore.get(contractId);
+            printQrBtn.style.display = fileSet ? 'inline-flex' : 'none';
+            if (fileSet) {
+                 printQrBtn.onclick = () => window.open(fileSet.thanhToan.url, '_blank');
+            }
+
+            shareBtn.onclick = () => copyToClipboard(buildShareLink(data), "Đã sao chép link chia sẻ!");
         });
 
-        rowsEl.appendChild(node);
-        // Only focus if it's a manual add, not from PDF upload
-        if (isManual) {
-           inputContract.focus();
-        }
+        rowsEl.prepend(node);
+        if (isManual) inputs.contract.focus();
+        updatePlaceholders();
         return el;
     }
 
-    async function getPdfText(pdfBuffer) {
-        const typedarray = new Uint8Array(pdfBuffer);
-        const pdf = await pdfjsLib.getDocument(typedarray).promise;
-        let fullText = '';
-        for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const textContent = await page.getTextContent();
-            fullText += textContent.items.map(item => item.str).join(' ');
-        }
-        return fullText;
-    }
-    
-    function updateStt(tbodySelector) {
-        const rows = document.querySelectorAll(`${tbodySelector} tr`);
-        rows.forEach((row, index) => {
-            row.cells[0].textContent = index + 1;
-        });
-    }
-
     // --- Helper & Utility Functions ---
-    function buildQRUrl({ contract, name, amount }, template = "print.png") {
+    function buildQRUrl({ contract, name, amount }, template = "compact.png") {
         const addInfo = `${contract} ${stripVietnamese(name)}`.trim().toUpperCase();
-        const qs = new URLSearchParams({
-            accountName: "HD SAISON",
-            amount: digitsOnly(amount),
-            addInfo: addInfo,
-            template: template,
-        });
-        return `https://img.vietqr.io/image/970437-002704070014601-${template}?${qs.toString()}`;
+        return `https://img.vietqr.io/image/970437-002704070014601-${template}?${new URLSearchParams({
+            accountName: "HD SAISON", amount: digitsOnly(amount), addInfo, template
+        })}`;
     }
     
-    function closeLb() {
-        lb.classList.remove("show");
-        lb.setAttribute("aria-hidden", "true");
-        lbImg.src = "";
-    }
+    function closeLb() { lb.classList.remove("show"); }
     lb.addEventListener("click", (e) => e.target === lb && closeLb());
     lbClose.addEventListener("click", closeLb);
     document.addEventListener("keydown", (e) => e.key === "Escape" && closeLb());
 
     function buildShareLink(data) {
         const url = new URL(window.location.href.split('?')[0]);
-        url.searchParams.set('c', data.contract);
-        url.searchParams.set('n', data.name);
-        url.searchParams.set('a', data.amount);
+        url.search_params.set('c', data.contract);
+        url.search_params.set('n', data.name);
+        url.search_params.set('a', data.amount);
         return url.toString();
     }
 
@@ -1149,42 +932,31 @@
         const contract = params.get('c'), name = params.get('n'), amount = params.get('a');
 
         if (contract && amount) {
-            const formattedAmount = formatThousandDots(amount);
-            const qrUrl = buildQRUrl({ contract, name, amount });
-
             document.getElementById('root').style.display = 'none';
             document.getElementById('footer').style.display = 'none';
             document.getElementById('viewer').style.display = 'block';
 
-            document.getElementById('viewerImg').src = qrUrl;
+            document.getElementById('viewerImg').src = buildQRUrl({ contract, name, amount });
             document.getElementById('viewerContract').textContent = contract;
             document.getElementById('viewerName').textContent = name || 'N/A';
-            document.getElementById('viewerAmount').textContent = `${formattedAmount} VND`;
+            document.getElementById('viewerAmount').textContent = `${formatThousandDots(amount)} VND`;
             document.getElementById('viewerDownloadBtn').onclick = () => {
                 const a = document.createElement('a');
-                a.href = qrUrl;
+                a.href = document.getElementById('viewerImg').src;
                 a.download = `QR_${contract}.png`;
                 a.click();
             };
-        } else {
-            if (rowsEl && rowsEl.children.length === 0) addRow(true);
         }
     }
     
     function showToast(message, type = 'error') {
-        const toastEl = document.createElement('div');
-        toastEl.className = `toast-notification`;
-        if (type === 'info') toastEl.classList.add('info');
-
+        const toastEl = document.getElementById('toast');
         toastEl.textContent = message;
-        document.body.appendChild(toastEl);
-        setTimeout(() => {
-            toastEl.classList.add('show');
-            setTimeout(() => {
-                toastEl.classList.remove('show');
-                setTimeout(() => toastEl.remove(), 300);
-            }, 3500);
-        }, 10);
+        toastEl.className = 'toast-notification'; // Reset classes
+        if (type === 'info') toastEl.classList.add('info');
+        
+        toastEl.classList.add('show');
+        setTimeout(() => toastEl.classList.remove('show'), 3500);
     }
     
     function copyToClipboard(text, message) {
@@ -1195,127 +967,64 @@
     
     // --- Loan Calculator ED ---
     function calculateLoanEd() {
-        const loanProgramSelect = document.getElementById('loan-program');
-        const productPriceInput = document.getElementById('product-price');
-        const downPaymentInput = document.getElementById('down-payment');
+        const productPrice = parseNumber(document.getElementById('product-price').value);
+        const downPayment = parseNumber(document.getElementById('down-payment').value);
         const loanAmountInput = document.getElementById('loan-amount');
-        const loanTermSelect = document.getElementById('loan-term');
-        const includeInsuranceCheckbox = document.getElementById('include-insurance');
-        const monthlyDifferenceInput = document.getElementById('monthly-difference');
-        const totalPriceWithFeesInput = document.getElementById('total-price-with-fees');
-        const totalDifferenceInput = document.getElementById('total-difference');
-        const monthlyInstallmentInput = document.getElementById('monthly-installment');
+        let loanAmount = (productPrice > 0 && productPrice >= downPayment) ? productPrice - downPayment : 0;
+        loanAmountInput.value = loanAmount > 0 ? formatCurrency(loanAmount) : "";
+        
+        const loanTerm = parseInt(document.getElementById('loan-term').value, 10);
+        const loanProgramValue = document.getElementById('loan-program').value;
+        const includeInsurance = document.getElementById('include-insurance').checked;
 
-        const productPrice = parseNumber(productPriceInput.value);
-        const downPayment = parseNumber(downPaymentInput.value);
-        let loanAmount = 0;
-
-        if (productPrice > 0 && productPrice >= downPayment) {
-            loanAmount = productPrice - downPayment;
-            loanAmountInput.value = formatCurrency(loanAmount);
-        } else {
-            loanAmountInput.value = "";
-        }
-
-        const loanTerm = parseInt(loanTermSelect.value, 10);
-        const loanProgramValue = loanProgramSelect.value;
+        let monthlyInstallment = 0, totalDifference = 0, totalPriceWithFees = 0, monthlyDifference = 0;
 
         if (loanAmount > 0 && loanTerm > 0) {
-            let totalInsurance = 0;
-            let monthlyInsurance = 0;
-            if (includeInsuranceCheckbox.checked) {
-                totalInsurance = loanAmount * 0.05;
-                monthlyInsurance = totalInsurance / loanTerm;
-            } 
-
-            let monthlyInstallment = 0;
-            let totalDifference = 0;
-            let totalPriceWithFees = 0;
+            const totalInsurance = includeInsurance ? loanAmount * 0.05 : 0;
+            const monthlyInsurance = totalInsurance / loanTerm;
 
             if (loanProgramValue === 'regular') {
                 const coefficients = { '7': 0.175, '9': 0.1393, '12': 0.11135, '15': 0.0947 };
                 const coefficient = coefficients[loanTerm];
                 if (coefficient) {
                     const basePaymentWithInsurance = loanAmount * coefficient;
-                    if (includeInsuranceCheckbox.checked) {
-                        monthlyInstallment = basePaymentWithInsurance + 13000;
-                    } else {
-                        const basePaymentWithoutInsurance = basePaymentWithInsurance - monthlyInsurance;
-                        monthlyInstallment = basePaymentWithoutInsurance + 13000;
-                    }
-                    const totalPayment = monthlyInstallment * loanTerm;
-                    totalDifference = totalPayment - loanAmount;
-                    totalPriceWithFees = productPrice + totalDifference;
-                } else {
-                    monthlyInstallment = 0; // Mark as not applicable
+                    const basePayment = includeInsurance ? basePaymentWithInsurance - monthlyInsurance : basePaymentWithInsurance;
+                    monthlyInstallment = basePayment + monthlyInsurance + 13000;
+                    totalDifference = (monthlyInstallment * loanTerm) - loanAmount;
                 }
             } else {
-                const interestRatePerMonthFromSelect = parseFloat(loanProgramValue);
-                let totalInterest = 0;
-                if (interestRatePerMonthFromSelect === 0.005 && loanTerm === 6) {
-                    totalInterest = loanAmount * 0.0322;
-                } else {
-                    totalInterest = loanAmount * interestRatePerMonthFromSelect * loanTerm;
-                }
+                const interestRate = parseFloat(loanProgramValue);
+                let totalInterest = (interestRate === 0.005 && loanTerm === 6) ? loanAmount * 0.0322 : loanAmount * interestRate * loanTerm;
                 const totalCollectionFee = 12000 * loanTerm;
-                const totalPayment = loanAmount + totalInsurance + totalInterest + totalCollectionFee;
-                monthlyInstallment = totalPayment / loanTerm;
                 totalDifference = totalInsurance + totalInterest + totalCollectionFee;
-                totalPriceWithFees = productPrice + totalDifference;
+                monthlyInstallment = (loanAmount + totalDifference) / loanTerm;
             }
-            
-            const formatMonthly = (num) => num > 0 ? (Math.ceil(num / 1000) * 1000).toLocaleString('vi-VN') + ' VNĐ' : "Không áp dụng";
-            
-            let monthlyDifference = 0;
-            if (totalDifference > 0 && loanTerm > 0) {
-                monthlyDifference = totalDifference / loanTerm;
-            }
-            const formatMonthlyDifference = (num) => {
-                if (num > 0) {
-                    const rounded = Math.round(num / 100) * 100;
-                    return rounded.toLocaleString('vi-VN') + ' VNĐ';
-                }
-                return "0 VNĐ";
-            };
-
-            monthlyInstallmentInput.value = formatMonthly(monthlyInstallment);
-            totalDifferenceInput.value = formatCurrency(totalDifference);
-            totalPriceWithFeesInput.value = formatCurrency(totalPriceWithFees);
-            monthlyDifferenceInput.value = formatMonthlyDifference(monthlyDifference);
-
-        } else {
-            monthlyDifferenceInput.value = "";
-            totalDifferenceInput.value = "";
-            totalPriceWithFeesInput.value = "";
-            monthlyInstallmentInput.value = "";
+            totalPriceWithFees = productPrice + totalDifference;
+            monthlyDifference = totalDifference / loanTerm;
         }
+
+        const formatMonthly = num => num > 0 ? (Math.ceil(num / 1000) * 1000).toLocaleString('vi-VN') + ' VNĐ' : (loanAmount > 0 ? "Không áp dụng" : "");
+        document.getElementById('monthly-installment').value = formatMonthly(monthlyInstallment);
+        document.getElementById('total-difference').value = loanAmount > 0 ? formatCurrency(totalDifference) : "";
+        document.getElementById('total-price-with-fees').value = loanAmount > 0 ? formatCurrency(totalPriceWithFees) : "";
+        document.getElementById('monthly-difference').value = loanAmount > 0 ? formatCurrency(Math.round(monthlyDifference / 100) * 100) : "";
     }
     
     function formatCurrencyOnLoanInput(event) {
-        const input = event.target;
-        const originalValue = input.value;
-        const originalCursor = input.selectionStart;
-        const numericValue = parseNumber(originalValue);
+        const { target: input } = event;
+        const { value, selectionStart } = input;
+        const numericValue = parseNumber(value);
         const formattedValue = numericValue > 0 ? numericValue.toLocaleString('vi-VN') : '';
         input.value = formattedValue;
-        const newCursor = originalCursor + (formattedValue.length - originalValue.length);
-        input.setSelectionRange(newCursor, newCursor);
+        input.setSelectionRange(selectionStart + (formattedValue.length - value.length), selectionStart + (formattedValue.length - value.length));
         calculateLoanEd();
     }
 
     function resetEdForm() {
-        const productPriceInput = document.getElementById('product-price');
-        const downPaymentPercentageInput = document.getElementById('down-payment-percentage');
-        const downPaymentInput = document.getElementById('down-payment');
-        const loanTermSelect = document.getElementById('loan-term');
-        const includeInsuranceCheckbox = document.getElementById('include-insurance');
-        
-        productPriceInput.value = '';
-        downPaymentPercentageInput.value = '';
-        downPaymentInput.value = '';
-        loanTermSelect.value = '6';
-        includeInsuranceCheckbox.checked = true;
-        productPriceInput.focus();
+        ['product-price', 'down-payment-percentage', 'down-payment'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('loan-term').value = '6';
+        document.getElementById('include-insurance').checked = true;
+        document.getElementById('product-price').focus();
         calculateLoanEd();
     }
 
