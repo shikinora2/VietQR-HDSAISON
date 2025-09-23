@@ -87,6 +87,9 @@
     [data-theme="dark"] .btn-secondary:hover {
         filter: brightness(1.2);
     }
+     [data-theme="dark"] #pos-address {
+        color: var(--ink);
+    }
 
     [data-theme="dark"] .btn-success, [data-theme="dark"] .btn-primary {
         background-color: #16a34a;
@@ -203,7 +206,7 @@
                     <option value="POS24414">POS24414</option>
                     <option value="POS13858">POS13858</option>
                 </select>
-                <p id="pos-address" class="text-muted small mt-2 mb-0"></p>
+                <p id="pos-address" class="small mt-2 mb-0"></p>
             </div>
           
           <div id="toast" class="toast-notification"></div>
@@ -337,14 +340,18 @@
     const downloadQrBtn = lb.querySelector(".download-qr");
     const contractDataStore = new Map();
 
-    // --- PDK 0% PDF Generation URLs ---
-    const PDF_TEMPLATE_URL = 'https://rawcdn.githack.com/shikinora2/VietQR-HDSAISON/77b5d7f3d2c3d2bcac91e4ef69f2b20f1725abb7/PDK0IR%20-%20DMCL%20(2).pdf';
-    const FONT_URL = 'https://rawcdn.githack.com/shikinora2/VietQR-HDSAISON/f0381eb2e75227df3ceeb4ff3e8979f11229af35/SVN-Times%20New%20Roman%20Bold.ttf';
-
     const POS_INFO = {
-        "POS24414": "Số 5 Lý Thường Kiệt, KP. Thắng Lợi 1, P. Dĩ An, TP. Dĩ An, Bình Dương",
-        "POS13858": "5A/2, Đường DT743, KP.1B, P. An Phú, Thuận An, Bình Dương"
+        "POS24414": {
+            address: "Số 5 Lý Thường Kiệt, KP. Thắng Lợi 1, P. Dĩ An, TP. Dĩ An, Bình Dương",
+            templateUrl: 'https://rawcdn.githack.com/shikinora2/VietQR-HDSAISON/e77ada21e72f381e5d8aaa2aecc7b9851fece42d/PDK0IR%20-%20DMCL%20(2).pdf'
+        },
+        "POS13858": {
+            address: "5A/2, Đường DT743, KP.1B, P. An Phú, Thuận An, Bình Dương",
+            templateUrl: 'https://rawcdn.githack.com/shikinora2/VietQR-HDSAISON/e77ada21e72f381e5d8aaa2aecc7b9851fece42d/PDK0IR%20-%20DMCL%2013858.pdf'
+        }
     };
+    const FONT_URL = 'https://rawcdn.githack.com/shikinora2/VietQR-HDSAISON/f0381eb2e75227df3ceeb4ff3e8979f11229af35/SVN-Times%20New%20Roman%20Bold.ttf';
+    const POS_STORAGE_KEY = 'selectedPos';
 
     // --- Event Listeners ---
     if (uploadPdfLabel) {
@@ -371,12 +378,20 @@
         function updatePosAddress() {
             const selectedPos = posSelect.value;
             if (posAddress && POS_INFO[selectedPos]) {
-                posAddress.textContent = POS_INFO[selectedPos];
+                posAddress.textContent = POS_INFO[selectedPos].address;
             }
         }
 
         if (posSelect) {
-            posSelect.addEventListener('change', updatePosAddress);
+            const savedPos = localStorage.getItem(POS_STORAGE_KEY);
+            if (savedPos) {
+                posSelect.value = savedPos;
+            }
+            
+            posSelect.addEventListener('change', () => {
+                updatePosAddress();
+                localStorage.setItem(POS_STORAGE_KEY, posSelect.value);
+            });
             updatePosAddress(); // Initial call
         }
     });
@@ -422,6 +437,8 @@
     async function exportAllPdfs() {
         const tableBody = document.getElementById('pdk-results-tbody');
         const exportBtn = document.getElementById('export-pdk-pdf-btn');
+        const selectedPos = document.getElementById('pos-select').value;
+        const pdfTemplateUrl = POS_INFO[selectedPos].templateUrl;
 
         if (tableBody.rows.length === 0) {
             showToast('Không có dữ liệu để xuất file PDF.');
@@ -435,7 +452,7 @@
         try {
             showToast('Đang tải tài nguyên cần thiết...', 'info');
             const [templateResponse, fontResponse] = await Promise.all([
-                fetch(PDF_TEMPLATE_URL),
+                fetch(pdfTemplateUrl),
                 fetch(FONT_URL)
             ]);
 
@@ -692,8 +709,11 @@
             }
             
             // --- 4. Generate PDK 0% PDF ---
+            const selectedPos = document.getElementById('pos-select').value;
+            const pdfTemplateUrl = POS_INFO[selectedPos].templateUrl;
+
             const [templateResponse, fontResponse] = await Promise.all([
-                fetch(PDF_TEMPLATE_URL),
+                fetch(pdfTemplateUrl),
                 fetch(FONT_URL)
             ]);
             const [templateBytes, fontBytes] = await Promise.all([
@@ -963,17 +983,6 @@
         });
         return `https://img.vietqr.io/image/970437-002704070014601-${template}?${qs.toString()}`;
     }
-
-    function openQrPrintPreview(qrUrl) {
-        const w = window.open("", "_blank");
-        if (!w) {
-            showToast("Trình duyệt đã chặn popup."); return;
-        }
-        const html = `<!DOCTYPE html><html lang="vi"><head><title>In mã QR</title><style>body{margin:0; text-align:center;} img{width:80vw; max-width:400px; margin-top:2rem;}</style></head>
-            <body><img src="${qrUrl}" alt="VietQR"/><script>window.onload=()=>{setTimeout(()=>{window.print();},500)};<\/script></body></html>`;
-        w.document.write(html);
-        w.document.close();
-    }
     
     function closeLb() {
         lb.classList.remove("show");
@@ -1041,16 +1050,6 @@
             .catch(err => showToast('Lỗi khi sao chép.'));
     }
 
-    const toggleInstructionsBtn = document.getElementById('toggleInstructionsBtn');
-    if(toggleInstructionsBtn) {
-        toggleInstructionsBtn.addEventListener('click', () => {
-            const content = document.getElementById('instructionsContent');
-            const icon = toggleInstructionsBtn.querySelector('i');
-            const isHidden = content.classList.toggle('d-none');
-            icon.classList.toggle('fa-chevron-down', isHidden);
-            icon.classList.toggle('fa-chevron-up', !isHidden);
-        });
-    }
   </script>
 </body>
 </html>
