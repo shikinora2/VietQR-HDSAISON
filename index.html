@@ -509,31 +509,38 @@
         return Number(String(str).replace(/[^0-9]/g, '')) || 0;
     }
 
-    // --- Preload Essential Resources ---
-    async function preloadEssentialResources() {
-        const originalBtnHTML = uploadPdfLabel.innerHTML;
-        uploadPdfLabel.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang tải tài nguyên...`;
-        uploadPdfLabel.classList.add('disabled');
-        pdfUpload.disabled = true;
+    async function fetchWithRetry(url, retries = 3, delay = 500) {
+        for (let i = 0; i < retries; i++) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`Network response was not ok: ${response.status}`);
+                return await response.arrayBuffer();
+            } catch (error) {
+                console.error(`Attempt ${i + 1} failed for ${url}:`, error);
+                if (i === retries - 1) throw error;
+                await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
+            }
+        }
+    }
 
+    async function getRequiredResources(pos) {
         try {
-            const [fontBytes, template1, template2] = await Promise.all([
-                fetch(FONT_URL).then(res => res.arrayBuffer()),
-                fetch(POS_INFO.POS24414.templateUrl).then(res => res.arrayBuffer()),
-                fetch(POS_INFO.POS13858.templateUrl).then(res => res.arrayBuffer())
-            ]);
-            CACHED_RESOURCES.font = fontBytes;
-            CACHED_RESOURCES.POS24414 = template1;
-            CACHED_RESOURCES.POS13858 = template2;
-
-            uploadPdfLabel.innerHTML = originalBtnHTML;
-            uploadPdfLabel.classList.remove('disabled');
-            pdfUpload.disabled = false;
-            showToast('Tài nguyên đã sẵn sàng!', 'info');
-        } catch (error) {
-            console.error('Không thể tải tài nguyên cần thiết:', error);
-            uploadPdfLabel.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Lỗi tải tài nguyên`;
-            showToast('Lỗi tải tài nguyên, vui lòng tải lại trang.');
+            if (!CACHED_RESOURCES.font) {
+                 showToast('Đang tải font chữ...', 'info');
+                 CACHED_RESOURCES.font = await fetchWithRetry(FONT_URL);
+            }
+            if (!CACHED_RESOURCES[pos]) {
+                showToast(`Đang tải mẫu cho ${pos}...`, 'info');
+                CACHED_RESOURCES[pos] = await fetchWithRetry(POS_INFO[pos].templateUrl);
+            }
+            return {
+                fontBytes: CACHED_RESOURCES.font,
+                templateBytes: CACHED_RESOURCES[pos]
+            };
+        } catch(error) {
+            console.error("Lỗi nghiêm trọng khi tải tài nguyên:", error);
+            showToast(`Lỗi tải tài nguyên: ${error.message}. Vui lòng thử lại.`);
+            throw error; // Propagate the error to stop processing
         }
     }
 
@@ -550,7 +557,6 @@
     
     document.addEventListener('DOMContentLoaded', () => {
         handleSharedLink();
-        preloadEssentialResources();
         
         const posSelect = document.getElementById('pos-select');
         const posAddress = document.getElementById('pos-address');
@@ -566,7 +572,7 @@
         posSelect.addEventListener('change', () => {
             updatePosAddress();
             localStorage.setItem(POS_STORAGE_KEY, posSelect.value);
-            updateAllPdkFiles(); // Real-time update PDK file on POS change
+            updateAllPdkFiles();
         });
         updatePosAddress();
         
@@ -592,7 +598,6 @@
         });
         calculateLoanEd();
         
-        // Add initial empty row for manual QR creation
         addRow(true);
     });
     
@@ -639,16 +644,10 @@
 
     async function updateAllPdkFiles() {
         if (contractDataStore.size === 0) return;
-
         showToast('Đang cập nhật file PDK theo POS mới...', 'info');
         try {
             const selectedPos = document.getElementById('pos-select').value;
-            const templateBytes = CACHED_RESOURCES[selectedPos];
-            const fontBytes = CACHED_RESOURCES.font;
-
-            if (!templateBytes || !fontBytes) {
-                throw new Error("Tài nguyên cần thiết chưa được tải. Vui lòng thử lại.");
-            }
+            const { fontBytes, templateBytes } = await getRequiredResources(selectedPos);
 
             for (const [rowEl, contractData] of contractDataStore.entries()) {
                 const { pdkData, qrData } = contractData;
@@ -659,15 +658,11 @@
                 
                 const storeKey = pdkData.shd;
                 const containerId = qrData.contract;
-
                 const fileSet = contractFilesStore.get(storeKey);
                 if (!fileSet) continue;
-
                 if (fileSet.pdk && fileSet.pdk.url) URL.revokeObjectURL(fileSet.pdk.url);
 
                 fileSet.pdk.url = newPdkBlobUrl;
-                contractFilesStore.set(storeKey, fileSet);
-
                 const fileContainer = document.querySelector(`.contract-files-container[data-contract-id="${containerId}"]`);
                 if (fileContainer) {
                     const pdkItem = fileContainer.querySelector('.file-item[data-file-type="pdk"]'); 
@@ -675,7 +670,6 @@
                         const link = pdkItem.querySelector('a.file-name');
                         const printLink = pdkItem.querySelector('.file-actions a[title="In"]');
                         const downloadLink = pdkItem.querySelector('.file-actions a[title="Tải về"]');
-
                         if (link) link.href = newPdkBlobUrl;
                         if (printLink) printLink.href = newPdkBlobUrl;
                         if (downloadLink) downloadLink.href = newPdkBlobUrl;
@@ -685,14 +679,63 @@
             showToast('Đã cập nhật tất cả file PDK!', 'info');
         } catch (error) {
             console.error("Lỗi khi cập nhật file PDK:", error);
-            showToast(`Lỗi khi cập nhật file PDK: ${error.message}`);
+            // Error is already shown by getRequiredResources
         }
     }
 
 
     // --- Core Functions ---
+    async function processSinglePdf(file, fileIndex, totalFiles) {
+        uploadPdfLabel.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Xử lý ${fileIndex + 1}/${totalFiles}`;
+        try {
+            if (file.type !== 'application/pdf') throw new Error("File không phải là PDF");
+            
+            const pdfBuffer = await file.arrayBuffer();
+            let paymentPageNum = -1, paymentPageText = '', insurancePageNum = -1, fullText = '';
+            const pdf = await pdfjsLib.getDocument(new Uint8Array(pdfBuffer)).promise;
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                const pageText = textContent.items.map(item => item.str).join(' ');
+                fullText += pageText + '\n';
+                if (pageText.includes('HƯỚNG DẪN THANH TOÁN')) {
+                    paymentPageNum = i;
+                    paymentPageText = pageText;
+                }
+                if (pageText.includes('BẢN YÊU CẦU BẢO HIỂM') && insurancePageNum === -1) {
+                    insurancePageNum = i;
+                }
+            }
+
+            if (!paymentPageText) throw new Error(`Không tìm thấy trang Hướng Dẫn Thanh Toán.`);
+            const allData = extractAllDataFromPdfText(fullText, paymentPageText);
+            if (!allData.qrData || !allData.pdkData) throw new Error(`Không tìm thấy đủ thông tin trong file.`);
+
+            const rowEl = addRow();
+            rowEl.querySelector(".contractInput").value = allData.qrData.contract;
+            rowEl.querySelector(".nameInput").value = allData.qrData.name;
+            rowEl.querySelector(".amountInput").value = formatThousandDots(allData.qrData.amount);
+            rowEl.querySelector(".generateBtn").click();
+
+            allData.paymentPage = paymentPageNum;
+            allData.insurancePage = insurancePageNum;
+            const contractFullData = { ...allData, pdfBuffer };
+            contractDataStore.set(rowEl, contractFullData);
+
+            const qrUrl = buildQRUrl(allData.qrData, "compact.png");
+            const fileSet = await generateContractFileSet(contractFullData, qrUrl);
+            displayContractFilesInUI(fileSet, allData.qrData);
+            
+            return { success: true };
+        } catch (error) {
+            console.error(`Lỗi xử lý file "${file.name}":`, error);
+            showToast(`Lỗi file "${file.name}": ${error.message}`);
+            return { success: false };
+        }
+    }
+
     async function handlePdfUpload(event) {
-        const files = event.target.files;
+        const files = Array.from(event.target.files);
         if (files.length === 0) return;
 
         const originalBtnHTML = uploadPdfLabel.innerHTML;
@@ -700,61 +743,13 @@
         let successCount = 0;
         let errorCount = 0;
 
-        for (const [index, file] of Array.from(files).entries()) {
-            uploadPdfLabel.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Xử lý ${index + 1}/${files.length}`;
-            try {
-                if (file.type !== 'application/pdf') {
-                    throw new Error("File không phải là PDF");
-                }
-                const pdfBuffer = await file.arrayBuffer();
-                let paymentPageNum = -1, paymentPageText = '', insurancePageNum = -1, fullText = '';
-                
-                const pdf = await pdfjsLib.getDocument(new Uint8Array(pdfBuffer)).promise;
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    const page = await pdf.getPage(i);
-                    const textContent = await page.getTextContent();
-                    const pageText = textContent.items.map(item => item.str).join(' ');
-                    fullText += pageText + '\n';
-                    
-                    if (pageText.includes('HƯỚNG DẪN THANH TOÁN')) {
-                        paymentPageNum = i; 
-                        paymentPageText = pageText;
-                    }
-                    if (pageText.includes('BẢN YÊU CẦU BẢO HIỂM') && insurancePageNum === -1) {
-                        insurancePageNum = i;
-                    }
-                }
-
-                if (!paymentPageText) throw new Error(`Không tìm thấy trang Hướng Dẫn Thanh Toán.`);
-                
-                const allData = extractAllDataFromPdfText(fullText, paymentPageText);
-
-                if (!allData.qrData || !allData.pdkData) throw new Error(`Không tìm thấy đủ thông tin trong file.`);
-                
-                const rowEl = addRow();
-                rowEl.querySelector(".contractInput").value = allData.qrData.contract;
-                rowEl.querySelector(".nameInput").value = allData.qrData.name;
-                rowEl.querySelector(".amountInput").value = formatThousandDots(allData.qrData.amount);
-                rowEl.querySelector(".generateBtn").click();
-                
-                allData.paymentPage = paymentPageNum;
-                allData.insurancePage = insurancePageNum;
-                const contractFullData = { ...allData, pdfBuffer };
-                contractDataStore.set(rowEl, contractFullData);
-
-                const qrUrl = buildQRUrl(allData.qrData, "compact.png");
-                const fileSet = await generateContractFileSet(contractFullData, qrUrl);
-                displayContractFilesInUI(fileSet, allData.qrData);
-                
-                successCount++;
-
-            } catch (error) {
-                errorCount++;
-                console.error(`Lỗi xử lý file "${file.name}":`, error);
-                showToast(`Lỗi file "${file.name}": ${error.message}`);
-            }
+        for (let i = 0; i < files.length; i++) {
+            const result = await processSinglePdf(files[i], i, files.length);
+            if (result.success) successCount++;
+            else errorCount++;
+            await new Promise(resolve => setTimeout(resolve, 50)); 
         }
-        
+
         uploadPdfLabel.innerHTML = originalBtnHTML;
         uploadPdfLabel.classList.remove('disabled');
         event.target.value = '';
@@ -806,14 +801,12 @@
             const originalPdfDoc = await PDFDocument.load(pdfBuffer);
             const totalPages = originalPdfDoc.getPageCount();
 
-            // --- 1. Hợp đồng Tín dụng (Trang 1-4) ---
             const hopDongDoc = await PDFDocument.create();
             const hopDongPages = await hopDongDoc.copyPages(originalPdfDoc, [0, 1, 2, 3]);
             hopDongPages.forEach(page => hopDongDoc.addPage(page));
             const hopDongBytes = await hopDongDoc.save();
             fileSet.hopDong = { url: URL.createObjectURL(new Blob([hopDongBytes], { type: 'application/pdf' })), name: `HopDongTinDung_${pdkData.shd}.pdf` };
 
-            // --- 2. Hướng dẫn Thanh toán (1 trang + QR) ---
             const thanhToanDoc = await PDFDocument.create();
             const [thanhToanPage] = await thanhToanDoc.copyPages(originalPdfDoc, [paymentPage - 1]);
             thanhToanDoc.addPage(thanhToanPage);
@@ -825,7 +818,6 @@
             const thanhToanBytes = await thanhToanDoc.save();
             fileSet.thanhToan = { url: URL.createObjectURL(new Blob([thanhToanBytes], { type: 'application/pdf' })), name: `HuongDanThanhToan_${pdkData.shd}.pdf` };
 
-            // --- 3. Yêu cầu Bảo hiểm (2 trang cuối) ---
             if (insurancePage > 0 && insurancePage + 1 <= totalPages) {
                 const baoHiemDoc = await PDFDocument.create();
                 const baoHiemPages = await baoHiemDoc.copyPages(originalPdfDoc, [insurancePage - 1, insurancePage]);
@@ -834,12 +826,8 @@
                 fileSet.baoHiem = { url: URL.createObjectURL(new Blob([baoHiemBytes], { type: 'application/pdf' })), name: `YeuCauBaoHiem_${pdkData.shd}.pdf` };
             }
             
-            // --- 4. Generate PDK 0% PDF ---
             const selectedPos = document.getElementById('pos-select').value;
-            const templateBytes = CACHED_RESOURCES[selectedPos];
-            const fontBytes = CACHED_RESOURCES.font;
-            if (!templateBytes || !fontBytes) throw new Error("Tài nguyên PDK chưa sẵn sàng.");
-
+            const { fontBytes, templateBytes } = await getRequiredResources(selectedPos);
             const pdkBytes = await generatePdkPdfBytes(pdkData, templateBytes.slice(0), fontBytes.slice(0));
             fileSet.pdk = { url: URL.createObjectURL(new Blob([pdkBytes], { type: 'application/pdf' })), name: `PDK_0%_${pdkData.shd}.pdf` };
             
