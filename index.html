@@ -228,6 +228,24 @@
         isolation: isolate;
         background: #ffffff10;
     }
+    
+    /* Custom color overrides */
+    [data-theme="dark"] #contract-files-display > p.text-muted {
+        color: #f8fafc; /* Brighter white for placeholder */
+    }
+    
+    [data-theme="dark"] #calculator-tab-pane .calculator-input {
+        color: #f8fafc;
+    }
+
+    [data-theme="dark"] #calculator-tab-pane .calculator-input:read-only {
+         opacity: 1; /* Ensure readonly fields are not dimmed */
+         color: #f8fafc; /* Override the default muted color for readonly */
+    }
+
+    [data-theme="dark"] #monthly-installment {
+        color: #38bdf8; /* Bright light blue */
+    }
   </style>
   
   <!-- Thư viện PDF.js và pdf-lib -->
@@ -356,7 +374,7 @@
                 </div>
                  <div class="calculator-form-group">
                     <label for="monthly-installment" class="hdr">Số tiền góp mỗi tháng</label>
-                    <input type="text" id="monthly-installment" readonly placeholder="Tự động tính" class="form-control calculator-input fw-bold" style="color: var(--info); font-size: 1.2rem;">
+                    <input type="text" id="monthly-installment" readonly placeholder="Tự động tính" class="form-control calculator-input fw-bold" style="font-size: 1.2rem;">
                 </div>
             </div>
         </div>
