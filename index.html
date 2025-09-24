@@ -2,12 +2,12 @@
 <html lang="vi" data-theme="dark">
 <head>
   <meta charset="utf-8" />
-  <title>Bộ công cụ HDSAISON</title>
+  <title>HD SAISON: Xử Lý Hợp Đồng & Tạo QR Thanh Toán</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Meta tags for social sharing -->
-  <meta property="og:title" content="Bộ công cụ HDSAISON" />
-  <meta property="og:description" content="Công cụ tạo mã VietQR và lọc thông tin khách hàng cho HD SAISON." />
+  <meta property="og:title" content="HD SAISON: VietQR, In Hợp Đồng & Tính Toán Khoản Vay" />
+  <meta property="og:description" content="Tạo mã VietQR thanh toán, Tự động tách và in bộ hợp đồng, Công cụ tính khoản vay trả góp (ED) tiện lợi" />
   <meta property="og:image" content="https://i.ibb.co/Pvx3mZ44/images.png" />
   <meta property="og:type" content="website" />
 
@@ -234,6 +234,23 @@
         background: #ffffff10;
     }
     
+    /* Mobile Tab Optimization: Single horizontal row */
+    .nav-tabs {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden; /* Ngăn cuộn dọc */
+        -webkit-overflow-scrolling: touch; /* Cải thiện cảm giác cuộn trên iOS */
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+    }
+    .nav-tabs::-webkit-scrollbar {
+      display: none; /* Chrome, Safari and Opera */
+    }
+    .nav-tabs .nav-item {
+        white-space: nowrap; /* Ensures button text doesn't wrap */
+    }
+
     /* Custom color overrides */
     [data-theme="dark"] #contract-files-display > p.text-muted {
         color: #f8fafc !important; /* Brighter white for placeholder */
@@ -251,6 +268,40 @@
     [data-theme="dark"] #monthly-installment {
         color: #38bdf8; /* Bright light blue */
     }
+
+    /* Mobile optimization for ED calculator */
+    @media (max-width: 767px) {
+        #calculator-tab-pane {
+            padding: 0.5rem !important;
+        }
+        #calculator-tab-pane .soft-panel {
+            margin-top: 0.5rem !important;
+            margin-bottom: 0.5rem !important;
+            padding: 0.75rem;
+        }
+        .calculator-form-group {
+            margin-bottom: 0.5rem;
+            gap: 0.25rem;
+        }
+        .calculator-form-group > label.hdr {
+            font-size: .7rem;
+            margin-bottom: 0;
+        }
+        .calculator-input, .calculator-select {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
+        }
+        #monthly-installment {
+            font-size: 1.1rem !important;
+        }
+    }
+
+    /* QR Tab Alignment on Desktop */
+    @media (min-width: 768px) {
+        .row-item .row-line .field-wrapper:nth-child(1) { flex: 1 1 230px; }
+        .row-item .row-line .field-wrapper:nth-child(2) { flex: 1 1 260px; }
+        .row-item .row-line .field-wrapper:nth-child(3) { flex: 1 1 170px; }
+    }
   </style>
   
   <!-- Thư viện PDF.js và pdf-lib -->
@@ -265,9 +316,9 @@
   <div class="container py-4" id="root">
     <div class="app-card mx-auto" style="max-width:1100px">
       <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
-        <h3 class="title mb-0">Bộ công cụ HDSAISON</h3>
+        <h3 class="title mb-0">HD SAISON: Xử Lý Hợp Đồng & Tạo QR Thanh Toán</h3>
         <label for="pdfFile" class="btn btn-secondary px-3" id="uploadPdfLabel">
-            <i class="fa-solid fa-file-pdf"></i> Tải PDF Hợp đồng
+            <i class="fa-solid fa-file-pdf"></i> Tải File Hợp đồng
         </label>
         <input type="file" id="pdfFile" accept=".pdf" class="d-none" multiple />
       </div>
@@ -579,25 +630,108 @@
         // Loan Calculator ED Listeners
         ['loan-program', 'loan-term', 'include-insurance'].forEach(id => document.getElementById(id).addEventListener('change', calculateLoanEd));
         document.getElementById('clear-ed').addEventListener('click', resetEdForm);
-        document.getElementById('product-price').addEventListener('input', formatCurrencyOnLoanInput);
-        document.getElementById('down-payment').addEventListener('input', (e) => {
-            document.getElementById('down-payment-percentage').value = '';
-            formatCurrencyOnLoanInput(e);
-        });
-        document.getElementById('down-payment-percentage').addEventListener('input', () => {
-            const productPrice = parseNumber(document.getElementById('product-price').value);
-            const percentageInput = document.getElementById('down-payment-percentage');
-            percentageInput.value = percentageInput.value.replace(/[^0-9]/g, '');
-            const percentage = parseFloat(percentageInput.value);
-            if (productPrice > 0 && !isNaN(percentage) && percentage >= 0 && percentage <= 100) {
-                document.getElementById('down-payment').value = (productPrice * (percentage / 100)).toLocaleString('vi-VN');
-            } else {
-                document.getElementById('down-payment').value = '';
+
+        const productPriceInput = document.getElementById('product-price');
+        const downPaymentAmountInput = document.getElementById('down-payment');
+        const downPaymentPercentInput = document.getElementById('down-payment-percentage');
+        
+        productPriceInput.addEventListener('input', (e) => {
+            formatCurrencyOnLoanInput(e); // This calls calculateLoanEd()
+            // After price changes, recalculate down payment amount from percentage if it exists
+            const percentage = parseFloat(downPaymentPercentInput.value);
+            if (!isNaN(percentage)) {
+                const productPrice = parseNumber(productPriceInput.value);
+                const amount = productPrice * (percentage / 100);
+                downPaymentAmountInput.value = Math.round(amount).toLocaleString('vi-VN');
+                calculateLoanEd(); // Recalculate with the new amount
             }
+        });
+
+        downPaymentAmountInput.addEventListener('input', (e) => {
+            // First, format the current input
+            const { target: input } = e;
+            const { value, selectionStart } = input;
+            const numericValue = parseNumber(value);
+            const formattedValue = numericValue > 0 ? numericValue.toLocaleString('vi-VN') : '';
+            input.value = formattedValue;
+            try {
+                input.setSelectionRange(selectionStart + (formattedValue.length - value.length), selectionStart + (formattedValue.length - value.length));
+            } catch (err) {}
+            
+            // Second, update the percentage input
+            const productPrice = parseNumber(productPriceInput.value);
+            const downPaymentAmount = parseNumber(formattedValue);
+
+            if (productPrice > 0 && downPaymentAmount >= 0 && downPaymentAmount <= productPrice) {
+                const percentage = (downPaymentAmount / productPrice) * 100;
+                downPaymentPercentInput.value = Math.round(percentage);
+            } else {
+                downPaymentPercentInput.value = '';
+            }
+            
+            // Finally, calculate the loan details
             calculateLoanEd();
         });
-        calculateLoanEd();
+
+        downPaymentPercentInput.addEventListener('input', () => {
+            const productPrice = parseNumber(productPriceInput.value);
+            // Allow only numbers and ensure it's within a valid range
+            let percentageStr = downPaymentPercentInput.value.replace(/[^0-9]/g, '');
+            let percentage = parseFloat(percentageStr);
+
+            if (percentage > 100) {
+                percentage = 100;
+                percentageStr = '100';
+            }
+            downPaymentPercentInput.value = percentageStr;
+            
+            if (productPrice > 0 && !isNaN(percentage)) {
+                const amount = productPrice * (percentage / 100);
+                downPaymentAmountInput.value = Math.round(amount).toLocaleString('vi-VN');
+            } else {
+                downPaymentAmountInput.value = '';
+            }
+            
+            calculateLoanEd();
+        });
         
+        function adjustLayoutForScreenSize() {
+            const isMobile = window.innerWidth < 768;
+            
+            const printTab = document.querySelector('#print-contract-tab').closest('.nav-item');
+            const qrTab = document.querySelector('#qr-generator-tab').closest('.nav-item');
+            const calculatorTab = document.querySelector('#calculator-tab').closest('.nav-item');
+
+            if (isMobile) {
+                // Mobile view: Calculator -> QR -> Print
+                calculatorTab.style.order = '1';
+                qrTab.style.order = '2';
+                printTab.style.order = '3';
+                
+                // Only switch if the calculator tab is not already active
+                if (!document.getElementById('calculator-tab').classList.contains('active')) {
+                    const calculatorTabBtn = new bootstrap.Tab(document.getElementById('calculator-tab'));
+                    calculatorTabBtn.show();
+                }
+
+            } else {
+                // Desktop view: Reset order and set Print as active
+                printTab.style.order = '';
+                qrTab.style.order = '';
+                calculatorTab.style.order = '';
+
+                // Only switch if the print tab is not already active
+                if (!document.getElementById('print-contract-tab').classList.contains('active')) {
+                    const printTabBtn = new bootstrap.Tab(document.getElementById('print-contract-tab'));
+                    printTabBtn.show();
+                }
+            }
+        }
+
+        adjustLayoutForScreenSize(); // Initial check on page load
+        window.addEventListener('resize', adjustLayoutForScreenSize); // Adjust on window resize
+
+        calculateLoanEd();
         addRow(true);
     });
     
@@ -682,7 +816,19 @@
             // Error is already shown by getRequiredResources
         }
     }
-
+    
+    function findEmptyRow() {
+        const rows = document.querySelectorAll('#rows .row-item');
+        for (const row of rows) {
+            const contractInput = row.querySelector(".contractInput");
+            const nameInput = row.querySelector(".nameInput");
+            const amountInput = row.querySelector(".amountInput");
+            if (contractInput.value.trim() === '' && nameInput.value.trim() === '' && amountInput.value.trim() === '') {
+                return row;
+            }
+        }
+        return null; // No empty row found
+    }
 
     // --- Core Functions ---
     async function processSinglePdf(file, fileIndex, totalFiles) {
@@ -711,7 +857,11 @@
             const allData = extractAllDataFromPdfText(fullText, paymentPageText);
             if (!allData.qrData || !allData.pdkData) throw new Error(`Không tìm thấy đủ thông tin trong file.`);
 
-            const rowEl = addRow();
+            let rowEl = findEmptyRow();
+            if (!rowEl) {
+                rowEl = addRow(); 
+            }
+            
             rowEl.querySelector(".contractInput").value = allData.qrData.contract;
             rowEl.querySelector(".nameInput").value = allData.qrData.name;
             rowEl.querySelector(".amountInput").value = formatThousandDots(allData.qrData.amount);
@@ -853,7 +1003,7 @@
 
         const fileItems = [
             { id: 'hopDong', icon: 'fa-file-contract', text: 'Hợp Đồng Tín Dụng' },
-            { id: 'thanhToan', icon: 'fa-qrcode', text: 'Hướng Dẫn Thanh Toán (có QR)' },
+            { id: 'thanhToan', icon: 'fa-qrcode', text: 'Hướng Dẫn Thanh Toán (có QR chuyển tiền)' },
             { id: 'baoHiem', icon: 'fa-shield-halved', text: 'Bản Yêu Cầu Bảo Hiểm' },
             { id: 'pdk', icon: 'fa-file-pen', text: 'Phiếu Đăng Ký 0%' }
         ];
