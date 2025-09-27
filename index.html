@@ -612,6 +612,8 @@
     addRowEl.addEventListener("click", () => addRow(true));
     
     document.addEventListener('DOMContentLoaded', () => {
+        let isInitialLoad = true; // Flag to handle initial tab switching
+
         handleSharedLink();
         
         document.getElementById('contract-files-display').addEventListener('click', async (e) => {
@@ -655,18 +657,16 @@
         
         productPriceInput.addEventListener('input', (e) => {
             formatCurrencyOnLoanInput(e); // This calls calculateLoanEd()
-            // After price changes, recalculate down payment amount from percentage if it exists
             const percentage = parseFloat(downPaymentPercentInput.value);
             if (!isNaN(percentage)) {
                 const productPrice = parseNumber(productPriceInput.value);
                 const amount = productPrice * (percentage / 100);
                 downPaymentAmountInput.value = Math.round(amount).toLocaleString('vi-VN');
-                calculateLoanEd(); // Recalculate with the new amount
+                calculateLoanEd();
             }
         });
 
         downPaymentAmountInput.addEventListener('input', (e) => {
-            // First, format the current input
             const { target: input } = e;
             const { value, selectionStart } = input;
             const numericValue = parseNumber(value);
@@ -676,7 +676,6 @@
                 input.setSelectionRange(selectionStart + (formattedValue.length - value.length), selectionStart + (formattedValue.length - value.length));
             } catch (err) {}
             
-            // Second, update the percentage input
             const productPrice = parseNumber(productPriceInput.value);
             const downPaymentAmount = parseNumber(formattedValue);
 
@@ -687,13 +686,11 @@
                 downPaymentPercentInput.value = '';
             }
             
-            // Finally, calculate the loan details
             calculateLoanEd();
         });
 
         downPaymentPercentInput.addEventListener('input', () => {
             const productPrice = parseNumber(productPriceInput.value);
-            // Allow only numbers and ensure it's within a valid range
             let percentageStr = downPaymentPercentInput.value.replace(/[^0-9]/g, '');
             let percentage = parseFloat(percentageStr);
 
@@ -721,33 +718,32 @@
             const calculatorTab = document.querySelector('#calculator-tab').closest('.nav-item');
 
             if (isMobile) {
-                // Mobile view: Calculator -> QR -> Print
                 calculatorTab.style.order = '1';
                 qrTab.style.order = '2';
                 printTab.style.order = '3';
                 
-                // Only switch if the calculator tab is not already active
-                if (!document.getElementById('calculator-tab').classList.contains('active')) {
+                // [FIX] Only switch to the calculator tab on the very first page load on mobile
+                if (isInitialLoad) {
                     const calculatorTabBtn = new bootstrap.Tab(document.getElementById('calculator-tab'));
                     calculatorTabBtn.show();
                 }
 
             } else {
-                // Desktop view: Reset order and set Print as active
                 printTab.style.order = '';
                 qrTab.style.order = '';
                 calculatorTab.style.order = '';
 
-                // Only switch if the print tab is not already active
-                if (!document.getElementById('print-contract-tab').classList.contains('active')) {
-                    const printTabBtn = new bootstrap.Tab(document.getElementById('print-contract-tab'));
-                    printTabBtn.show();
+                // [FIX] Only switch to the print contract tab on the very first page load on desktop
+                if (isInitialLoad && !document.getElementById('print-contract-tab').classList.contains('active')) {
+                     const printTabBtn = new bootstrap.Tab(document.getElementById('print-contract-tab'));
+                     printTabBtn.show();
                 }
             }
         }
 
         adjustLayoutForScreenSize(); // Initial check on page load
-        window.addEventListener('resize', adjustLayoutForScreenSize); // Adjust on window resize
+        isInitialLoad = false; // [FIX] Set the flag to false after the first run to prevent further automatic switching
+        window.addEventListener('resize', adjustLayoutForScreenSize);
 
         calculateLoanEd();
         addRow(true);
@@ -1229,9 +1225,9 @@
 
     function buildShareLink(data) {
         const url = new URL(window.location.href.split('?')[0]);
-        url.search_params.set('c', data.contract);
-        url.search_params.set('n', data.name);
-        url.search_params.set('a', data.amount);
+        url.searchParams.set('c', data.contract);
+        url.searchParams.set('n', data.name);
+        url.searchParams.set('a', data.amount);
         return url.toString();
     }
 
@@ -1339,4 +1335,3 @@
   </script>
 </body>
 </html>
-
