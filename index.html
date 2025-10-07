@@ -979,7 +979,7 @@
                 <p id="pos-address" class="small mt-2 mb-0"></p>
             </div>
             <div id="contract-files-display">
-                <p class="text-center text-muted mt-4">Tải lên file PDF hợp đồng để các file được xử lý tự động hiển thị tại đây.</p>
+                <p class="text-center text-muted mt-4">Tải lên file PDF hợp đồng để các file được xử lý tự động hiển thị tại đây.<br></p>
             </div>
         </div>
         
@@ -1075,7 +1075,8 @@
         <div class="soft-panel" style="text-align: left;">
             <p class="mb-2"><strong>Số hợp đồng:</strong> <span id="viewerContract"></span></p>
             <p class="mb-2"><strong>Họ tên:</strong> <span id="viewerName"></span></p>
-            <p class="mb-0"><strong>Số tiền:</strong> <span id="viewerAmount" style="font-weight: bold; color: var(--info);"></span></p>
+            <p class="mb-2"><strong>Số tiền:</strong> <span id="viewerAmount" style="font-weight: bold; color: var(--info);"></span></p>
+            <p class="mb-0" id="viewerInsuranceFee" style="display: none;"><strong>Phí bảo hiểm:</strong> <span style="color: var(--info);"></span></p>
         </div>
         <button id="viewerDownloadBtn" class="btn btn-success mt-4">
           <i class="fa-solid fa-download"></i> Tải xuống
@@ -1691,6 +1692,12 @@
         const findValue = (regex) => fullText.match(regex)?.[1]?.replace('VNĐ', '').trim() || null;
         let tenKH = findValue(/1\.1\.\s*Họ tên:\s*(.*?)\s*1\.2\./);
         
+        // Trích xuất phí bảo hiểm từ phần "Bản yêu cầu bảo hiểm"
+        const insuranceFee = findValue(/4\.3\.\s*Phí bảo hiểm:\s*([0-9,.]+)\s*VNĐ\/tháng/) || 
+                            findValue(/Phí bảo hiểm:\s*([0-9,.]+)\s*VNĐ\/tháng/) ||
+                            findValue(/4\.3\.\s*Phí bảo hiểm:\s*([0-9,.]+)/) ||
+                            findValue(/Phí bảo hiểm:\s*([0-9,.]+)/);
+        
         const pdkData = {
             shd: findValue(/Số:\s*([A-Z0-9]+)/),
             tenKH: tenKH ? toTitleCase(tenKH) : null,
@@ -1702,8 +1709,14 @@
             thoiHan: findValue(/2\.5\. Thời Hạn Vay:\s*(.*?)\s*3\./)
         };
         
+        // Thêm phí bảo hiểm vào qrData để hiển thị
+        const enhancedQrData = {
+            ...qrData,
+            insuranceFee: insuranceFee
+        };
+        
         return {
-            qrData: Object.values(qrData).every(Boolean) ? qrData : null,
+            qrData: Object.values(qrData).every(Boolean) ? enhancedQrData : null,
             pdkData: Object.values(pdkData).every(Boolean) ? pdkData : null
         };
     }
@@ -1789,10 +1802,14 @@
             </div>`;
         }).join('');
 
+        // Tạo thông tin phí bảo hiểm
+        const insuranceFeeInfo = contractInfo.insuranceFee ? 
+            ` - <span style="font-weight: 500;">Phí BH: ${formatThousandDots(contractInfo.insuranceFee)} VNĐ/tháng</span>` : '';
+        
         wrapper.innerHTML = `
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <p class="contract-info-header mb-0">
-                    <strong>${contractId}</strong> - ${contractInfo.name}
+                    <strong>${contractId}</strong> - ${contractInfo.name}${insuranceFeeInfo}
                 </p>
                 <button class="btn btn-sm btn-danger delete-contract-btn" data-contract-id="${contractId}" title="Xóa hợp đồng này">
                     <i class="fa-solid fa-trash"></i>
