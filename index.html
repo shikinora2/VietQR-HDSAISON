@@ -975,10 +975,21 @@
         .row-item .row-line .field-wrapper:nth-child(2) { flex: 0 0 260px; }
         .row-item .row-line .field-wrapper:nth-child(3) { flex: 0 0 170px; }
     }
+
+    /* Advisor input updating feedback */
+    .form-control.updating {
+        border-color: #ffc107 !important;
+        box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25) !important;
+        background-color: rgba(255, 193, 7, 0.05) !important;
+    }
   </style>
   
   <!-- Thư viện PDF.js và pdf-lib -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <script>
+    // Set PDF.js worker to avoid deprecated warning
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
   <script src="https://unpkg.com/@pdf-lib/fontkit@0.0.4/dist/fontkit.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -1017,6 +1028,21 @@
                     <option value="POS13858">POS13858</option>
                 </select>
                 <p id="pos-address" class="small mt-2 mb-0"></p>
+            </div>
+            
+            <!-- Thông tin nhân viên tư vấn -->
+            <div class="soft-panel my-3">
+                <label class="hdr mb-2">Thông tin nhân viên tư vấn</label>
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <label for="advisor-name" class="form-label">Nhân viên tư vấn</label>
+                        <input type="text" class="form-control" id="advisor-name" placeholder="Nhập tên nhân viên tư vấn">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="advisor-phone" class="form-label">SĐT</label>
+                        <input type="tel" class="form-control" id="advisor-phone" placeholder="Nhập số điện thoại">
+                    </div>
+                </div>
             </div>
             <div id="contract-files-display">
                 <p class="text-center text-muted mt-4">Tải lên file PDF hợp đồng để các file được xử lý tự động hiển thị tại đây.<br></p>
@@ -1757,6 +1783,17 @@
 
             allData.paymentPage = paymentPageNum;
             allData.insurancePage = insurancePageNum;
+            
+            // Add current advisor info to contract data
+            const advisorName = document.getElementById('advisor-name')?.value?.trim() || '';
+            const advisorPhone = document.getElementById('advisor-phone')?.value?.trim() || '';
+            allData.advisorName = advisorName;
+            allData.advisorPhone = advisorPhone;
+            
+            // Load original PDF for future use
+            const originalPdfDoc = await PDFDocument.load(pdfBuffer);
+            allData.originalPdfDoc = originalPdfDoc;
+            
             const contractFullData = { ...allData, pdfBuffer };
             contractDataStore.set(contractId, contractFullData);
 
@@ -1901,13 +1938,27 @@
                 const isJPEG = uint8Array.length >= 2 && 
                               uint8Array[0] === 0xFF && uint8Array[1] === 0xD8;
                 
-                if (!isPNG && !isJPEG) {
-                    console.warn(`Invalid image format for ${template}`);
+                // Fallback: Dựa vào content-type nếu magic bytes không rõ ràng
+                let finalIsPNG = isPNG;
+                let finalIsJPEG = isJPEG;
+                
+                if (!isPNG && !isJPEG && contentType) {
+                    if (contentType.includes('png')) {
+                        finalIsPNG = true;
+                        console.log(`Detected PNG from content-type: ${contentType}`);
+                    } else if (contentType.includes('jpeg') || contentType.includes('jpg')) {
+                        finalIsJPEG = true;
+                        console.log(`Detected JPEG from content-type: ${contentType}`);
+                    }
+                }
+                
+                if (!finalIsPNG && !finalIsJPEG) {
+                    console.warn(`Invalid image format for ${template} - ContentType: ${contentType}, Magic: ${uint8Array.slice(0, 4)}`);
                     continue;
                 }
                 
-                console.log(`Successfully fetched ${isPNG ? 'PNG' : 'JPEG'} QR with template: ${template}`);
-                return { imageBytes, template, isPNG, isJPEG };
+                console.log(`Successfully fetched ${finalIsPNG ? 'PNG' : 'JPEG'} QR with template: ${template}`);
+                return { imageBytes, template, isPNG: finalIsPNG, isJPEG: finalIsJPEG };
                 
             } catch (error) {
                 console.warn(`Error with template ${template}:`, error);
@@ -1957,6 +2008,108 @@
             const { width, height } = thanhToanPage.getSize();
             const qrDims = qrImage.scale(0.20); // Scale to 20% of original size
             thanhToanPage.drawImage(qrImage, { x: width - qrDims.width - 65, y: height - qrDims.height - 65, width: qrDims.width, height: qrDims.height });
+            
+            // Thêm thông tin nhân viên tư vấn (bên trái QR)
+            const advisorName = document.getElementById('advisor-name')?.value?.trim();
+            const advisorPhone = document.getElementById('advisor-phone')?.value?.trim();
+            
+            if (advisorName || advisorPhone) {
+                console.log(`Adding advisor info: ${advisorName || 'N/A'} - ${advisorPhone || 'N/A'}`);
+                
+                // Register fontkit cho thanhToanDoc
+                thanhToanDoc.registerFontkit(fontkit);
+                
+                // Tải font cho advisor info
+                const selectedPos = document.getElementById('pos-select')?.value;
+                const { fontBytes } = await getRequiredResources(selectedPos);
+                const advisorFont = await thanhToanDoc.embedFont(fontBytes, { subset: false });
+                
+                // Vị trí khung nhân viên tư vấn
+                const { width, height } = thanhToanPage.getSize();
+                const qrDims = qrImage.scale(0.20); // Kích thước QR sau khi scale
+                
+                // Tính toán kích thước khung dựa trên nội dung text
+                const fontSize = 9;
+                const padding = 6;
+                const lineHeight = fontSize + 2;
+                
+                // Tính độ rộng cần thiết cho text
+                let maxTextWidth = 0;
+                if (advisorName) {
+                    const nameWidth = advisorFont.widthOfTextAtSize(advisorName.toUpperCase(), fontSize);
+                    maxTextWidth = Math.max(maxTextWidth, nameWidth);
+                }
+                if (advisorPhone) {
+                    const phoneWidth = advisorFont.widthOfTextAtSize(advisorPhone, fontSize);
+                    maxTextWidth = Math.max(maxTextWidth, phoneWidth);
+                }
+                
+                // Kích thước khung với padding
+                const boxWidth = Math.max(80, maxTextWidth + (padding * 2)); // Tối thiểu 80px
+                const boxHeight = (advisorName && advisorPhone) ? 32 : 18; // 2 dòng hoặc 1 dòng
+                
+                // Căn khung theo cạnh bên phải (từ QR về bên trái)
+                const qrX = width - qrDims.width - 65; // Vị trí QR
+                const marginFromQR = 5; // Khoảng cách từ QR đến khung (5px)
+                const advisorX = qrX - boxWidth - marginFromQR; // Khung sẽ kết thúc cách QR 5px
+                const advisorY = height - qrDims.height - 35; // Cùng độ cao với QR
+                
+                // Vẽ khung chính (nền trắng với viền đen)
+                thanhToanPage.drawRectangle({
+                    x: advisorX,
+                    y: advisorY - boxHeight + padding,
+                    width: boxWidth,
+                    height: boxHeight,
+                    borderColor: rgb(0, 0, 0),           // Viền đen
+                    borderWidth: 1.5,                    // Độ dày viền
+                    color: rgb(1, 1, 1),                // Nền trắng
+                });
+                
+                let currentY = advisorY - padding - 2; // Vị trí bắt đầu vẽ text (từ trên xuống)
+                
+                // Vẽ text tên nhân viên (căn trái trong khung)
+                if (advisorName) {
+                    const nameText = advisorName.toUpperCase();
+                    const nameX = advisorX + padding; // Căn trái: cách viền trái padding px
+                    
+                    thanhToanPage.drawText(nameText, {
+                        x: nameX,
+                        y: currentY,
+                        size: fontSize,
+                        font: advisorFont,
+                        color: rgb(0, 0, 0)
+                    });
+                    currentY -= lineHeight; // Xuống dòng
+                    
+                    // Vẽ đường phân cách nếu có cả tên và SĐT
+                    if (advisorPhone) {
+                        const separatorY = currentY + 4;
+                        thanhToanPage.drawLine({
+                            start: { x: advisorX + 2, y: separatorY },
+                            end:   { x: advisorX + boxWidth - 2, y: separatorY },
+                            thickness: 0.8,
+                            color: rgb(0.3, 0.3, 0.3),
+                        });
+                    }
+                }
+                
+                // Vẽ text số điện thoại (căn trái trong khung)
+                if (advisorPhone) {
+                    const phoneText = advisorPhone;
+                    const phoneX = advisorX + padding; // Căn trái: cách viền trái padding px
+                    const phoneYOffset = 5;
+                    const phoneY = currentY - phoneYOffset;
+                    
+                    thanhToanPage.drawText(phoneText, {
+                        x: phoneX,
+                        y: phoneY,
+                        size: fontSize,
+                        font: advisorFont,
+                        color: rgb(0, 0, 0)
+                    });
+                }
+            }
+            
             const thanhToanBytes = await thanhToanDoc.save();
             fileSet.thanhToan = { url: URL.createObjectURL(new Blob([thanhToanBytes], { type: 'application/pdf' })), name: `HuongDanThanhToan_${pdkData.shd}.pdf` };
 
@@ -1981,7 +2134,7 @@
             }
             
             const brandName = contractData.brandName || '';
-            console.log(`Generating PDK with brand: ${brandName || '(none)'}`);
+            console.log(`Generating PDK with brand: ${brandName}`);
             const pdkBytes = await generatePdkPdfBytes(pdkData, templateBytes, fontBytes, brandName);
             
             // Tạo tên file với brand name nếu có
@@ -2483,6 +2636,300 @@
         document.getElementById('product-price').focus();
         calculateLoanEd();
     }
+
+    // Advisor info realtime update functionality
+    let advisorUpdateTimeout;
+    let advisorUpdateInProgress = false;
+
+    function initAdvisorRealtimeUpdate() {
+        const advisorNameInput = document.getElementById('advisor-name');
+        const advisorPhoneInput = document.getElementById('advisor-phone');
+        
+        if (!advisorNameInput || !advisorPhoneInput) return;
+
+        // Function to handle advisor info update
+        const updateAdvisorInfo = () => {
+            if (advisorUpdateInProgress) return;
+            
+            // Add visual feedback
+            advisorNameInput.classList.add('updating');
+            advisorPhoneInput.classList.add('updating');
+            
+            clearTimeout(advisorUpdateTimeout);
+            advisorUpdateTimeout = setTimeout(async () => {
+                await processAdvisorUpdate();
+                // Remove visual feedback
+                advisorNameInput.classList.remove('updating');
+                advisorPhoneInput.classList.remove('updating');
+            }, 1000);
+        };
+
+        // Add event listeners for both inputs
+        advisorNameInput.addEventListener('input', updateAdvisorInfo);
+        advisorPhoneInput.addEventListener('input', updateAdvisorInfo);
+        
+        // Handle Enter key
+        [advisorNameInput, advisorPhoneInput].forEach(input => {
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    clearTimeout(advisorUpdateTimeout);
+                    processAdvisorUpdate();
+                    e.target.blur();
+                }
+            });
+        });
+    }
+
+    async function processAdvisorUpdate() {
+        if (advisorUpdateInProgress) return;
+        
+        advisorUpdateInProgress = true;
+        const advisorNameInput = document.getElementById('advisor-name');
+        const advisorPhoneInput = document.getElementById('advisor-phone');
+        
+        try {
+            // Get current advisor info
+            const advisorName = advisorNameInput?.value?.trim() || '';
+            const advisorPhone = advisorPhoneInput?.value?.trim() || '';
+            
+            console.log(`Updating advisor info: ${advisorName || 'N/A'} - ${advisorPhone || 'N/A'}`);
+            
+            // Update all existing contracts with new advisor info
+            for (const [contractId, contractData] of contractDataStore.entries()) {
+                // Update advisor info in contract data
+                contractData.advisorName = advisorName;
+                contractData.advisorPhone = advisorPhone;
+                contractDataStore.set(contractId, contractData);
+                
+                // Regenerate payment PDF with advisor info
+                await regeneratePaymentPdfWithAdvisor(contractId);
+            }
+            
+            // Show success feedback
+            if (advisorName || advisorPhone) {
+                showToast('Đã cập nhật thông tin nhân viên tư vấn', 'success');
+            }
+        } catch (error) {
+            console.error('Lỗi khi cập nhật advisor info:', error);
+            showToast('Lỗi khi cập nhật thông tin nhân viên tư vấn', 'error');
+        } finally {
+            advisorUpdateInProgress = false;
+        }
+    }
+
+    async function regeneratePaymentPdfWithAdvisor(contractId) {
+        try {
+            const contractData = contractDataStore.get(contractId);
+            const fileSet = contractFilesStore.get(contractId);
+            
+            if (!contractData || !fileSet) {
+                console.log(`Không tìm thấy dữ liệu cho hợp đồng ${contractId}`);
+                return;
+            }
+
+            // Get original PDF data
+            const originalPdfDoc = contractData.originalPdfDoc;
+            const paymentPage = contractData.paymentPage;
+            
+            if (!originalPdfDoc || !paymentPage) {
+                console.log(`Thiếu dữ liệu PDF gốc cho hợp đồng ${contractId}`);
+                return;
+            }
+
+            console.log(`Regenerating payment PDF for contract ${contractId} with advisor info`);
+            
+            // Revoke old payment PDF URL
+            if (fileSet.thanhToan?.url) {
+                URL.revokeObjectURL(fileSet.thanhToan.url);
+            }
+
+            // Create new payment PDF with advisor info
+            const thanhToanDoc = await PDFDocument.create();
+            const [thanhToanPage] = await thanhToanDoc.copyPages(originalPdfDoc, [paymentPage - 1]);
+            thanhToanDoc.addPage(thanhToanPage);
+            
+            // Fetch QR image
+            const { imageBytes: qrImageBytes, template: usedTemplate, isPNG, isJPEG } = await fetchQRImage(contractData.qrData);
+            
+            // Embed QR image
+            let qrImage;
+            if (isPNG) {
+                qrImage = await thanhToanDoc.embedPng(qrImageBytes);
+            } else if (isJPEG) {
+                qrImage = await thanhToanDoc.embedJpg(qrImageBytes);
+            } else {
+                throw new Error("Không thể xác định định dạng QR image");
+            }
+            
+            const { width, height } = thanhToanPage.getSize();
+            const qrDims = qrImage.scale(0.20);
+            thanhToanPage.drawImage(qrImage, { 
+                x: width - qrDims.width - 65, 
+                y: height - qrDims.height - 65, 
+                width: qrDims.width, 
+                height: qrDims.height 
+            });
+            
+            // Add advisor info if available
+            const advisorName = contractData.advisorName;
+            const advisorPhone = contractData.advisorPhone;
+            
+            if (advisorName || advisorPhone) {
+                // Register fontkit
+                thanhToanDoc.registerFontkit(fontkit);
+                
+                // Get font resources
+                const selectedPos = document.getElementById('pos-select')?.value;
+                const { fontBytes } = await getRequiredResources(selectedPos);
+                const advisorFont = await thanhToanDoc.embedFont(fontBytes, { subset: false });
+                
+                // Calculate box dimensions
+                const fontSize = 9;
+                const padding = 6;
+                const lineHeight = fontSize + 2;
+                
+                let maxTextWidth = 0;
+                if (advisorName) {
+                    const nameWidth = advisorFont.widthOfTextAtSize(advisorName.toUpperCase(), fontSize);
+                    maxTextWidth = Math.max(maxTextWidth, nameWidth);
+                }
+                if (advisorPhone) {
+                    const phoneWidth = advisorFont.widthOfTextAtSize(advisorPhone, fontSize);
+                    maxTextWidth = Math.max(maxTextWidth, phoneWidth);
+                }
+                
+                const boxWidth = Math.max(80, maxTextWidth + (padding * 2));
+                const boxHeight = (advisorName && advisorPhone) ? 32 : 18;
+                
+                // Position advisor box
+                const qrX = width - qrDims.width - 65;
+                const marginFromQR = 15;
+                const advisorX = qrX - boxWidth - marginFromQR;
+                const advisorY = height - qrDims.height - 45;
+                
+                // Draw advisor info box
+                thanhToanPage.drawRectangle({
+                    x: advisorX,
+                    y: advisorY - boxHeight + padding,
+                    width: boxWidth,
+                    height: boxHeight,
+                    borderColor: rgb(0, 0, 0),
+                    borderWidth: 1.5,
+                    color: rgb(1, 1, 1),
+                });
+                
+                let currentY = advisorY - padding - 2;
+                
+                // Draw advisor name
+                if (advisorName) {
+                    const nameText = advisorName.toUpperCase();
+                    const nameX = advisorX + padding;
+                    
+                    thanhToanPage.drawText(nameText, {
+                        x: nameX,
+                        y: currentY,
+                        size: fontSize,
+                        font: advisorFont,
+                        color: rgb(0, 0, 0)
+                    });
+                    currentY -= lineHeight;
+                    
+                    // Draw separator line if both name and phone exist
+                    if (advisorPhone) {
+                        const separatorY = currentY + 4;
+                        thanhToanPage.drawLine({
+                            start: { x: advisorX + 2, y: separatorY },
+                            end: { x: advisorX + boxWidth - 2, y: separatorY },
+                            thickness: 0.8,
+                            color: rgb(0.3, 0.3, 0.3),
+                        });
+                    }
+                }
+                
+                // Draw advisor phone
+                if (advisorPhone) {
+                    const phoneText = advisorPhone;
+                    const phoneX = advisorX + padding;
+                    const phoneYOffset = 5;
+                    const phoneY = currentY - phoneYOffset;
+                    
+                    thanhToanPage.drawText(phoneText, {
+                        x: phoneX,
+                        y: phoneY,
+                        size: fontSize,
+                        font: advisorFont,
+                        color: rgb(0, 0, 0)
+                    });
+                }
+            }
+            
+            // Save updated PDF
+            const thanhToanBytes = await thanhToanDoc.save();
+            const pdkData = contractData.pdkData || contractData; // Handle both structures
+            const contractShd = pdkData.shd || contractData.qrData?.contract || 'Unknown';
+            fileSet.thanhToan = { 
+                url: URL.createObjectURL(new Blob([thanhToanBytes], { type: 'application/pdf' })), 
+                name: `HuongDanThanhToan_${contractShd}.pdf` 
+            };
+            
+            // Update file set
+            contractFilesStore.set(contractId, fileSet);
+            
+            // Update UI links with new PDF
+            updatePaymentPdfLinksInUI(contractId, fileSet.thanhToan);
+            console.log(`Đã cập nhật PDF thanh toán cho hợp đồng ${contractId}`, {
+                newUrl: fileSet.thanhToan.url,
+                fileName: fileSet.thanhToan.name
+            });
+            
+        } catch (error) {
+            console.error(`Lỗi khi tạo lại PDF thanh toán cho hợp đồng ${contractId}:`, error);
+        }
+    }
+
+    function updatePaymentPdfLinksInUI(contractId, paymentFileInfo) {
+        try {
+            // Find the contract container in UI
+            const contractContainer = document.querySelector(`[data-contract-id="${contractId}"]`);
+            if (!contractContainer) {
+                console.log(`Không tìm thấy container UI cho hợp đồng ${contractId}`);
+                return;
+            }
+
+            // Find all payment PDF links (thanhToan file type)
+            const paymentFileItem = contractContainer.querySelector('[data-file-type="thanhToan"]');
+            if (!paymentFileItem) {
+                console.log(`Không tìm thấy payment file item cho hợp đồng ${contractId}`);
+                return;
+            }
+
+            // Update all links in the payment file item
+            const links = paymentFileItem.querySelectorAll('a[href]');
+            links.forEach(link => {
+                if (link.href && link.href.startsWith('blob:')) {
+                    // Revoke old blob URL
+                    URL.revokeObjectURL(link.href);
+                }
+                
+                // Update href with new URL
+                link.href = paymentFileInfo.url;
+                
+                // Update download attribute if it exists
+                if (link.hasAttribute('download')) {
+                    link.setAttribute('download', paymentFileInfo.name);
+                }
+            });
+
+            console.log(`Đã cập nhật ${links.length} link(s) cho file thanh toán của hợp đồng ${contractId}`);
+        } catch (error) {
+            console.error(`Lỗi khi cập nhật UI links cho hợp đồng ${contractId}:`, error);
+        }
+    }
+
+    // Initialize advisor realtime update when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+        initAdvisorRealtimeUpdate();
+    });
     
   </script>
 </body>
