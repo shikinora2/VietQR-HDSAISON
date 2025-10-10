@@ -931,28 +931,70 @@
 
     /* Mobile optimization for ED calculator */
     @media (max-width: 767px) {
+        /* Reduce padding for calculator tab */
         #calculator-tab-pane {
-            padding: 0.5rem !important;
+            padding: 0.25rem !important;
         }
+        
         #calculator-tab-pane .soft-panel {
-            margin-top: 0.5rem !important;
-            margin-bottom: 0.5rem !important;
-            padding: 0.75rem;
+            margin-top: 0.4rem !important;
+            margin-bottom: 0.4rem !important;
+            padding: 0.6rem 0.75rem;
         }
+        
         .calculator-form-group {
-            margin-bottom: 0.5rem;
-            gap: 0.25rem;
+            margin-bottom: 0.4rem;
+            gap: 0.2rem;
         }
+        
         .calculator-form-group > label.hdr {
-            font-size: .7rem;
-            margin-bottom: 0;
+            font-size: 0.7rem;
+            margin-bottom: 0.15rem !important;
+            font-weight: 600;
         }
+        
         .calculator-input, .calculator-select {
-            padding: 0.5rem 0.75rem;
-            font-size: 0.9rem;
+            padding: 0.45rem 0.65rem;
+            font-size: 0.85rem;
+            min-height: 36px;
         }
+        
+        /* Compact checkbox */
+        .form-check {
+            margin-bottom: 0.3rem !important;
+            padding-left: 1.3rem !important;
+        }
+        
+        .form-check-input {
+            width: 1rem !important;
+            height: 1rem !important;
+            margin-top: 0.15rem !important;
+        }
+        
+        .form-check-label {
+            font-size: 0.8rem !important;
+        }
+        
+        /* Make result section more compact */
         #monthly-installment {
-            font-size: 1.1rem !important;
+            font-size: 1rem !important;
+            padding: 0.5rem 0.75rem !important;
+        }
+        
+        /* Compact button */
+        #clear-ed {
+            padding: 0.4rem 0.8rem !important;
+            font-size: 0.85rem !important;
+        }
+        
+        /* Reduce row gap in calculator form */
+        #calculator-tab-pane .row {
+            --bs-gutter-y: 0.4rem;
+        }
+        
+        /* More compact select dropdown */
+        select.calculator-select option {
+            font-size: 0.85rem;
         }
     }
 
@@ -1002,6 +1044,21 @@
     
     /* Mobile responsive styles */
     @media (max-width: 768px) {
+        /* Reduce container padding on mobile */
+        .container {
+            padding-top: 0.75rem !important;
+            padding-bottom: 0.75rem !important;
+        }
+        
+        .app-card {
+            padding: 0.75rem !important;
+        }
+        
+        /* Reduce tab content padding */
+        .tab-content {
+            padding-top: 0.5rem !important;
+        }
+        
         /* Hide heading on mobile */
         .app-card > .d-flex h3.title {
             display: none !important;
@@ -1010,12 +1067,15 @@
         /* Upload button full width on mobile */
         .app-card > .d-flex {
             justify-content: center !important;
+            margin-bottom: 0.75rem !important;
         }
         
         #uploadPdfLabel {
             width: 100% !important;
             max-width: 100% !important;
             text-align: center !important;
+            padding: 0.6rem 1rem !important;
+            font-size: 0.95rem !important;
         }
         
         /* Hide default tabs on mobile */
@@ -1243,13 +1303,13 @@
       <!-- Mobile Tab Dropdown (hidden on desktop) -->
       <div class="mobile-tab-dropdown dropdown">
         <button class="dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-          <span id="mobile-tab-label"><i class="fa-solid fa-print me-2"></i>In bộ hợp đồng</span>
+          <span id="mobile-tab-label"><i class="fa-solid fa-calculator me-2"></i>Tính Khoản Vay (ED)</span>
           <i class="fas fa-chevron-down"></i>
         </button>
         <ul class="dropdown-menu">
-          <li><a class="dropdown-item active" href="#" data-tab="print-contract-tab"><i class="fa-solid fa-print"></i>In bộ hợp đồng</a></li>
+          <li><a class="dropdown-item" href="#" data-tab="print-contract-tab"><i class="fa-solid fa-print"></i>In bộ hợp đồng</a></li>
           <li><a class="dropdown-item" href="#" data-tab="qr-generator-tab"><i class="fa-solid fa-qrcode"></i>Tạo mã QR</a></li>
-          <li><a class="dropdown-item" href="#" data-tab="calculator-tab"><i class="fa-solid fa-calculator"></i>Tính Khoản Vay (ED)</a></li>
+          <li><a class="dropdown-item active" href="#" data-tab="calculator-tab"><i class="fa-solid fa-calculator"></i>Tính Khoản Vay (ED)</a></li>
         </ul>
       </div>
 
