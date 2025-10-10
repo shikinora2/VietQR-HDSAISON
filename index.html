@@ -2026,7 +2026,6 @@
                 
                 // Vị trí khung nhân viên tư vấn
                 const { width, height } = thanhToanPage.getSize();
-                const qrDims = qrImage.scale(0.20); // Kích thước QR sau khi scale
                 
                 // Tính toán kích thước khung dựa trên nội dung text
                 const fontSize = 9;
@@ -2047,13 +2046,11 @@
                 // Kích thước khung với padding
                 const boxWidth = Math.max(80, maxTextWidth + (padding * 2)); // Tối thiểu 80px
                 const boxHeight = (advisorName && advisorPhone) ? 32 : 18; // 2 dòng hoặc 1 dòng
-                
-                // Căn khung theo cạnh bên phải (từ QR về bên trái)
-                const qrX = width - qrDims.width - 65; // Vị trí QR
-                const marginFromQR = 5; // Khoảng cách từ QR đến khung (5px)
-                const advisorX = qrX - boxWidth - marginFromQR; // Khung sẽ kết thúc cách QR 5px
-                const advisorY = height - qrDims.height - 35; // Cùng độ cao với QR
-                
+
+                // Position advisor box - căn theo cạnh trên và cạnh phải
+                const advisorX = width - boxWidth - 165;     // 165px từ cạnh phải
+                const advisorY = height - 135;               // 135px từ cạnh trên
+
                 // Vẽ khung chính (nền trắng với viền đen)
                 thanhToanPage.drawRectangle({
                     x: advisorX,
@@ -2801,11 +2798,9 @@
                 const boxWidth = Math.max(80, maxTextWidth + (padding * 2));
                 const boxHeight = (advisorName && advisorPhone) ? 32 : 18;
                 
-                // Position advisor box
-                const qrX = width - qrDims.width - 65;
-                const marginFromQR = 15;
-                const advisorX = qrX - boxWidth - marginFromQR;
-                const advisorY = height - qrDims.height - 45;
+                // Position advisor box - căn theo cạnh trên và cạnh phải
+                const advisorX = width - boxWidth - 165;     // 165px từ cạnh phải
+                const advisorY = height - 135;               // 135px từ cạnh trên
                 
                 // Draw advisor info box
                 thanhToanPage.drawRectangle({
