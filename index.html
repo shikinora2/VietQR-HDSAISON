@@ -18,9 +18,6 @@
     :root{
       --bg:#f6f8fb; --card:#ffffff; --ink:#15253b; --muted:#6b7280;
       --border:#e9eef5; --shadow:0 10px 30px rgba(25,35,78,.08); --danger:#dc3545; --info: #0dcaf0;
-      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      --accent-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-      --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
     }
     [data-theme="dark"]{
       --bg:#0f172a; --card:#111827; --ink:#e5e7eb; --muted:#9ca3af;
@@ -29,7 +26,7 @@
     
     /* New UI Styles */
     body.new-ui {
-      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #1e293b 100%);
+      background: #0f172a;
       background-attachment: fixed;
       position: relative;
       overflow-x: hidden;
@@ -42,10 +39,7 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: 
-        radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.15), transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.12), transparent 50%),
-        radial-gradient(circle at 40% 20%, rgba(59, 130, 246, 0.1), transparent 50%);
+      background: transparent;
       pointer-events: none;
       z-index: 0;
     }
@@ -88,12 +82,8 @@
     }
     
     body.new-ui .title {
-      color: #f1f5f9;
-      text-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
-      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      color: #3b82f6;
+      text-shadow: none;
       font-size: 1.6rem;
       font-weight: 900;
       letter-spacing: -0.5px;
@@ -186,7 +176,7 @@
     }
     
     body.new-ui .btn-success {
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      background: #10b981;
       color: white;
       box-shadow: 0 4px 15px rgba(16, 185, 129, 0.5);
       font-weight: 600;
@@ -195,14 +185,14 @@
     }
     
     body.new-ui .btn-success:hover {
-      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      background: #059669;
       transform: translateY(-2px);
       box-shadow: 0 8px 25px rgba(16, 185, 129, 0.6);
       color: #fff;
     }
     
     body.new-ui .btn-primary {
-      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      background: #3b82f6;
       color: white;
       box-shadow: 0 4px 15px rgba(59, 130, 246, 0.5);
       font-weight: 600;
@@ -211,7 +201,7 @@
     }
     
     body.new-ui .btn-primary:hover {
-      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      background: #2563eb;
       transform: translateY(-2px);
       box-shadow: 0 8px 25px rgba(59, 130, 246, 0.6);
       color: #fff;
@@ -261,7 +251,7 @@
     }
     
     body.new-ui .btn-qr-action:hover {
-      background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(37, 99, 235, 0.3));
+      background: rgba(59, 130, 246, 0.3);
       border-color: #3b82f6;
       color: #60a5fa;
       transform: translateY(-3px) scale(1.05);
@@ -279,40 +269,40 @@
     }
     
     body.new-ui .btn-secondary {
-      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      background: #2563eb;
       color: white;
       font-weight: 700;
       box-shadow: 0 4px 15px rgba(37, 99, 235, 0.5);
     }
     
     body.new-ui .btn-secondary:hover {
-      background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+      background: #1d4ed8;
       transform: translateY(-2px);
       box-shadow: 0 8px 25px rgba(37, 99, 235, 0.6);
       color: #fff;
     }
     
     body.new-ui .btn-danger {
-      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      background: #ef4444;
       color: white;
       box-shadow: 0 4px 15px rgba(239, 68, 68, 0.5);
     }
     
     body.new-ui .btn-danger:hover {
-      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+      background: #dc2626;
       transform: translateY(-2px);
       box-shadow: 0 8px 25px rgba(239, 68, 68, 0.6);
       color: #fff;
     }
     
     body.new-ui .btn-info {
-      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      background: #3b82f6;
       color: white;
       box-shadow: 0 4px 15px rgba(59, 130, 246, 0.5);
     }
     
     body.new-ui .btn-info:hover {
-      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      background: #2563eb;
       transform: translateY(-2px);
       box-shadow: 0 8px 25px rgba(59, 130, 246, 0.6);
       color: #fff;
@@ -343,7 +333,7 @@
     }
     
     body.new-ui .nav-tabs .nav-link.active {
-      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      background: #2563eb;
       backdrop-filter: none;
       color: #ffffff;
       border-bottom: none;
@@ -366,7 +356,7 @@
     
     body.new-ui .contract-files-container .contract-info-header strong {
       color: #3b82f6;
-      text-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+      text-shadow: none;
       font-weight: 800;
     }
     
@@ -446,13 +436,13 @@
     }
     
     body.new-ui .btn-lightbox.close {
-      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      background: #ef4444;
       border: none;
       color: #ffffff;
     }
     
     body.new-ui .btn-lightbox.close:hover {
-      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+      background: #dc2626;
     }
     
     /* New UI - Toast */
@@ -466,13 +456,13 @@
     }
     
     body.new-ui .toast-notification.info {
-      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      background: #2563eb;
       border: none;
       color: #ffffff;
     }
     
     body.new-ui .toast-notification.warning {
-      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      background: #f59e0b;
       border: none;
       color: #ffffff;
     }
@@ -543,7 +533,7 @@
       font-weight: 800;
       text-shadow: 0 0 20px rgba(59, 130, 246, 0.7);
       font-size: 1.4rem;
-      background: linear-gradient(135deg, rgba(37, 99, 235, 0.2) 0%, rgba(29, 78, 216, 0.2) 100%);
+      background: rgba(37, 99, 235, 0.2);
       border: 2px solid #3b82f6;
     }
     
@@ -568,6 +558,66 @@
     body.new-ui .qr-thumb {
       border-color: rgba(148, 163, 184, 0.3);
       box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+    }
+    
+    /* Export Table Styles */
+    body.new-ui #contract-export-table {
+      margin: 0;
+      border: none;
+      background: transparent;
+    }
+    
+    body.new-ui #contract-export-table thead {
+      background: rgba(37, 99, 235, 0.15);
+      border: none;
+    }
+    
+    body.new-ui #contract-export-table thead th {
+      background: transparent;
+      color: #3b82f6;
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border: none;
+      border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+      padding: 14px 12px;
+    }
+    
+    body.new-ui #contract-export-table tbody tr {
+      background: rgba(51, 65, 85, 0.3) !important;
+      border: none;
+      transition: all 0.3s ease;
+    }
+    
+    body.new-ui #contract-export-table tbody tr:hover {
+      background: rgba(51, 65, 85, 0.5) !important;
+      transform: translateX(4px);
+    }
+    
+    body.new-ui #contract-export-table tbody td {
+      color: #cbd5e1 !important;
+      background: transparent !important;
+      border: none;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+      padding: 12px;
+      font-weight: 500;
+    }
+    
+    body.new-ui #contract-export-table tbody td.text-center {
+      text-align: center;
+    }
+    
+    body.new-ui #contract-export-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+    
+    body.new-ui .table-responsive {
+      background: rgba(30, 41, 59, 0.4);
+      border-radius: 12px;
+      padding: 0;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      overflow: hidden;
     }
     
     /* Shared Styles */
@@ -694,7 +744,7 @@
     }
     
     .generate-qr-mobile-btn {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #667eea;
         border: none;
     }
     
@@ -704,7 +754,7 @@
     }
     
     .delete-row-mobile-btn {
-        background: linear-gradient(135deg, #f87171 0%, #dc2626 100%);
+        background: #f87171;
         border: none;
     }
     
@@ -1048,13 +1098,13 @@
     
     /* Alert đang phát triển */
     .alert-warning {
-        background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(245, 158, 11, 0.15));
+        background: rgba(251, 191, 36, 0.15);
         color: var(--ink);
         border-color: #f59e0b !important;
     }
     
     body.new-ui .alert-warning {
-        background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(245, 158, 11, 0.2));
+        background: rgba(251, 191, 36, 0.2);
         backdrop-filter: blur(10px);
         border: 2px solid rgba(245, 158, 11, 0.5) !important;
         color: #fbbf24;
@@ -1710,50 +1760,47 @@
 
       <!-- Tab Trích xuất hợp đồng -->
       <div class="tab-pane fade p-3" id="export-tab-pane" role="tabpanel" aria-labelledby="export-tab" tabindex="0">
-        <!-- Thông báo đang phát triển -->
-        <div class="alert alert-warning d-flex align-items-center mb-4" role="alert" style="border-radius: 12px; border: 2px solid #f59e0b;">
-          <i class="fa-solid fa-triangle-exclamation me-3" style="font-size: 1.5rem;"></i>
-          <div>
-            <h5 class="alert-heading mb-1" style="font-size: 1rem; font-weight: 700;">🚧 Tính năng đang phát triển</h5>
-            <p class="mb-0" style="font-size: 0.9rem;">Chức năng "Trích xuất thông tin hợp đồng" hiện đang được phát triển và sẽ sớm được cập nhật.</p>
+        <div class="soft-panel my-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="hdr mb-0"><i class="fa-solid fa-file-export me-2"></i>Trích xuất dữ liệu hợp đồng</h5>
+            
+            <!-- Nút tải file riêng cho tab này -->
+            <label for="upload-pdf-export" class="btn btn-primary" id="upload-pdf-export-label" style="margin: 0;">
+              <i class="fa-solid fa-cloud-arrow-up me-2"></i>Tải File Hợp đồng
+            </label>
+            <input type="file" id="upload-pdf-export" accept=".pdf" multiple style="display: none;">
           </div>
-        </div>
-        
-        <div class="soft-panel my-4" style="opacity: 0.6; pointer-events: none;">
-          <h5 class="hdr mb-3">Trích xuất dữ liệu hợp đồng</h5>
+          
+          
           
           <!-- Bảng hiển thị danh sách hợp đồng -->
           <div class="table-responsive" id="contract-table-container">
-            <p class="text-center text-muted" id="export-placeholder">Chưa có hợp đồng nào. Tải file PDF hợp đồng để bắt đầu.</p>
-            <table class="table table-hover table-bordered" id="contract-export-table" style="display: none;">
-              <thead class="table-light">
+            <table class="table table-hover" id="contract-export-table" style="display: table;">
+              <thead>
                 <tr>
-                  <th scope="col" style="width: 5%;">#</th>
-                  <th scope="col" style="width: 12%;">Số HĐ</th>
-                  <th scope="col" style="width: 15%;">Tên KH</th>
+                  <th scope="col" style="width: 5%; text-align: center;">STT</th>
+                  <th scope="col" style="width: 12%;">Số hợp đồng</th>
+                  <th scope="col" style="width: 15%;">Họ tên</th>
+                  <th scope="col" style="width: 10%;">Ngày sinh</th>
                   <th scope="col" style="width: 10%;">SĐT</th>
-                  <th scope="col" style="width: 10%;">Sản phẩm</th>
-                  <th scope="col" style="width: 10%;">Tên hãng</th>
-                  <th scope="col" style="width: 10%;">Giá bán</th>
-                  <th scope="col" style="width: 8%;">Trả trước</th>
-                  <th scope="col" style="width: 10%;">Tiền vay</th>
-                  <th scope="col" style="width: 5%;">T.Hạn</th>
-                  <th scope="col" style="width: 10%;">Phí BH</th>
+                  <th scope="col" style="width: 12%;">Số CCCD</th>
+                  <th scope="col" style="width: 12%;">Ngày đóng tiền</th>
+                  <th scope="col" style="width: 12%;">Ngày kết thúc</th>
                 </tr>
               </thead>
               <tbody id="contract-export-tbody">
-                <!-- Rows will be populated dynamically -->
+                <!-- Dữ liệu sẽ được hiển thị khi tải file PDF -->
               </tbody>
             </table>
           </div>
 
           <!-- Nút xuất Excel -->
-          <div class="d-flex justify-content-end gap-2 mt-3" id="export-actions" style="display: none !important;">
+          <div class="d-flex justify-content-end gap-2 mt-3" id="export-actions" style="display: flex;">
             <button class="btn btn-success" id="export-excel-btn">
-              <i class="fa-solid fa-file-excel"></i> Xuất Excel
+              <i class="fa-solid fa-file-excel me-2"></i> Xuất Excel
             </button>
             <button class="btn btn-secondary" id="refresh-export-btn">
-              <i class="fa-solid fa-rotate"></i> Làm mới
+              <i class="fa-solid fa-rotate me-2"></i> Làm mới
             </button>
           </div>
         </div>
@@ -2001,6 +2048,13 @@
         if (rowId) {
             const row = document.querySelector(`.row-item[data-row-id="${rowId}"]`);
             if (row && row.deleteRow) {
+                // Kiểm tra số lượng hàng
+                const totalRows = rowsEl.querySelectorAll('.row-item').length;
+                if (totalRows <= 1) {
+                    showToast("Không thể xóa! Phải có ít nhất 1 hàng.", "warning");
+                    contextMenu.classList.remove("show");
+                    return;
+                }
                 row.deleteRow();
             }
         }
@@ -2376,6 +2430,100 @@
     }
 
     // --- Core Functions ---
+    
+    // Hàm xử lý file PDF CHỈ ĐỂ TRÍCH XUẤT dữ liệu (dành cho tab Trích xuất)
+    async function processSinglePdfForExtraction(file, fileIndex, totalFiles, labelElement) {
+        labelElement.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Xử lý ${fileIndex + 1}/${totalFiles}`;
+        try {
+            if (file.type !== 'application/pdf') throw new Error("File không phải là PDF");
+            
+            const pdfBuffer = await file.arrayBuffer();
+            let paymentPageNum = -1, paymentPageText = '', fullText = '';
+            const pdf = await pdfjsLib.getDocument(new Uint8Array(pdfBuffer)).promise;
+            
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                const pageText = textContent.items.map(item => item.str).join(' ');
+                fullText += pageText + ' ';
+                if (pageText.includes('Số Hợp Đồng:') && pageText.includes('Khoản Thanh Toán Hàng Tháng:')) {
+                    paymentPageNum = i;
+                    paymentPageText = pageText;
+                }
+            }
+            
+            if (paymentPageNum === -1) throw new Error("Không tìm thấy trang thanh toán");
+            
+            const allData = extractAllDataFromPdfText(fullText, paymentPageText);
+            if (!allData.qrData) throw new Error("Không tìm thấy thông tin QR");
+            if (!allData.qrData.contract) throw new Error("Không tìm thấy số hợp đồng");
+            if (!allData.pdkData) throw new Error("Không tìm thấy thông tin PDK");
+            if (!allData.pdkData.shd) throw new Error("Không tìm thấy số hợp đồng trong PDK data");
+
+            const contractId = allData.qrData.contract.trim();
+            
+            // Kiểm tra trùng lặp
+            if (contractDataStore.has(contractId)) {
+                console.log(`⚠️ Bỏ qua file trùng: Hợp đồng ${contractId} đã tồn tại`);
+                return { success: true, skipped: true, contractId };
+            }
+
+            // Lưu dữ liệu vào store (CHỈ LƯU DỮ LIỆU, KHÔNG TẠO QR HAY FILE SET)
+            const contractFullData = { ...allData, pdfBuffer };
+            contractDataStore.set(contractId, contractFullData);
+            
+            // Cập nhật bảng trích xuất
+            populateExportTable();
+            
+            return { success: true, skipped: false, contractId };
+        } catch (error) {
+            console.error(`Lỗi xử lý file "${file.name}":`, error);
+            return { success: false, skipped: false, error: error.message };
+        }
+    }
+    
+    // Hàm xử lý upload CHỈ cho tab Trích xuất
+    async function handlePdfUploadForExtraction(event) {
+        const files = Array.from(event.target.files);
+        if (files.length === 0) return;
+        
+        const labelElement = document.getElementById('upload-pdf-export-label');
+        const originalBtnHTML = labelElement.innerHTML;
+        labelElement.classList.add('disabled');
+        
+        let successCount = 0;
+        let errorCount = 0;
+        let skippedCount = 0;
+        const skippedContracts = [];
+
+        for (let i = 0; i < files.length; i++) {
+            const result = await processSinglePdfForExtraction(files[i], i, files.length, labelElement);
+            if (result.success) {
+                successCount++;
+                if (result.skipped) {
+                    skippedCount++;
+                    skippedContracts.push(result.contractId);
+                }
+            } else {
+                errorCount++;
+                showToast(`❌ Lỗi file "${files[i].name}": ${result.error}`, 'error');
+            }
+            await new Promise(resolve => setTimeout(resolve, 50)); 
+        }
+
+        labelElement.innerHTML = originalBtnHTML;
+        labelElement.classList.remove('disabled');
+
+        // Hiển thị thông báo tổng kết
+        if (successCount > 0) {
+            const message = `✅ Đã trích xuất ${successCount} hợp đồng${skippedCount > 0 ? `, bỏ qua ${skippedCount} trùng` : ''}`;
+            showToast(message, 'info');
+        }
+        if (errorCount > 0) {
+            showToast(`⚠️ ${errorCount} file lỗi`, 'warning');
+        }
+    }
+    
     async function processSinglePdf(file, fileIndex, totalFiles) {
         uploadPdfLabel.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Xử lý ${fileIndex + 1}/${totalFiles}`;
         try {
@@ -2418,15 +2566,29 @@
                 return { success: true, skipped: true, contractId };
             }
 
-            let rowEl = findEmptyRow();
+            // Lấy hàng đầu tiên
+            let rowEl = document.querySelector('#rows .row-item:first-child');
+            
+            // Nếu không có hàng nào, tạo mới
             if (!rowEl) {
-                rowEl = addRow(); 
+                rowEl = addRow();
             }
             
+            // Điền thông tin vào hàng đầu tiên
             rowEl.querySelector(".contractInput").value = allData.qrData.contract;
             rowEl.querySelector(".nameInput").value = allData.qrData.name;
             rowEl.querySelector(".amountInput").value = formatThousandDots(allData.qrData.amount);
             if (rowEl.generateQR) rowEl.generateQR();
+            
+            // Tạo 1 hàng trống mới ngay sau hàng vừa điền
+            // addRow() sẽ tự động thêm vào đầu, vì vậy ta cần di chuyển nó
+            const firstRowBeforeAdd = document.querySelector('#rows .row-item:first-child');
+            const newEmptyRow = addRow(false); // Thêm hàng mới (sẽ ở đầu)
+            
+            // Di chuyển hàng mới vừa tạo xuống sau hàng đã điền thông tin
+            if (firstRowBeforeAdd && firstRowBeforeAdd.nextSibling) {
+                rowsEl.insertBefore(newEmptyRow, firstRowBeforeAdd.nextSibling);
+            }
 
             allData.paymentPage = paymentPageNum;
             allData.insurancePage = insurancePageNum;
@@ -2443,6 +2605,9 @@
             
             const contractFullData = { ...allData, pdfBuffer };
             contractDataStore.set(contractId, contractFullData);
+            
+            // Cập nhật bảng trích xuất ngay lập tức
+            populateExportTable();
 
             const fileSet = await generateContractFileSet(contractFullData);
             displayContractFilesInUI(fileSet, allData.qrData);
@@ -2525,7 +2690,34 @@
                             findValue(/4\.3\.\s*Phí bảo hiểm:\s*([0-9,.]+)/) ||
                             findValue(/Phí bảo hiểm:\s*([0-9,.]+)/);
         
-        const pdkData = {
+        // Trích xuất các trường mới cho tab "Trích xuất hợp đồng"
+        const ngaySinh = findValue(/1\.2\.\s*Ngày sinh:\s*([0-9\/]+)/) || 
+                        findValue(/Ngày sinh:\s*([0-9\/]+)/);
+        
+        // Trích xuất Số CCCD từ mục 1.4
+        const soCCCD = findValue(/1\.4\.\s*Số CCCD\/Thẻ căn cước\/Giấy tờ khác:\s*([0-9]+)/) ||
+                      findValue(/1\.4\.\s*Số CCCD:\s*([0-9]+)/) ||
+                      findValue(/1\.3\.\s*CMND\/CCCD:\s*([0-9]+)/) || 
+                      findValue(/CMND\/CCCD:\s*([0-9]+)/) ||
+                      findValue(/Số CMND\/CCCD:\s*([0-9]+)/);
+        
+        // Trích xuất Ngày Thanh Toán Đầu Tiên từ mục 5.6
+        const ngayDongTien = findValue(/5\.6\.\s*Ngày Thanh Toán Đầu Tiên:\s*([0-9\/]+)/) ||
+                            findValue(/Ngày Thanh Toán Đầu Tiên:\s*([0-9\/]+)/);
+        
+        // Trích xuất Ngày Thanh Toán Cuối Cùng từ mục 5.8
+        const ngayKetThuc = findValue(/5\.8\.\s*Ngày Thanh Toán Cuối Cùng:\s*([0-9\/]+)/) ||
+                           findValue(/Ngày Thanh Toán Cuối Cùng:\s*([0-9\/]+)/);
+        
+        // Ngày giải ngân (giữ lại cho các mục đích khác)
+        const ngayGiaiNgan = findValue(/2\.6\.\s*Ngày giải ngân dự kiến:\s*([0-9\/]+)/) ||
+                            findValue(/Ngày giải ngân:\s*([0-9\/]+)/);
+        
+        // Thời hạn vay
+        const thoiHanVay = findValue(/2\.5\. Thời Hạn Vay:\s*(.*?)\s*3\./);
+        
+        // Các trường bắt buộc cho QR và In hợp đồng
+        const pdkDataRequired = {
             shd: findValue(/Số:\s*([A-Z0-9]+)/),
             tenKH: tenKH ? toTitleCase(tenKH) : null,
             sdt: findValue(/1\.7\.\s*Điện thoại di động:\s*(\d+)/),
@@ -2533,7 +2725,17 @@
             giaBan: findValue(/2\.2\. Tổng giá trị Sản Phẩm Được Tài Trợ:\s*([0-9,.]+(?:\s*VNĐ)?)/),
             traTruoc: findValue(/2\.3\. Khoản Tiền Mặt Trả Trước:\s*([0-9,.]+(?:\s*VNĐ)?)/),
             tienVay: findValue(/2\.4\. Số tiền đề nghị vay:\s*([0-9,.]+(?:\s*VNĐ)?)/),
-            thoiHan: findValue(/2\.5\. Thời Hạn Vay:\s*(.*?)\s*3\./)
+            thoiHan: thoiHanVay
+        };
+        
+        // Thêm các trường optional cho tab "Trích xuất hợp đồng"
+        const pdkData = {
+            ...pdkDataRequired,
+            ngaySinh: ngaySinh,
+            soCCCD: soCCCD,
+            ngayGiaiNgan: ngayGiaiNgan,
+            ngayDongTien: ngayDongTien,
+            ngayKetThuc: ngayKetThuc
         };
         
         // Thêm phí bảo hiểm vào qrData để hiển thị
@@ -2542,9 +2744,10 @@
             insuranceFee: insuranceFee
         };
         
+        // Chỉ validate các trường bắt buộc
         return {
             qrData: Object.values(qrData).every(Boolean) ? enhancedQrData : null,
-            pdkData: Object.values(pdkData).every(Boolean) ? pdkData : null
+            pdkData: Object.values(pdkDataRequired).every(Boolean) ? pdkData : null
         };
     }
 
@@ -3016,6 +3219,13 @@
         
         // Function to delete this row (CHỈ xóa UI, KHÔNG xóa dữ liệu stores)
         el.deleteRow = () => {
+            // Kiểm tra số lượng hàng hiện tại
+            const totalRows = rowsEl.querySelectorAll('.row-item').length;
+            if (totalRows <= 1) {
+                showToast("Không thể xóa! Phải có ít nhất 1 hàng.", "warning");
+                return;
+            }
+            
             // Chỉ xóa dòng QR trên UI
             // KHÔNG xóa contractDataStore và contractFilesStore
             // để giữ dữ liệu cho tab "In Hợp Đồng"
@@ -3037,6 +3247,12 @@
         if (deleteRowMobileBtn) {
             deleteRowMobileBtn.addEventListener("click", (e) => {
                 e.preventDefault();
+                // Kiểm tra số lượng hàng
+                const totalRows = rowsEl.querySelectorAll('.row-item').length;
+                if (totalRows <= 1) {
+                    showToast("Không thể xóa! Phải có ít nhất 1 hàng.", "warning");
+                    return;
+                }
                 if (confirm("Xóa dòng này?")) {
                     el.deleteRow();
                 }
@@ -3082,6 +3298,8 @@
         rowsEl.prepend(node);
         if (isManual) inputs.contract.focus();
         updatePlaceholders();
+        
+        // Return the actual element (not the node fragment)
         return el;
     }
 
@@ -3634,6 +3852,16 @@
                     dropdownItems.forEach(di => di.classList.remove('active'));
                     correspondingDropdownItem.classList.add('active');
                 }
+                
+                // Ẩn/hiện nút "Tải File Hợp đồng" dựa vào tab hiện tại
+                const uploadPdfLabel = document.getElementById('uploadPdfLabel');
+                if (uploadPdfLabel) {
+                    if (activeTabId === 'export-tab') {
+                        uploadPdfLabel.style.display = 'none';
+                    } else {
+                        uploadPdfLabel.style.display = '';
+                    }
+                }
             });
         });
     }
@@ -3644,44 +3872,83 @@
     function populateExportTable() {
         const tbody = document.getElementById('contract-export-tbody');
         const table = document.getElementById('contract-export-table');
-        const placeholder = document.getElementById('export-placeholder');
         const exportActions = document.getElementById('export-actions');
         
-        tbody.innerHTML = '';
-        
-        if (contractDataStore.size === 0) {
-            table.style.display = 'none';
-            placeholder.style.display = 'block';
-            exportActions.style.display = 'none';
+        // Kiểm tra các element có tồn tại không
+        if (!tbody || !table || !exportActions) {
+            console.error('Không tìm thấy các element cần thiết cho bảng trích xuất');
             return;
         }
         
+        // Clear tbody first
+        tbody.innerHTML = '';
+        
+        if (contractDataStore.size === 0) {
+            // Không có dữ liệu - chỉ hiển thị bảng rỗng
+            table.style.display = 'table';
+            exportActions.style.display = 'flex';
+            return;
+        }
+        
+        // Có dữ liệu - hiển thị bảng
         table.style.display = 'table';
-        placeholder.style.display = 'none';
         exportActions.style.display = 'flex';
         
         let index = 1;
         contractDataStore.forEach((data, contractId) => {
             const row = document.createElement('tr');
             
-            // Format currency
-            const formatCurrency = (value) => {
-                if (!value) return '';
-                return new Intl.NumberFormat('vi-VN').format(value);
+            // Helper function: Calculate payment date (first payment = disbursement date + 1 month)
+            const calculatePaymentDate = (disbursementDate) => {
+                if (!disbursementDate) return '';
+                try {
+                    const parts = disbursementDate.split('/');
+                    if (parts.length === 3) {
+                        const date = new Date(parts[2], parts[1] - 1, parts[0]);
+                        date.setMonth(date.getMonth() + 1);
+                        const day = String(date.getDate()).padStart(2, '0');
+                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                        const year = date.getFullYear();
+                        return `${day}/${month}/${year}`;
+                    }
+                } catch (e) {
+                    console.error('Error calculating payment date:', e);
+                }
+                return '';
             };
+            
+            // Helper function: Calculate end date (disbursement date + loan term)
+            const calculateEndDate = (disbursementDate, loanTerm) => {
+                if (!disbursementDate || !loanTerm) return '';
+                try {
+                    const parts = disbursementDate.split('/');
+                    const months = parseInt(loanTerm);
+                    if (parts.length === 3 && !isNaN(months)) {
+                        const date = new Date(parts[2], parts[1] - 1, parts[0]);
+                        date.setMonth(date.getMonth() + months);
+                        const day = String(date.getDate()).padStart(2, '0');
+                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                        const year = date.getFullYear();
+                        return `${day}/${month}/${year}`;
+                    }
+                } catch (e) {
+                    console.error('Error calculating end date:', e);
+                }
+                return '';
+            };
+            
+            const ngayDongTien = data.pdkData?.ngayDongTien || calculatePaymentDate(data.pdkData?.ngayGiaiNgan);
+            const ngayKetThuc = data.pdkData?.ngayKetThuc || calculateEndDate(data.pdkData?.ngayGiaiNgan, data.pdkData?.thoiHan);
             
             row.innerHTML = `
                 <td class="text-center">${index}</td>
-                <td>${data.pdkData?.contractId || ''}</td>
-                <td>${data.pdkData?.customerName || ''}</td>
-                <td>${data.pdkData?.phoneNumber || ''}</td>
-                <td>${data.pdkData?.productName || ''}</td>
-                <td>${data.brandName || ''}</td>
-                <td class="text-end">${formatCurrency(data.pdkData?.salePrice)}</td>
-                <td class="text-end">${formatCurrency(data.pdkData?.downPayment)}</td>
-                <td class="text-end">${formatCurrency(data.pdkData?.loanAmount)}</td>
-                <td class="text-center">${data.pdkData?.loanTerm || ''}</td>
-                <td class="text-end">${formatCurrency(data.pdkData?.insuranceFee)}</td>
+                <td>${data.pdkData?.shd || contractId || ''}</td>
+                <td>${data.pdkData?.tenKH || data.qrData?.name || ''}</td>
+                <td>${data.pdkData?.ngaySinh || ''}</td>
+                <td>${data.pdkData?.sdt || ''}</td>
+                <td>${data.pdkData?.soCCCD || ''}</td>
+                <td>${ngayDongTien}</td>
+                <td>${ngayKetThuc}</td>
             `;
             
             tbody.appendChild(row);
@@ -3699,40 +3966,72 @@
         // Prepare data for Excel
         const excelData = [];
         
+        // Helper function: Calculate payment date
+        const calculatePaymentDate = (disbursementDate) => {
+            if (!disbursementDate) return '';
+            try {
+                const parts = disbursementDate.split('/');
+                if (parts.length === 3) {
+                    const date = new Date(parts[2], parts[1] - 1, parts[0]);
+                    date.setMonth(date.getMonth() + 1);
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const year = date.getFullYear();
+                    return `${day}/${month}/${year}`;
+                }
+            } catch (e) {
+                return '';
+            }
+            return '';
+        };
+        
+        // Helper function: Calculate end date
+        const calculateEndDate = (disbursementDate, loanTerm) => {
+            if (!disbursementDate || !loanTerm) return '';
+            try {
+                const parts = disbursementDate.split('/');
+                const months = parseInt(loanTerm);
+                if (parts.length === 3 && !isNaN(months)) {
+                    const date = new Date(parts[2], parts[1] - 1, parts[0]);
+                    date.setMonth(date.getMonth() + months);
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const year = date.getFullYear();
+                    return `${day}/${month}/${year}`;
+                }
+            } catch (e) {
+                return '';
+            }
+            return '';
+        };
+        
         // Header row
         excelData.push([
             'STT',
             'Số hợp đồng',
-            'Tên khách hàng',
-            'Số điện thoại',
-            'Sản phẩm',
-            'Tên hãng',
-            'Giá bán',
-            'Trả trước',
-            'Tiền vay',
-            'Thời hạn (tháng)',
-            'Phí bảo hiểm',
-            'Nhân viên tư vấn',
-            'SĐT tư vấn'
+            'Họ tên',
+            'Ngày sinh',
+            'SĐT',
+            'Số CCCD',
+            'Ngày đóng tiền',
+            'Ngày kết thúc'
         ]);
         
         // Data rows
         let index = 1;
         contractDataStore.forEach((data, contractId) => {
+            const ngayDongTien = data.pdkData?.ngayDongTien || calculatePaymentDate(data.pdkData?.ngayGiaiNgan);
+            const ngayKetThuc = data.pdkData?.ngayKetThuc || calculateEndDate(data.pdkData?.ngayGiaiNgan, data.pdkData?.thoiHan);
+            
             excelData.push([
                 index,
-                data.pdkData?.contractId || '',
-                data.pdkData?.customerName || '',
-                data.pdkData?.phoneNumber || '',
-                data.pdkData?.productName || '',
-                data.brandName || '',
-                data.pdkData?.salePrice || 0,
-                data.pdkData?.downPayment || 0,
-                data.pdkData?.loanAmount || 0,
-                data.pdkData?.loanTerm || '',
-                data.pdkData?.insuranceFee || 0,
-                data.advisorName || '',
-                data.advisorPhone || ''
+                data.pdkData?.shd || contractId || '',
+                data.pdkData?.tenKH || data.qrData?.name || '',
+                data.pdkData?.ngaySinh || '',
+                data.pdkData?.sdt || '',
+                data.pdkData?.soCCCD || '',
+                ngayDongTien,
+                ngayKetThuc
             ]);
             index++;
         });
@@ -3745,17 +4044,12 @@
         const colWidths = [
             { wch: 5 },   // STT
             { wch: 15 },  // Số hợp đồng
-            { wch: 25 },  // Tên khách hàng
+            { wch: 25 },  // Họ tên
+            { wch: 12 },  // Ngày sinh
             { wch: 12 },  // SĐT
-            { wch: 20 },  // Sản phẩm
-            { wch: 15 },  // Tên hãng
-            { wch: 15 },  // Giá bán
-            { wch: 15 },  // Trả trước
-            { wch: 15 },  // Tiền vay
-            { wch: 10 },  // Thời hạn
-            { wch: 15 },  // Phí BH
-            { wch: 20 },  // NV tư vấn
-            { wch: 12 }   // SĐT tư vấn
+            { wch: 15 },  // Số CCCD
+            { wch: 15 },  // Ngày đóng tiền
+            { wch: 15 }   // Ngày kết thúc
         ];
         ws['!cols'] = colWidths;
         
@@ -3790,10 +4084,8 @@
         // Add worksheet to workbook
         XLSX.utils.book_append_sheet(wb, ws, 'Danh sách hợp đồng');
         
-        // Generate filename with timestamp
-        const now = new Date();
-        const timestamp = now.toISOString().slice(0, 19).replace(/:/g, '-').replace('T', '_');
-        const filename = `HopDong_${timestamp}.xlsx`;
+        // Generate filename
+        const filename = 'Danh sách khách hàng HDSAISON.xlsx';
         
         // Download file
         XLSX.writeFile(wb, filename);
@@ -3802,6 +4094,19 @@
     // Event listeners for export tab
     document.getElementById('export-excel-btn')?.addEventListener('click', exportToExcel);
     document.getElementById('refresh-export-btn')?.addEventListener('click', populateExportTable);
+    
+    // Event listener cho nút tải file riêng của tab Trích xuất
+    // SỬ DỤNG HÀM RIÊNG CHỈ TRÍCH XUẤT DỮ LIỆU
+    const uploadPdfExport = document.getElementById('upload-pdf-export');
+    const uploadPdfExportLabel = document.getElementById('upload-pdf-export-label');
+    
+    if (uploadPdfExport && uploadPdfExportLabel) {
+        uploadPdfExport.addEventListener('change', async (event) => {
+            await handlePdfUploadForExtraction(event); // Dùng hàm riêng
+            // Reset input để có thể tải lại cùng file
+            event.target.value = '';
+        });
+    }
     
     // Update export table when switching to export tab
     document.getElementById('export-tab')?.addEventListener('shown.bs.tab', populateExportTable);
