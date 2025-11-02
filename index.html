@@ -1798,6 +1798,9 @@
             <button class="btn btn-success" id="export-excel-btn">
               <i class="fa-solid fa-file-excel me-2"></i> Xuất Excel
             </button>
+            <button class="btn btn-primary" id="export-gsheet-btn">
+            <i class="fa-solid fa-table me-2"></i> Xuất Google Sheets
+            </button>
           </div>
         </div>
       </div>
@@ -1810,6 +1813,7 @@
         <h3 class="title mb-3">Mã QR Thanh Toán</h3>
         <img id="viewerImg" alt="VietQR Code" style="width: 100%; max-width: 400px; height: auto; border-radius: 16px; margin-bottom: 1.5rem; background: #fff; padding: 10px;"/>
         <div class="soft-panel" style="text-align: left;">
+
             <p class="mb-2"><strong>Số hợp đồng:</strong> <span id="viewerContract"></span></p>
             <p class="mb-2"><strong>Họ tên:</strong> <span id="viewerName"></span></p>
             <p class="mb-2"><strong>Số tiền:</strong> <span id="viewerAmount" style="font-weight: bold; color: var(--info);"></span></p>
@@ -2904,7 +2908,6 @@
             console.log(`Using QR template: ${usedTemplate} (${isPNG ? 'PNG' : 'JPEG'})`);
             
             // Embed image based on detected format
-            let qrImage;
             if (isPNG) {
                 qrImage = await thanhToanDoc.embedPng(qrImageBytes);
             } else if (isJPEG) {
@@ -4076,6 +4079,99 @@
         XLSX.writeFile(wb, filename);
     }
     
+    // Thêm vào phần <script>, sau hàm exportToExcel()
+
+// Google Sheets Configuration
+    const GOOGLE_SHEETS_CONFIG = {
+    // Dán URL Web App của bạn vào đây
+    scriptUrl: 'https://script.google.com/macros/s/AKfycbxgWHZcFkSO1Okdrt5vTQfJw23__7GL6F--qzI9DPp2iCv3wo9v7kRMOD8elhETikYGuA/exec',
+    enabled: true // Set false để tắt tính năng
+};
+
+// Export to Google Sheets
+    async function exportToGoogleSheets() {
+    if (extractDataStore.size === 0) {
+        showToast('Không có dữ liệu hợp đồng để xuất.', 'warning');
+        return;
+    }
+    
+    if (!GOOGLE_SHEETS_CONFIG.enabled || !GOOGLE_SHEETS_CONFIG.scriptUrl) {
+        showToast('Chức năng Google Sheets chưa được cấu hình.', 'warning');
+        return;
+    }
+    
+    const btn = document.getElementById('export-gsheet-btn');
+    const originalHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Đang xuất...';
+    
+    try {
+        // Helper function: Calculate end date
+        const calculateEndDate = (disbursementDate, loanTerm) => {
+            if (!disbursementDate || !loanTerm) return '';
+            try {
+                const parts = disbursementDate.split('/');
+                const months = parseInt(loanTerm);
+                if (parts.length === 3 && !isNaN(months)) {
+                    const date = new Date(parts[2], parts[1] - 1, parts[0]);
+                    date.setMonth(date.getMonth() + months);
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const year = date.getFullYear();
+                    return `${day}/${month}/${year}`;
+                }
+            } catch (e) {
+                return '';
+            }
+            return '';
+        };
+        
+        // Prepare data
+        const contracts = [];
+        extractDataStore.forEach((data, contractId) => {
+            const ngayKetThuc = data.ngayKetThuc || calculateEndDate(data.ngayGiaiNgan, data.thoiHan);
+            
+            contracts.push({
+                soHopDong: data.soHopDong || contractId || '',
+                hoTen: data.hoTen || '',
+                ngaySinh: data.ngaySinh || '',
+                sdt: data.sdt || '',
+                soCCCD: data.soCCCD || '',
+                ngayKetThuc: ngayKetThuc
+            });
+        });
+        
+        // Send to Google Sheets
+        const response = await fetch(GOOGLE_SHEETS_CONFIG.scriptUrl, {
+            method: 'POST',
+            mode: 'no-cors', // Required for Apps Script
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                timestamp: new Date().toISOString(),
+                contracts: contracts
+            })
+        });
+        
+        // Note: no-cors mode doesn't allow reading response
+        // So we assume success if no error thrown
+        showToast(`✅ Đã xuất ${contracts.length} hợp đồng lên Google Sheets`, 'info');
+        
+        // Optional: Open Google Sheet in new tab
+        // window.open('YOUR_GOOGLE_SHEET_URL', '_blank');
+        
+    } catch (error) {
+        console.error('Lỗi khi xuất Google Sheets:', error);
+        showToast(`❌ Lỗi xuất Google Sheets: ${error.message}`, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+    }
+}
+
+// Event listener for Google Sheets export button
+document.getElementById('export-gsheet-btn')?.addEventListener('click', exportToGoogleSheets);
     // Event listeners for export tab
     document.getElementById('export-excel-btn')?.addEventListener('click', exportToExcel);
     
