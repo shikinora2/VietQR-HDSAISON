@@ -1779,13 +1779,12 @@
               <thead>
                 <tr>
                   <th scope="col" style="width: 5%; text-align: center;">STT</th>
-                  <th scope="col" style="width: 12%;">Số hợp đồng</th>
-                  <th scope="col" style="width: 15%;">Họ tên</th>
-                  <th scope="col" style="width: 10%;">Ngày sinh</th>
-                  <th scope="col" style="width: 10%;">SĐT</th>
-                  <th scope="col" style="width: 12%;">Số CCCD</th>
-                  <th scope="col" style="width: 12%;">Ngày đóng tiền</th>
-                  <th scope="col" style="width: 12%;">Ngày kết thúc</th>
+                  <th scope="col" style="width: 15%;">Số hợp đồng</th>
+                  <th scope="col" style="width: 20%;">Họ tên</th>
+                  <th scope="col" style="width: 12%;">Ngày sinh</th>
+                  <th scope="col" style="width: 12%;">SĐT</th>
+                  <th scope="col" style="width: 15%;">Số CCCD</th>
+                  <th scope="col" style="width: 15%;">Ngày kết thúc</th>
                 </tr>
               </thead>
               <tbody id="contract-export-tbody">
@@ -2709,15 +2708,11 @@
                      findValue(/CMND\/Thẻ CCCD:\s*([0-9]+)/);
         }
         
-        // Ngày đóng tiền (Ngày Thanh Toán Đầu Tiên)
-        const ngayDongTien = findValue(/5\.6\.\s*Ngày Thanh Toán Đầu Tiên:\s*([0-9\/]+)/) ||
-                            findValue(/Ngày Thanh Toán Đầu Tiên:\s*([0-9\/]+)/);
-        
         // Ngày kết thúc (Ngày Thanh Toán Cuối Cùng)
         const ngayKetThuc = findValue(/5\.8\.\s*Ngày Thanh Toán Cuối Cùng:\s*([0-9\/]+)/) ||
                            findValue(/Ngày Thanh Toán Cuối Cùng:\s*([0-9\/]+)/);
         
-        // Ngày giải ngân và thời hạn vay (để tính toán nếu không có ngày đóng tiền/kết thúc)
+        // Ngày giải ngân và thời hạn vay (để tính toán nếu không có ngày kết thúc)
         const ngayGiaiNgan = findValue(/2\.6\.\s*Ngày giải ngân dự kiến:\s*([0-9\/]+)/) ||
                             findValue(/Ngày giải ngân:\s*([0-9\/]+)/);
         const thoiHanVay = findValue(/2\.5\. Thời Hạn Vay:\s*(.*?)\s*3\./);
@@ -2729,7 +2724,6 @@
             ngaySinh: ngaySinh,
             sdt: sdt,
             soCCCD: soCCCD,
-            ngayDongTien: ngayDongTien,
             ngayKetThuc: ngayKetThuc,
             // Các trường phụ trợ để tính toán
             ngayGiaiNgan: ngayGiaiNgan,
@@ -3961,25 +3955,6 @@
         extractDataStore.forEach((data, contractId) => {
             const row = document.createElement('tr');
             
-            // Helper function: Calculate payment date (first payment = disbursement date + 1 month)
-            const calculatePaymentDate = (disbursementDate) => {
-                if (!disbursementDate) return '';
-                try {
-                    const parts = disbursementDate.split('/');
-                    if (parts.length === 3) {
-                        const date = new Date(parts[2], parts[1] - 1, parts[0]);
-                        date.setMonth(date.getMonth() + 1);
-                        const day = String(date.getDate()).padStart(2, '0');
-                        const month = String(date.getMonth() + 1).padStart(2, '0');
-                        const year = date.getFullYear();
-                        return `${day}/${month}/${year}`;
-                    }
-                } catch (e) {
-                    console.error('Error calculating payment date:', e);
-                }
-                return '';
-            };
-            
             // Helper function: Calculate end date (disbursement date + loan term)
             const calculateEndDate = (disbursementDate, loanTerm) => {
                 if (!disbursementDate || !loanTerm) return '';
@@ -4000,7 +3975,6 @@
                 return '';
             };
             
-            const ngayDongTien = data.ngayDongTien || calculatePaymentDate(data.ngayGiaiNgan);
             const ngayKetThuc = data.ngayKetThuc || calculateEndDate(data.ngayGiaiNgan, data.thoiHan);
             
             row.innerHTML = `
@@ -4010,7 +3984,6 @@
                 <td>${data.ngaySinh || ''}</td>
                 <td>${data.sdt || ''}</td>
                 <td>${data.soCCCD || ''}</td>
-                <td>${ngayDongTien}</td>
                 <td>${ngayKetThuc}</td>
             `;
             
@@ -4028,25 +4001,6 @@
         
         // Prepare data for Excel
         const excelData = [];
-        
-        // Helper function: Calculate payment date
-        const calculatePaymentDate = (disbursementDate) => {
-            if (!disbursementDate) return '';
-            try {
-                const parts = disbursementDate.split('/');
-                if (parts.length === 3) {
-                    const date = new Date(parts[2], parts[1] - 1, parts[0]);
-                    date.setMonth(date.getMonth() + 1);
-                    const day = String(date.getDate()).padStart(2, '0');
-                    const month = String(date.getMonth() + 1).padStart(2, '0');
-                    const year = date.getFullYear();
-                    return `${day}/${month}/${year}`;
-                }
-            } catch (e) {
-                return '';
-            }
-            return '';
-        };
         
         // Helper function: Calculate end date
         const calculateEndDate = (disbursementDate, loanTerm) => {
@@ -4076,14 +4030,12 @@
             'Ngày sinh',
             'SĐT',
             'Số CCCD',
-            'Ngày đóng tiền',
             'Ngày kết thúc'
         ]);
         
         // Data rows
         let index = 1;
         extractDataStore.forEach((data, contractId) => {
-            const ngayDongTien = data.ngayDongTien || calculatePaymentDate(data.ngayGiaiNgan);
             const ngayKetThuc = data.ngayKetThuc || calculateEndDate(data.ngayGiaiNgan, data.thoiHan);
             
             excelData.push([
@@ -4093,7 +4045,6 @@
                 data.ngaySinh || '',
                 data.sdt || '',
                 data.soCCCD || '',
-                ngayDongTien,
                 ngayKetThuc
             ]);
             index++;
@@ -4111,7 +4062,6 @@
             { wch: 12 },  // Ngày sinh
             { wch: 12 },  // SĐT
             { wch: 15 },  // Số CCCD
-            { wch: 15 },  // Ngày đóng tiền
             { wch: 15 }   // Ngày kết thúc
         ];
         ws['!cols'] = colWidths;
