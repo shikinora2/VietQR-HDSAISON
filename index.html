@@ -758,47 +758,52 @@
       letter-spacing:.04em 
     }
     
-    /* QR Tab Headers - Responsive widths */
+    /* QR Tab Headers - Responsive widths with flex-grow */
     .qr-header-row {
       display: flex;
       align-items: center;
       gap: 10px;
-      flex-wrap: nowrap;
+      flex-wrap: wrap; /* Allow wrapping when needed */
+      width: 100%;
     }
     
     .qr-header-contract {
-      flex: 0 0 210px;
+      flex: 1 1 13%; /* Giảm thêm 20% từ 16% */
+      min-width: 80px; /* Giảm thêm 20% từ 100px */
       padding-left: 8px;
       font-size: 0.85rem;
     }
     
     .qr-header-name {
-      flex: 0 0 180px;
+      flex: 1 1 15%; /* Giảm thêm 20% từ 19% */
+      min-width: 80px; /* Giảm thêm 20% từ 100px */
       padding-left: 30px;
       font-size: 0.85rem;
-      
     }
     
     .qr-header-amount {
-      flex: 0 0 180px;
+      flex: 1 1 13%; /* Giảm thêm 20% từ 16% */
+      min-width: 64px; /* Giảm thêm 20% từ 80px */
       padding-left: 120px;
       font-size: 0.85rem;
       white-space: nowrap;
-     
     }
     
-    /* Tablet: Smaller header widths */
+    /* Tablet: Slightly adjusted proportions */
     @media (min-width: 768px) and (max-width: 900px) {
       .qr-header-contract {
-        flex: 0 0 160px;
+        flex: 1 1 calc(25.6% - 10px); /* Giảm thêm 20% từ 32% */
+        min-width: 72px; /* Giảm thêm 20% từ 90px */
       }
       
       .qr-header-name {
-        flex: 0 0 140px;
+        flex: 1 1 calc(25.6% - 10px);
+        min-width: 72px;
       }
       
       .qr-header-amount {
-        flex: 0 0 110px;
+        flex: 1 1 calc(25.6% - 10px);
+        min-width: 72px;
       }
     }
     .row-item{ 
@@ -808,14 +813,25 @@
       margin-bottom:10px; 
       padding: 10px 12px;
       transition: all 0.3s ease-out;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow: hidden; /* Prevent children from overflowing */
     }
     
-    /* Responsive Row Layout - Desktop: Single Line */
+    /* Responsive Row Layout - Desktop: Allow wrapping when needed */
     .row-line{ 
       display: flex; 
-      align-items: center; 
+      align-items: stretch; /* Stretch items for better visual balance */
       gap: 10px; 
-      flex-wrap: nowrap; /* Keep items on one line on desktop */
+      flex-wrap: wrap; /* Allow wrapping to next line when space is tight */
+      width: 100%;
+      max-width: 100%;
+    }
+    
+    /* When QR wraps to new line, add visual separation */
+    .row-line .qr-display {
+      align-self: flex-start; /* Align to top when wrapping */
     }
     
     @media (max-width: 767px) {
@@ -826,39 +842,48 @@
       }
     }
     
-    /* Field wrappers with flexible widths */
+    /* Field wrappers with flexible widths - UPDATED */
     .field-wrapper { 
-      flex: 0 0 auto; /* Don't grow or shrink */
-      min-width: 0; /* Allow text truncation */
+      flex: 1 1 auto; /* Allow grow and shrink */
+      min-width: 0; /* Allow text truncation and proper shrinking */
+      max-width: 100%; /* Don't exceed row width */
     }
     
-    /* Tablet: Slightly smaller widths for narrow screens */
+    /* Desktop large: Flexible proportional widths matching headers */
+    @media (min-width: 1201px) {
+      .field-wrapper:nth-child(1) { /* Số hợp đồng */
+        flex: 1 1 13%; /* Giảm thêm 20% từ 16% */
+        min-width: 80px; /* Giảm thêm 20% từ 100px */
+      }
+      
+      .field-wrapper:nth-child(2) { /* Họ tên */
+        flex: 1 1 15%; /* Giảm thêm 20% từ 19% */
+        min-width: 80px; /* Giảm thêm 20% */
+      }
+      
+      .field-wrapper:nth-child(3) { /* Số tiền */
+        flex: 1 1 13%; /* Giảm thêm 20% từ 16% */
+        min-width: 64px; /* Giảm thêm 20% từ 80px */
+      }
+    }
+    
+    /* Desktop medium: More flexible, allow wrapping */
+    @media (min-width: 901px) and (max-width: 1200px) {
+      .field-wrapper:nth-child(1),
+      .field-wrapper:nth-child(2),
+      .field-wrapper:nth-child(3) {
+        flex: 1 1 calc(17% - 10px); /* Giảm thêm 20% từ 21.33% */
+        min-width: 72px; /* Giảm thêm 20% từ 90px */
+      }
+    }
+    
+    /* Tablet: Slightly adjusted proportions */
     @media (min-width: 768px) and (max-width: 900px) {
-      .field-wrapper:nth-child(1) { /* Số hợp đồng */
-        width: 160px;
-      }
-      
-      .field-wrapper:nth-child(2) { /* Họ tên */
-        width: 140px;
-      }
-      
-      .field-wrapper:nth-child(3) { /* Số tiền */
-        width: 110px;
-      }
-    }
-    
-    /* Desktop: Full widths matching headers */
-    @media (min-width: 901px) {
-      .field-wrapper:nth-child(1) { /* Số hợp đồng */
-        width: 210px;
-      }
-      
-      .field-wrapper:nth-child(2) { /* Họ tên */
-        width: 180px;
-      }
-      
-      .field-wrapper:nth-child(3) { /* Số tiền */
-        width: 140px;
+      .field-wrapper:nth-child(1),
+      .field-wrapper:nth-child(2),
+      .field-wrapper:nth-child(3) {
+        flex: 1 1 calc(25.6% - 10px); /* Giảm thêm 20% từ 32% */
+        min-width: 72px; /* Giảm thêm 20% từ 90px */
       }
     }
     
@@ -869,26 +894,49 @@
       .field-wrapper:nth-child(2),
       .field-wrapper:nth-child(3) {
         width: 100% !important;
+        flex: 1 1 100% !important;
       }
     }
     
-    /* QR Display - Auto wrap to new line if needed */
+    /* QR Display - Flexible width based on available space */
     .qr-display { 
       display: flex; 
       align-items: center; 
       justify-content: flex-start;
       flex-direction: row;
       gap: 8px;
-      width: 220px;
+      flex: 0 1 auto; /* Allow shrink but not grow */
+      min-width: 180px; /* Minimum width to fit QR + actions */
+      max-width: 100%; /* Don't exceed parent width */
       min-height: 70px;
     }
+    
+    /* On medium screens, wrap QR to new line */
+    @media (max-width: 1200px) and (min-width: 768px) {
+      .qr-display {
+        flex: 1 1 100%; /* Take full width = force new line */
+        justify-content: flex-start;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(148, 163, 184, 0.2);
+      }
+    }
+    
     @media (max-width: 767px) {
       .qr-display {
-        width: 100%;
-        justify-content: center;
+        width: 100% !important;
+        justify-content: center !important;
         min-height: auto;
         padding: 10px 0;
+        flex: 1 1 100% !important;
       }
+    }
+    
+    /* Ensure inputs take full width of their containers */
+    .field-wrapper input {
+      width: 100%;
+      min-width: 0; /* Allow shrinking */
+      box-sizing: border-box;
     }
     
     .qr-actions {
@@ -897,6 +945,7 @@
       gap: 5px;
       opacity: 0;
       transition: opacity 0.3s ease-out;
+      flex-wrap: wrap; /* Allow wrapping buttons if needed */
     }
     @media (max-width: 767px) {
       .qr-actions {
@@ -1788,6 +1837,9 @@
         
         #qr-generator-tab-pane {
             padding: 0.5rem !important;
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
         }
         
         /* Optimize QR row inputs for desktop */
@@ -2024,16 +2076,21 @@
         .row-item {
             padding: 10px !important;
             margin-bottom: 10px !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            overflow: hidden !important;
         }
         
         .row-item .row-line {
             flex-direction: column;
             gap: 6px;
+            width: 100% !important;
         }
         
         .row-item .field-wrapper {
-            width: 100%;
+            width: 100% !important;
             margin-bottom: 0;
+            flex: 1 1 100% !important;
         }
         
         .row-item .field-wrapper label {
@@ -2348,11 +2405,20 @@
       }
       
       /* QR Generator Tab - Mobile optimized với full width */
+      #qr-generator-tab-pane {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+      }
+      
       .row-item {
         padding: 12px 6px !important;
         margin: 4px !important;
         border-radius: 8px !important;
         background: rgba(30, 41, 59, 0.6) !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
       }
       
       .row-line {
@@ -2571,6 +2637,13 @@
       /* Row placeholder full width */
       #rows-placeholder {
         margin: 4px !important;
+      }
+      
+      /* Rows container - Full width, no overflow */
+      #rows {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: hidden !important;
       }
       
       /* Thêm dòng mới button */
@@ -2808,7 +2881,7 @@
                   <div class="hdr qr-header-name">Họ tên</div>
                   <div class="hdr qr-header-amount">Số tiền (VND)</div>
                 </div>
-                <div style="width: 220px; font-size: 0.85rem;"> <!-- Placeholder for QR + actions -->
+                <div style="flex: 0 0 auto; min-width: 180px; font-size: 0.85rem;"> <!-- Placeholder for QR + actions -->
                 </div>
              </div>
              <div id="rows"></div>
@@ -3913,29 +3986,29 @@
                 return { success: true, skipped: true, contractId };
             }
 
-            // Lấy hàng đầu tiên
-            let rowEl = document.querySelector('#rows .row-item:first-child');
+            // Tìm hàng trống (không có dữ liệu) hoặc tạo mới
+            let rowEl = null;
+            const existingRows = document.querySelectorAll('#rows .row-item');
             
-            // Nếu không có hàng nào, tạo mới
-            if (!rowEl) {
-                rowEl = addRow();
+            // Tìm hàng trống (chưa có contract number)
+            for (const row of existingRows) {
+                const contractInput = row.querySelector('.contractInput');
+                if (contractInput && !contractInput.value.trim()) {
+                    rowEl = row;
+                    break;
+                }
             }
             
-            // Điền thông tin vào hàng đầu tiên
+            // Nếu không tìm thấy hàng trống, tạo hàng mới
+            if (!rowEl) {
+                rowEl = addRow(false); // false = không phải manual, không focus
+            }
+            
+            // Điền thông tin vào hàng
             rowEl.querySelector(".contractInput").value = allData.qrData.contract;
             rowEl.querySelector(".nameInput").value = allData.qrData.name;
             rowEl.querySelector(".amountInput").value = formatThousandDots(allData.qrData.amount);
             if (rowEl.generateQR) rowEl.generateQR();
-            
-            // Tạo 1 hàng trống mới ngay sau hàng vừa điền
-            // addRow() sẽ tự động thêm vào đầu, vì vậy ta cần di chuyển nó
-            const firstRowBeforeAdd = document.querySelector('#rows .row-item:first-child');
-            const newEmptyRow = addRow(false); // Thêm hàng mới (sẽ ở đầu)
-            
-            // Di chuyển hàng mới vừa tạo xuống sau hàng đã điền thông tin
-            if (firstRowBeforeAdd && firstRowBeforeAdd.nextSibling) {
-                rowsEl.insertBefore(newEmptyRow, firstRowBeforeAdd.nextSibling);
-            }
 
             allData.paymentPage = paymentPageNum;
             allData.insurancePage = insurancePageNum;
