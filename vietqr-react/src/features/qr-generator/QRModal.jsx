@@ -159,10 +159,14 @@ const QRModal = ({ contract, bank, onClose }) => {
             <InfoValue style={{ fontSize: '16px' }}>{contract.contractNumber}</InfoValue>
           </InfoItem>
 
-          <InfoItem style={{ padding: '12px' }}>
-            <InfoLabel>Tên Khách Hàng</InfoLabel>
-            <InfoValue style={{ fontSize: '16px' }}>{contract.customerName}</InfoValue>
-          </InfoItem>
+
+          {contract.customerName && (
+            <InfoItem style={{ padding: '12px' }}>
+              <InfoLabel>Tên Khách Hàng</InfoLabel>
+              <InfoValue style={{ fontSize: '16px' }}>{contract.customerName}</InfoValue>
+            </InfoItem>
+          )}
+
 
           <InfoItem style={{ padding: '12px' }}>
             <InfoLabel>Số Tiền</InfoLabel>

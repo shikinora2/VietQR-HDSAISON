@@ -77,7 +77,7 @@ const QRGeneratorTab = () => {
   };
 
   const handleViewQR = (row) => {
-    if (!row.contractNumber || !row.customerName || !row.amount) {
+    if (!row.contractNumber || !row.amount) {
       toast.error('Vui lòng điền đầy đủ thông tin');
       return;
     }
