@@ -10,18 +10,8 @@ export default defineConfig({
     react({
       // Enable Fast Refresh
       fastRefresh: true,
-      // Babel plugins for optimization
-      babel: {
-        plugins: [
-          // Remove console logs in production
-          process.env.NODE_ENV === 'production' && [
-            'transform-remove-console',
-            { exclude: ['error', 'warn'] }
-          ],
-        ].filter(Boolean),
-      },
     }),
-    
+
     // Gzip compression
     viteCompression({
       verbose: true,
@@ -30,7 +20,7 @@ export default defineConfig({
       algorithm: 'gzip',
       ext: '.gz',
     }),
-    
+
     // Brotli compression (better than gzip)
     viteCompression({
       verbose: true,
@@ -39,7 +29,7 @@ export default defineConfig({
       algorithm: 'brotliCompress',
       ext: '.br',
     }),
-    
+
     // Bundle analyzer (only in analyze mode)
     process.env.ANALYZE && visualizer({
       open: true,
@@ -48,7 +38,7 @@ export default defineConfig({
       brotliSize: true,
     }),
   ].filter(Boolean),
-  
+
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -61,7 +51,7 @@ export default defineConfig({
       '@constants': path.resolve(__dirname, './src/constants'),
     },
   },
-  
+
   server: {
     port: 3000,
     open: true,
@@ -70,74 +60,49 @@ export default defineConfig({
       overlay: true,
     },
   },
-  
+
   // Build optimizations
   build: {
     // Output directory
     outDir: 'dist',
-    
+
     // Generate sourcemaps for debugging (disable in production)
     sourcemap: process.env.NODE_ENV !== 'production',
-    
-    // Minify with terser for better compression
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true, // Remove console.logs
-        drop_debugger: true, // Remove debugger statements
-        pure_funcs: ['console.log', 'console.info'], // Remove specific console methods
-      },
-    },
-    
+
+    // Minify with esbuild (faster than terser and no extra dependency)
+    minify: 'esbuild',
+
     // Chunk splitting strategy
     rollupOptions: {
       output: {
         // Manual chunk splitting for better caching
-        manualChunks: {
-          // Vendor chunks
-          'vendor-react': ['react', 'react-dom'],
-          'vendor-framer': ['framer-motion'],
-          'vendor-styled': ['styled-components'],
-          'vendor-icons': ['lucide-react'],
-          
-          // Feature chunks
-          'features-qr': [
-            './src/components/features/QRGenerator/QRCanvas.jsx',
-            './src/components/features/QRGenerator/QRSettings.jsx',
-          ],
-          'features-pdf': [
-            './src/utils/pdfAssembly.js',
-            './src/utils/pdfPrinter.js',
-          ],
-          
-          // Utils chunk
-          'utils': [
-            './src/utils/validators.js',
-            './src/utils/formatters.js',
-            './src/utils/performance.js',
-          ],
+        manualChunks(id) {
+          // Split node_modules into vendor chunk
+          if (id.includes('node_modules')) {
+            return 'vendor';
+          }
         },
-        
+
         // File naming for better caching
         chunkFileNames: 'assets/js/[name]-[hash].js',
         entryFileNames: 'assets/js/[name]-[hash].js',
         assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
       },
     },
-    
+
     // Chunk size warnings
     chunkSizeWarningLimit: 1000, // 1MB warning threshold
-    
+
     // Asset handling
     assetsInlineLimit: 4096, // 4KB - inline assets smaller than this
-    
+
     // CSS code splitting
     cssCodeSplit: true,
-    
+
     // CSS minification
     cssMinify: true,
   },
-  
+
   // Optimize dependencies
   optimizeDeps: {
     include: [
@@ -151,7 +116,7 @@ export default defineConfig({
       // Exclude large dependencies that should be lazy loaded
     ],
   },
-  
+
   // Performance settings
   esbuild: {
     logOverride: { 'this-is-undefined-in-esm': 'silent' },
