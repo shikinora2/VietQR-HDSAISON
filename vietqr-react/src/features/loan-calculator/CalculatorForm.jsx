@@ -190,12 +190,14 @@ const CalculatorForm = ({ formData, onChange, compact }) => {
       <FormGrid>
         {/* Row 1: Giá sản phẩm + Chương trình vay */}
         <InputGroup>
-          <Input
-            label="Giá sản phẩm (VNĐ)"
-            placeholder="Nhập giá bán"
-            value={formData.productPrice ? formatCurrency(formData.productPrice, false) : ''}
-            onChange={(e) => handlePriceChange(e.target.value)}
-          />
+          <div>
+            <Label>Giá sản phẩm (VNĐ)</Label>
+            <Input
+              placeholder="Nhập giá bán"
+              value={formData.productPrice ? formatCurrency(formData.productPrice, false) : ''}
+              onChange={(e) => handlePriceChange(e.target.value)}
+            />
+          </div>
 
           <div>
             <Label>Chương trình vay</Label>
@@ -237,15 +239,17 @@ const CalculatorForm = ({ formData, onChange, compact }) => {
 
         {/* Row 3: Số tiền vay (readonly) */}
         <InputGroup>
-          <Input
-            label="Số tiền vay"
-            placeholder="Tự động tính"
-            value={formData.productPrice > 0 && formData.productPrice >= formData.downPaymentAmount
-              ? formatCurrency(formData.productPrice - formData.downPaymentAmount, false)
-              : ''}
-            disabled
-            readOnly
-          />
+          <div>
+            <Label>Số tiền vay</Label>
+            <Input
+              placeholder="Tự động tính"
+              value={formData.productPrice > 0 && formData.productPrice >= formData.downPaymentAmount
+                ? formatCurrency(formData.productPrice - formData.downPaymentAmount, false)
+                : ''}
+              disabled
+              readOnly
+            />
+          </div>
         </InputGroup>
 
         {/* Row 4: Kỳ hạn vay + Bảo hiểm */}
