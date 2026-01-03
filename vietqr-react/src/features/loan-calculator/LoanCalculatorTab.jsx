@@ -63,12 +63,20 @@ const LoanCalculatorTab = () => {
       const interestRate = parseFloat(loanProgram);
 
       if (interestRate === 0.005) {
+        // Lãi suất 0.5% chỉ áp dụng cho 9 và 12 tháng
+        // Công thức: Lãi = Số tiền vay × 0.5% × Số tháng
         const interestCoefficients = {
-          '6': 0.0322, '9': 0.0486, '12': 0.065,
-          '15': 0.0815, '18': 0.0981, '24': 0.1314
+          '9': 0.045,   // 0.5% × 9 = 4.5%
+          '12': 0.06    // 0.5% × 12 = 6%
         };
         const coeff = interestCoefficients[String(loanTerm)];
-        totalInterest = coeff ? loanAmount * coeff : loanAmount * interestRate * loanTerm;
+
+        if (coeff) {
+          totalInterest = loanAmount * coeff;
+        } else {
+          // Nếu không phải 9 hoặc 12 tháng, không áp dụng lãi suất 0.5%
+          totalInterest = 0;
+        }
       } else {
         totalInterest = loanAmount * interestRate * loanTerm;
       }
