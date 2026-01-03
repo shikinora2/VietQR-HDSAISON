@@ -237,6 +237,30 @@ export const printQRCode = async (url, contract = {}) => {
               font-size: 20px;
               color: #EF4444;
             }
+            .bank-info {
+              width: 100%;
+              padding: 12px 16px;
+              background: #F9FAFB;
+              border-radius: 8px;
+              border: 1px dashed #D1D5DB;
+              margin-top: 8px;
+            }
+            .bank-info-row {
+              margin-bottom: 12px;
+            }
+            .bank-info-row:last-child {
+              margin-bottom: 0;
+            }
+            .bank-label {
+              font-size: 11px;
+              color: #6B7280;
+              margin-bottom: 2px;
+            }
+            .bank-value {
+              font-size: 14px;
+              font-weight: 600;
+              color: #3B82F6;
+            }
             @media print {
               body {
                 padding: 10mm;
@@ -272,6 +296,21 @@ export const printQRCode = async (url, contract = {}) => {
                   <div class="info-value amount">${formatAmount(amount)} đ</div>
                 </div>
               ` : ''}
+              
+              <div class="bank-info">
+                <div class="bank-info-row">
+                  <div class="bank-label">Ngân Hàng</div>
+                  <div class="bank-value">HD SAISON (HDBANK)</div>
+                </div>
+                <div class="bank-info-row">
+                  <div class="bank-label">Số Tài Khoản</div>
+                  <div class="bank-value">002704070014601</div>
+                </div>
+                <div class="bank-info-row">
+                  <div class="bank-label">Tên người thụ hưởng</div>
+                  <div class="bank-value">HD SAISON</div>
+                </div>
+              </div>
             </div>
           </div>
         </body>
