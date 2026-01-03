@@ -131,17 +131,12 @@ export const generateContractQR = (contract) => {
   });
 };
 
-/**
- * Print QR code
- * @param {string} url - QR code URL
- * @param {object} options - Print options
- */
-export const printQRCode = async (url, options = {}) => {
+export const printQRCode = async (url, contract = {}) => {
   const {
-    title = 'VietQR Payment',
-    showAmount = true,
-    showDescription = true,
-  } = options;
+    contractNumber = '',
+    customerName = '',
+    amount = 0,
+  } = contract;
 
   try {
     const blob = await fetchQRImage(url);
@@ -153,45 +148,132 @@ export const printQRCode = async (url, options = {}) => {
       throw new Error('Could not open print window');
     }
 
+    // Format amount with thousands separator
+    const formatAmount = (num) => {
+      if (!num) return '0';
+      return String(num).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    };
+
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
         <head>
-          <title>${title}</title>
+          <meta charset="UTF-8">
+          <title>VietQR Payment - ${contractNumber}</title>
           <style>
+            @page {
+              size: A5;
+              margin: 0;
+            }
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
             body {
+              width: 148mm;
+              height: 210mm;
               display: flex;
               flex-direction: column;
               align-items: center;
               justify-content: center;
-              min-height: 100vh;
-              margin: 0;
-              padding: 20px;
-              font-family: 'IBM Plex Sans', sans-serif;
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+              padding: 15mm;
+              background: white;
             }
-            img {
-              max-width: 400px;
-              height: auto;
+            .container {
+              width: 100%;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 20px;
             }
-            h2 {
-              margin: 20px 0 10px;
+            h1 {
+              font-size: 22px;
+              font-weight: 700;
+              color: #1F2937;
+              margin-bottom: 5px;
+            }
+            .qr-image {
+              width: 200px;
+              height: 200px;
+              border-radius: 12px;
+              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+              padding: 8px;
+              background: white;
+            }
+            .info-section {
+              width: 100%;
+              display: flex;
+              flex-direction: column;
+              gap: 12px;
+            }
+            .info-title {
+              font-size: 18px;
+              font-weight: 700;
+              color: #1F2937;
+              text-align: center;
+              margin-bottom: 8px;
+            }
+            .info-item {
+              padding: 12px 16px;
+              background: #F3F4F6;
+              border-radius: 8px;
+              border: 1px solid #E5E7EB;
+            }
+            .info-label {
+              font-size: 11px;
+              color: #6B7280;
+              text-transform: uppercase;
+              letter-spacing: 0.05em;
+              margin-bottom: 4px;
+            }
+            .info-value {
+              font-size: 16px;
+              font-weight: 600;
               color: #1F2937;
             }
-            p {
-              margin: 5px 0;
-              color: #6B7280;
+            .info-value.amount {
+              font-size: 20px;
+              color: #EF4444;
             }
             @media print {
               body {
-                padding: 0;
+                padding: 10mm;
               }
             }
           </style>
         </head>
         <body>
-          <h2>${title}</h2>
-          <img src="${blobUrl}" alt="VietQR Code" />
-          <p>Quét mã QR để thanh toán</p>
+          <div class="container">
+            <h1>VietQR Payment</h1>
+            <img src="${blobUrl}" alt="VietQR Code" class="qr-image" />
+            
+            <div class="info-section">
+              <div class="info-title">Thông Tin Chuyển Khoản</div>
+              
+              ${contractNumber ? `
+                <div class="info-item">
+                  <div class="info-label">Số Hợp Đồng</div>
+                  <div class="info-value">${contractNumber}</div>
+                </div>
+              ` : ''}
+              
+              ${customerName ? `
+                <div class="info-item">
+                  <div class="info-label">Tên Khách Hàng</div>
+                  <div class="info-value">${customerName}</div>
+                </div>
+              ` : ''}
+              
+              ${amount ? `
+                <div class="info-item">
+                  <div class="info-label">Số Tiền</div>
+                  <div class="info-value amount">${formatAmount(amount)} đ</div>
+                </div>
+              ` : ''}
+            </div>
+          </div>
         </body>
       </html>
     `);
