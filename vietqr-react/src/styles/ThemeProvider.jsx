@@ -3,14 +3,14 @@ import { ThemeProvider as StyledThemeProvider } from 'styled-components';
 import { lightTheme, darkTheme } from './theme';
 
 export const ThemeContext = React.createContext({
-  theme: 'light',
-  toggleTheme: () => {},
+  theme: 'dark',
+  toggleTheme: () => { },
 });
 
 export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = React.useState(() => {
     const saved = localStorage.getItem('vietqr-theme');
-    return saved || 'light';
+    return saved || 'dark';
   });
 
   const toggleTheme = React.useCallback(() => {
