@@ -47,17 +47,11 @@ const Logo = styled.div`
   gap: ${({ theme }) => theme.spacing[3]};
 `;
 
-const LogoIcon = styled.div`
+const LogoIcon = styled.img`
   width: 40px;
   height: 40px;
-  background: ${({ theme }) => theme.colors.primary};
-  color: ${({ theme }) => theme.colors.text.inverse};
   border-radius: ${({ theme }) => theme.borderRadius.base};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: ${({ theme }) => theme.typography.fontWeight.bold};
-  font-size: ${({ theme }) => theme.typography.fontSize.lg};
+  object-fit: cover;
 `;
 
 const LogoText = styled.div`
@@ -224,7 +218,7 @@ const Sidebar = ({
         <SidebarContainer>
           <SidebarHeader>
             <Logo>
-              <LogoIcon>{logoIcon}</LogoIcon>
+              <LogoIcon src="/hd-saison-logo.png" alt="HD SAISON" />
               <LogoText>
                 <LogoTitle>{logoTitle}</LogoTitle>
                 <LogoSubtitle>{logoSubtitle}</LogoSubtitle>
