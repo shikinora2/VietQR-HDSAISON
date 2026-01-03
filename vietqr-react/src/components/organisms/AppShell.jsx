@@ -3,7 +3,7 @@ import styled from 'styled-components';
 const AppShellContainer = styled.div`
   display: flex;
   min-height: 100vh;
-  background: ${({ theme }) => theme.colors.bg.primary};
+  background: transparent;
   overflow-x: hidden;
   
   @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
@@ -29,8 +29,8 @@ const ContentArea = styled.div`
   }
   
   @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
-    padding: ${({ theme }) => theme.spacing[4]};
-    padding-bottom: ${({ theme }) => theme.spacing[20]}; /* Space for mobile nav */
+    padding: 6px 4px; /* Legacy: Compact mobile padding */
+    padding-bottom: ${({ theme }) => theme.spacing[20]};
   }
 `;
 

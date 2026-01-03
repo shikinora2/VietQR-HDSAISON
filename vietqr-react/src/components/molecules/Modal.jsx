@@ -18,7 +18,7 @@ const Backdrop = styled(motion.div)`
 
 const ModalContainer = styled(motion.div)`
   position: relative;
-  background: ${({ theme }) => theme.colors.background};
+  background: ${({ theme }) => theme.colors.surface.default};
   border-radius: ${({ theme }) => theme.borderRadius.xl};
   box-shadow: ${({ theme }) => theme.shadows['2xl']};
   max-width: ${({ $size }) => {

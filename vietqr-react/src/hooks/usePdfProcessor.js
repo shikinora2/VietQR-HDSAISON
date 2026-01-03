@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { extractPdfText, extractPageText, extractAllDataFromPdfText, validatePdfFile } from '../utils/pdfUtils';
+import { extractPdfText, extractPageText, extractAllDataFromPdfText, validatePdfFile, findPaymentPage } from '../utils/pdfUtils';
 
 /**
  * Custom hook for PDF processing
@@ -37,9 +37,8 @@ const usePdfProcessor = () => {
       const arrayBuffer = await file.arrayBuffer();
       const pdfjsLib = await import('pdfjs-dist');
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      const lastPageNumber = pdf.numPages;
-      
-      const paymentPageText = await extractPageText(file, lastPageNumber);
+
+      const { pageText: paymentPageText } = await findPaymentPage(pdf);
       setProgress(70);
 
       // Extract all data

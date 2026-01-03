@@ -32,16 +32,16 @@ const ToastContainer = styled.div`
 
 const ToastItem = styled(motion.div)`
   display: flex;
-  align-items: start;
-  gap: ${({ theme }) => theme.spacing.sm};
-  padding: ${({ theme }) => theme.spacing.md};
-  background: ${({ theme }) => theme.colors.background};
-  border-radius: ${({ theme }) => theme.borderRadius.lg};
-  box-shadow: ${({ theme }) => theme.shadows.xl};
-  min-width: 320px;
-  max-width: 480px;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.xs};
+  padding: ${({ theme }) => theme.spacing.sm};
+  background: ${({ theme }) => theme.colors.surface.default}; 
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  box-shadow: ${({ theme }) => theme.shadows.lg};
+  min-width: 160px;
+  max-width: 280px;
   pointer-events: auto;
-  border-left: 4px solid;
+  border-left: 3px solid;
 
   ${({ $type, theme }) => {
     switch ($type) {
@@ -68,8 +68,13 @@ const IconWrapper = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 14px;
+  height: 14px;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
 
   ${({ $type, theme }) => {
     switch ($type) {
@@ -95,14 +100,16 @@ const Content = styled.div`
 `;
 
 const Title = styled.div`
-  font-weight: ${({ theme }) => theme.fontWeight.semibold};
+  font-weight: ${({ theme }) => theme.fontWeight.medium};
   color: ${({ theme }) => theme.colors.text};
-  font-size: ${({ theme }) => theme.fontSize.base};
+  font-size: 11px;
+  line-height: 1.3;
 `;
 
 const Description = styled.div`
   color: ${({ theme }) => theme.colors.gray[600]};
-  font-size: ${({ theme }) => theme.fontSize.sm};
+  font-size: 10px;
+  line-height: 1.3;
 `;
 
 const CloseButton = styled.button`
@@ -110,14 +117,19 @@ const CloseButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 14px;
+  height: 14px;
   padding: 0;
   background: transparent;
   border: none;
   color: ${({ theme }) => theme.colors.gray[400]};
   cursor: pointer;
   transition: color ${({ theme }) => theme.transition.base};
+
+  svg {
+    width: 12px;
+    height: 12px;
+  }
 
   &:hover {
     color: ${({ theme }) => theme.colors.gray[600]};
@@ -127,15 +139,15 @@ const CloseButton = styled.button`
 const getIcon = (type) => {
   switch (type) {
     case 'success':
-      return <CheckCircle size={20} />;
+      return <CheckCircle size={14} />;
     case 'error':
-      return <AlertCircle size={20} />;
+      return <AlertCircle size={14} />;
     case 'warning':
-      return <AlertTriangle size={20} />;
+      return <AlertTriangle size={14} />;
     case 'info':
-      return <Info size={20} />;
+      return <Info size={14} />;
     default:
-      return <Info size={20} />;
+      return <Info size={14} />;
   }
 };
 
@@ -154,7 +166,7 @@ const Toast = ({ id, type, title, description, onClose }) => {
         {description && <Description>{description}</Description>}
       </Content>
       <CloseButton onClick={() => onClose(id)}>
-        <X size={16} />
+        <X size={12} />
       </CloseButton>
     </ToastItem>
   );

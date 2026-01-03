@@ -1,6 +1,5 @@
 import styled from 'styled-components';
-import { Menu, Moon, Sun } from 'lucide-react';
-import { useTheme } from '../../styles/ThemeProvider';
+import { Menu } from 'lucide-react';
 
 const TopBarContainer = styled.header`
   position: sticky;
@@ -69,46 +68,19 @@ const RightSection = styled.div`
   gap: ${({ theme }) => theme.spacing[4]};
 `;
 
-const ThemeToggle = styled.button`
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  border-radius: ${({ theme }) => theme.borderRadius.base};
-  color: ${({ theme }) => theme.colors.text.secondary};
-  cursor: pointer;
-  transition: all ${({ theme }) => theme.transition.fast};
-  
-  &:hover {
-    background: ${({ theme }) => theme.colors.surface.hover};
-    color: ${({ theme }) => theme.colors.text.primary};
-  }
-`;
-
-const TopBar = ({ 
+const TopBar = ({
   title = 'Dashboard',
   onMenuClick,
   actions,
 }) => {
-  const { theme, toggleTheme } = useTheme();
-  
   return (
     <TopBarContainer>
       <LeftSection>
-        <MenuButton onClick={onMenuClick}>
-          <Menu size={24} />
-        </MenuButton>
         <PageTitle>{title}</PageTitle>
       </LeftSection>
-      
+
       <RightSection>
         {actions}
-        <ThemeToggle onClick={toggleTheme}>
-          {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-        </ThemeToggle>
       </RightSection>
     </TopBarContainer>
   );

@@ -147,14 +147,16 @@ const NavLink = styled.button`
   padding: ${({ theme }) => theme.spacing[3]};
   border-radius: ${({ theme }) => theme.borderRadius.base};
   color: ${({ theme, $active }) =>
-    $active ? theme.colors.primary : theme.colors.text.secondary
+    $active ? '#ffffff' : theme.colors.text.secondary
   };
   background: ${({ theme, $active }) =>
-    $active ? theme.colors.primaryLight : 'transparent'
+    $active
+      ? 'linear-gradient(135deg, #5BA3E8 0%, #4896de 100%)'
+      : 'transparent'
   };
   font-size: ${({ theme }) => theme.typography.fontSize.sm};
   font-weight: ${({ theme, $active }) =>
-    $active ? theme.typography.fontWeight.medium : theme.typography.fontWeight.normal
+    $active ? theme.typography.fontWeight.bold : theme.typography.fontWeight.normal
   };
   text-decoration: none;
   transition: all ${({ theme }) => theme.transition.fast};
@@ -162,14 +164,20 @@ const NavLink = styled.button`
   border: none;
   width: 100%;
   text-align: left;
+  box-shadow: ${({ theme, $active }) =>
+    $active ? theme.shadows.md : 'none'
+  };
   
   &:hover {
     background: ${({ theme, $active }) =>
-    $active ? theme.colors.primaryLight : theme.colors.surface.hover
+    $active
+      ? 'linear-gradient(135deg, #6BB0F0 0%, #5BA3E8 100%)'
+      : theme.colors.surface.hover
   };
     color: ${({ theme, $active }) =>
-    $active ? theme.colors.primary : theme.colors.text.primary
+    $active ? '#ffffff' : theme.colors.text.primary
   };
+    transform: ${({ $active }) => $active ? 'translateY(-1px)' : 'none'};
   }
   
   svg {

@@ -6,20 +6,25 @@ import { validatePdfFile } from '../../utils/pdfUtils';
 import { useToast } from '../../contexts';
 
 const DropZone = styled(motion.div)`
-  border: 2px dashed ${props => props.isDragging ? props.theme.colors.primary.main : props.theme.colors.border.main};
-  border-radius: ${props => props.theme.borderRadius.lg};
+  border: 2px dashed ${props => props.isDragging ? '#4896de' : props.theme.colors.border.default};
+  border-radius: ${props => props.theme.borderRadius.md};
   padding: ${props => props.theme.spacing['2xl']};
+  
+  @media (max-width: ${props => props.theme.breakpoints.md}) {
+    padding: ${props => props.theme.spacing.lg};
+  }
   text-align: center;
   background: ${props =>
     props.isDragging
-      ? `${props.theme.colors.primary.main}10`
-      : props.theme.colors.background.paper};
+      ? 'rgba(72, 150, 222, 0.1)'
+      : props.theme.colors.surface.default};
   cursor: pointer;
   transition: all 0.3s ease;
 
   &:hover {
-    border-color: ${props => props.theme.colors.primary.main};
-    background: ${props => props.theme.colors.primary.main}05;
+    border-color: #4896de;
+    background: rgba(72, 150, 222, 0.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
 `;
 
@@ -45,7 +50,7 @@ const HiddenInput = styled.input`
   display: none;
 `;
 
-const FileUploadZone = ({ onFilesUpload }) => {
+const FileUploadZone = ({ onFilesUpload, variant = 'dropzone' }) => {
   const [isDragging, setIsDragging] = useState(false);
   const toast = useToast();
   const inputRef = React.useRef(null);
@@ -119,6 +124,45 @@ const FileUploadZone = ({ onFilesUpload }) => {
   const handleClick = () => {
     inputRef.current?.click();
   };
+
+  if (variant === 'button') {
+    return (
+      <>
+        <button
+          onClick={handleClick}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 20px',
+            background: '#4896de',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '14px',
+            fontWeight: '600',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+          }}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+        >
+          <Upload size={18} />
+          Tải File Hợp đồng
+        </button>
+        <HiddenInput
+          ref={inputRef}
+          type="file"
+          accept="application/pdf"
+          multiple
+          onChange={handleFileSelect}
+        />
+      </>
+    );
+  }
 
   return (
     <>

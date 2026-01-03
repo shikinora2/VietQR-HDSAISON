@@ -10,6 +10,11 @@ const StyledCard = styled(Card)`
   min-height: 400px;
   display: flex;
   flex-direction: column;
+
+  @media (max-width: ${props => props.theme.breakpoints.tablet}) {
+    padding: ${props => props.theme.spacing.md};
+    min-height: auto;
+  }
 `;
 
 const ResultsTitle = styled.h2`
@@ -17,6 +22,11 @@ const ResultsTitle = styled.h2`
   font-weight: ${props => props.theme.typography.fontWeight.bold};
   color: ${props => props.theme.colors.text.primary};
   margin-bottom: ${props => props.theme.spacing.lg};
+
+  @media (max-width: ${props => props.theme.breakpoints.tablet}) {
+    font-size: ${props => props.theme.typography.fontSize.lg};
+    margin-bottom: ${props => props.theme.spacing.md};
+  }
 `;
 
 const ResultsGrid = styled.div`
@@ -30,6 +40,10 @@ const ResultItem = styled(motion.div)`
   background: ${props => props.theme.colors.background.alt};
   border-radius: ${props => props.theme.borderRadius.lg};
   border-left: 4px solid ${props => props.color || props.theme.colors.primary.main};
+
+  @media (max-width: ${props => props.theme.breakpoints.tablet}) {
+    padding: ${props => props.theme.spacing.md};
+  }
 `;
 
 const ResultHeader = styled.div`
@@ -61,6 +75,10 @@ const ResultValue = styled(motion.div)`
   font-weight: ${props => props.theme.typography.fontWeight.bold};
   color: ${props => props.theme.colors.text.primary};
   margin-top: ${props => props.theme.spacing.xs};
+
+  @media (max-width: ${props => props.theme.breakpoints.tablet}) {
+    font-size: ${props => props.theme.typography.fontSize.xl};
+  }
 `;
 
 const ResultSubtext = styled.div`
@@ -88,7 +106,7 @@ const EmptyIcon = styled.div`
 const CalculatorResults = ({ results, formData }) => {
   if (!results) {
     return (
-      <StyledCard variant="elevated">
+      <StyledCard variant="glass">
         <ResultsTitle>Kết Quả Tính Toán</ResultsTitle>
         <EmptyState>
           <EmptyIcon>📊</EmptyIcon>
@@ -98,41 +116,63 @@ const CalculatorResults = ({ results, formData }) => {
     );
   }
 
+  // Tính toán các giá trị cần hiển thị - TẤT CẢ LÀM TRÒN ĐẾN HÀNG NGHÌN
+  const roundToThousand = (value) => Math.round(value / 1000) * 1000;
+
+  // SỬ DỤNG TRỰC TIẾP monthlyPayment đã tính sẵn từ LoanCalculatorTab
+  // KHÔNG tính lại để tránh sai số làm tròn
+  const monthlyPaymentRounded = results.monthlyPayment;
+
+  const monthlyPrincipal = roundToThousand(results.monthlyLoan);
+  const monthlyInsuranceRounded = roundToThousand(results.monthlyInsurance);
+  const monthlyCollectionFee = results.monthlyCollectionFee; // 12.000đ
+
+  const monthlyTotalFee = roundToThousand(results.monthlyTotalFee);
+  const totalFees = roundToThousand(results.totalFees);
+  const totalPayment = roundToThousand(results.totalPayment);
+
+  // Lấy tên chương trình lãi suất
+  const getLoanProgramName = () => {
+    if (results.loanProgram === 'regular') return 'theo chương trình thường';
+    if (results.loanProgram === '0') return '0%';
+    if (results.loanProgram === '0.005') return '0.5%/tháng';
+    if (results.loanProgram === '0.01') return '1%/tháng';
+    return results.loanProgram;
+  };
+
   const resultItems = [
     {
-      label: 'Trả Hàng Tháng',
-      value: formatCurrency(results.monthlyPayment),
+      label: 'Số Tiền Thanh Toán Hàng Tháng',
+      value: formatCurrency(monthlyPaymentRounded),
       icon: <Calendar size={20} />,
       color: '#6366F1',
-      subtext: `Gốc: ${formatCurrency(results.monthlyLoan)}${
-        results.monthlyInsurance > 0 ? ` + BH: ${formatCurrency(results.monthlyInsurance)}` : ''
-      }`,
+      subtext: `Gốc: ${formatCurrency(monthlyPrincipal)} + BH: ${formatCurrency(monthlyInsuranceRounded)} + Phí: ${formatCurrency(monthlyCollectionFee)}`,
     },
     {
-      label: 'Tổng Tiền Lãi',
-      value: formatCurrency(results.totalInterest),
+      label: 'Tổng Chi Phí Mỗi Tháng',
+      value: formatCurrency(monthlyTotalFee),
+      icon: <TrendingUp size={20} />,
+      color: '#8B5CF6',
+      subtext: `Phí thu hộ: ${formatCurrency(results.monthlyCollectionFee)} + BH: ${formatCurrency(monthlyInsuranceRounded)}`,
+    },
+    {
+      label: 'Tổng Tiền Phí',
+      value: formatCurrency(totalFees),
       icon: <Percent size={20} />,
       color: '#F59E0B',
-      subtext: `Lãi suất hiệu dụng: ${results.effectiveInterestRate.toFixed(2)}%`,
+      subtext: `Lãi suất: ${getLoanProgramName()} | BH 5% | Thu hộ ${formatCurrency(results.monthlyCollectionFee)}/tháng`,
     },
     {
       label: 'Tổng Thanh Toán',
-      value: formatCurrency(results.totalPayment),
+      value: formatCurrency(totalPayment),
       icon: <DollarSign size={20} />,
       color: '#10B981',
-      subtext: `Gốc: ${formatCurrency(results.principal)} + Lãi: ${formatCurrency(results.totalInterest)}`,
-    },
-    {
-      label: 'Tổng Chi Phí',
-      value: formatCurrency(results.totalWithDownPayment),
-      icon: <TrendingUp size={20} />,
-      color: '#EF4444',
-      subtext: `Bao gồm trả trước ${formatCurrency(formData.downPaymentAmount)}`,
+      subtext: `Gốc + Lãi (${getLoanProgramName()}) + Phí thu hộ + BH`,
     },
   ];
 
   return (
-    <StyledCard variant="elevated">
+    <StyledCard variant="glass">
       <ResultsTitle>Kết Quả Tính Toán</ResultsTitle>
 
       <ResultsGrid>

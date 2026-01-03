@@ -1,10 +1,7 @@
 import React, { useState, lazy, Suspense } from 'react';
 import { ThemeProvider } from './styles/ThemeProvider';
 import GlobalStyles from './styles/GlobalStyles';
-import AppShell from './components/organisms/AppShell';
-import Sidebar from './components/organisms/Sidebar';
-import TopBar from './components/organisms/TopBar';
-import MobileNav from './components/organisms/MobileNav';
+import { ResponsiveLayout } from './layouts';
 import { ContractProvider } from './contexts/ContractContext';
 import { ToastProvider } from './components/molecules/Toast';
 import { POSProvider } from './contexts/POSContext';
@@ -24,9 +21,30 @@ const PrintContractTab = lazy(() => import('./features/contract-files/ContractFi
 const LoanCalculatorTab = lazy(() => import('./features/loan-calculator/LoanCalculatorTab'));
 const ExportTab = lazy(() => import('./features/export/ExportTab'));
 
+const QRViewer = lazy(() => import('./features/qr-generator/QRViewer'));
+
 function AppContent() {
   const [activeTab, setActiveTab] = useState('print-contract');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isViewerMode, setIsViewerMode] = useState(false);
+
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('c') && params.get('a')) {
+      setIsViewerMode(true);
+    }
+  }, []);
+
+  if (isViewerMode) {
+    return (
+      <Suspense fallback={<div>Loading Viewer...</div>}>
+        <ThemeProvider>
+          <GlobalStyles />
+          <QRViewer />
+        </ThemeProvider>
+      </Suspense>
+    );
+  }
 
   const navigationSections = [
     {
@@ -63,43 +81,39 @@ function AppContent() {
   };
 
   const renderTabContent = () => {
+    // Use CSS display to hide/show tabs instead of unmounting
+    // This preserves state when switching between tabs
     return (
       <Suspense fallback={<div style={{ padding: '2rem' }}>Loading...</div>}>
-        {activeTab === 'print-contract' && <PrintContractTab />}
-        {activeTab === 'qr-generator' && <QRGeneratorTab />}
-        {activeTab === 'loan-calculator' && <LoanCalculatorTab />}
-        {activeTab === 'export' && <ExportTab />}
+        <div style={{ display: activeTab === 'print-contract' ? 'block' : 'none' }}>
+          <PrintContractTab />
+        </div>
+        <div style={{ display: activeTab === 'qr-generator' ? 'block' : 'none' }}>
+          <QRGeneratorTab />
+        </div>
+        <div style={{ display: activeTab === 'loan-calculator' ? 'block' : 'none' }}>
+          <LoanCalculatorTab />
+        </div>
+        <div style={{ display: activeTab === 'export' ? 'block' : 'none' }}>
+          <ExportTab />
+        </div>
       </Suspense>
     );
   };
 
   return (
-    <AppShell
-      sidebar={
-        <Sidebar
-          sections={navigationSections}
-          activeItem={activeTab}
-          onNavigate={handleNavigationClick}
-          isOpen={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
-        />
-      }
-      topbar={
-        <TopBar
-          onMenuClick={() => setSidebarOpen(!sidebarOpen)}
-          title={getTabTitle()}
-        />
-      }
-      mobileNav={
-        <MobileNav
-          items={mobileNavItems}
-          activeItem={activeTab}
-          onNavigate={handleNavigationClick}
-        />
-      }
+    <ResponsiveLayout
+      navigationSections={navigationSections}
+      mobileNavItems={mobileNavItems}
+      activeTab={activeTab}
+      onNavigate={handleNavigationClick}
+      sidebarOpen={sidebarOpen}
+      onSidebarClose={() => setSidebarOpen(false)}
+      onSidebarToggle={() => setSidebarOpen(!sidebarOpen)}
+      tabTitle={getTabTitle()}
     >
       {renderTabContent()}
-    </AppShell>
+    </ResponsiveLayout>
   );
 }
 

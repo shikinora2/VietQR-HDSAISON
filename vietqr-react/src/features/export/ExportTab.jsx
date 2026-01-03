@@ -1,66 +1,17 @@
 import React, { useState } from 'react';
-import styled from 'styled-components';
-import { Download, FileSpreadsheet, Upload, Search } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { useContract } from '../../contexts/ContractContext';
 import usePdfProcessor from '../../hooks/usePdfProcessor';
 import { useToast } from '../../contexts';
-import { Button, Loading } from '../../components';
-import DataTable from './DataTable';
-import SearchBar from './SearchBar';
-import ExportButtons from './ExportButtons';
-import UploadPDFExtract from './UploadPDFExtract';
+import { useBreakpoint } from '../../hooks/useResponsive';
 import * as XLSX from 'xlsx';
-
-const Container = styled.div`
-  width: 100%;
-  /* Padding is handled by AppShell's Content wrapper */
-  display: flex;
-  flex-direction: column;
-  gap: ${props => props.theme.spacing.xl};
-`;
-
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: ${props => props.theme.spacing.xl};
-  background: ${props => props.theme.colors.surface.default};
-  border-bottom: 1px solid ${props => props.theme.colors.border.light};
-  box-shadow: ${props => props.theme.shadows.sm};
-  flex-wrap: wrap;
-  gap: ${props => props.theme.spacing.md};
-  margin: -${props => props.theme.spacing.xl} -${props => props.theme.spacing.xl} 0 -${props => props.theme.spacing.xl};
-  border-radius: 0;
-  border-left: none;
-  border-right: none;
-  border-top: none;
-`;
-
-const Title = styled.h1`
-  font-size: ${props => props.theme.typography.fontSize['2xl']};
-  font-weight: ${props => props.theme.typography.fontWeight.bold};
-  color: ${props => props.theme.colors.text.primary};
-  margin: 0;
-`;
-
-const Controls = styled.div`
-  display: flex;
-  gap: ${props => props.theme.spacing.md};
-  align-items: center;
-  flex-wrap: wrap;
-  width: 100%;
-  margin-bottom: ${props => props.theme.spacing.lg};
-
-  @media (min-width: ${props => props.theme.breakpoints.tablet}) {
-    width: auto;
-  }
-`;
+import ExportDesktop from './ExportDesktop';
+import ExportMobile from './ExportMobile';
 
 const ExportTab = () => {
   const { contracts, addContract } = useContract();
   const { processMultiplePdfs, isProcessing, progress } = usePdfProcessor();
   const { showToast } = useToast();
+  const { isMobileOrTablet } = useBreakpoint();
 
   const [data, setData] = useState(contracts);
   const [filteredData, setFilteredData] = useState(contracts);
@@ -75,7 +26,7 @@ const ExportTab = () => {
 
   const handleSearch = (query, dataToSearch = data) => {
     setSearchQuery(query);
-    
+
     if (!query.trim()) {
       setFilteredData(dataToSearch);
       return;
@@ -101,9 +52,7 @@ const ExportTab = () => {
         }
       );
 
-      // Add to contracts
       results.forEach(result => addContract(result));
-
       showToast(`Đã trích xuất ${results.length} file thành công`, 'success');
     } catch (error) {
       showToast('Lỗi khi xử lý PDF: ' + error.message, 'error');
@@ -120,7 +69,6 @@ const ExportTab = () => {
       return;
     }
 
-    // Prepare data for export
     const worksheetData = exportData.map(row => ({
       'Số Hợp Đồng': row.contractNumber || '',
       'Tên Khách Hàng': row.customerName || '',
@@ -135,12 +83,10 @@ const ExportTab = () => {
       'Ngày Tạo': row.createdAt ? new Date(row.createdAt).toLocaleDateString('vi-VN') : '',
     }));
 
-    // Create workbook
     const ws = XLSX.utils.json_to_sheet(worksheetData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Hợp Đồng');
 
-    // Auto-size columns
     const colWidths = Object.keys(worksheetData[0] || {}).map(key => ({
       wch: Math.max(
         key.length,
@@ -149,10 +95,7 @@ const ExportTab = () => {
     }));
     ws['!cols'] = colWidths;
 
-    // Generate filename
     const fileName = `HopDong_${new Date().toISOString().split('T')[0]}.xlsx`;
-
-    // Export
     XLSX.writeFile(wb, fileName);
     showToast(`Đã xuất ${exportData.length} hợp đồng ra Excel`, 'success');
   };
@@ -167,7 +110,6 @@ const ExportTab = () => {
       return;
     }
 
-    // Prepare CSV
     const headers = ['Số Hợp Đồng', 'Tên Khách Hàng', 'CMND/CCCD', 'Số Điện Thoại', 'Địa Chỉ', 'Số Tiền', 'Phí Bảo Hiểm', 'Ngày Hiệu Lực', 'Ngày Đáo Hạn'];
     const rows = exportData.map(row => [
       row.contractNumber || '',
@@ -186,7 +128,6 @@ const ExportTab = () => {
       ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
     ].join('\n');
 
-    // Download
     const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
@@ -204,43 +145,26 @@ const ExportTab = () => {
     setSelectedRows(selectedIds);
   };
 
-  return (
-    <Container>
-      <Header>
-        <Title>📊 Xuất Dữ Liệu Hợp Đồng</Title>
-      </Header>
+  const layoutProps = {
+    filteredData,
+    selectedRows,
+    searchQuery,
+    isProcessing,
+    progress,
+    onSearch: handleSearch,
+    onPDFUpload: handlePDFUpload,
+    onExportExcel: handleExportExcel,
+    onExportCSV: handleExportCSV,
+    onExportGoogleSheets: handleExportGoogleSheets,
+    onRowSelectionChange: handleRowSelectionChange,
+  };
 
-      <UploadPDFExtract onUpload={handlePDFUpload} />
-
-      {isProcessing && (
-        <div style={{ marginTop: '1rem', marginBottom: '1rem' }}>
-          <Loading type="progress" progress={progress} />
-        </div>
-      )}
-
-      <Controls>
-        <SearchBar
-          value={searchQuery}
-          onChange={handleSearch}
-          placeholder="Tìm theo số HĐ, tên KH, SĐT..."
-        />
-        
-        <ExportButtons
-          onExportExcel={handleExportExcel}
-          onExportCSV={handleExportCSV}
-          onExportGoogleSheets={handleExportGoogleSheets}
-          selectedCount={selectedRows.length}
-          totalCount={filteredData.length}
-        />
-      </Controls>
-
-      <DataTable
-        data={filteredData}
-        selectedRows={selectedRows}
-        onRowSelectionChange={handleRowSelectionChange}
-      />
-    </Container>
+  return isMobileOrTablet ? (
+    <ExportMobile {...layoutProps} />
+  ) : (
+    <ExportDesktop {...layoutProps} />
   );
 };
 
 export default ExportTab;
+

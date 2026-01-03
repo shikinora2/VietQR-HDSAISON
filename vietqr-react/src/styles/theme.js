@@ -8,18 +8,18 @@
 // ============================================
 
 const colors = {
-  // Primary - HD SAISON Brand
+  // Primary - Fintech Amber/Gold (UI/UX Pro Max)
   primary: {
-    50: '#EEF2FF',
-    100: '#E0E7FF',
-    200: '#C7D2FE',
-    300: '#A5B4FC',
-    400: '#818CF8',
-    500: '#6366F1', // Main brand color
-    600: '#4F46E5',
-    700: '#4338CA',
-    800: '#3730A3',
-    900: '#312E81',
+    50: '#FFFBEB',
+    100: '#FEF3C7',
+    200: '#FDE68A',
+    300: '#FCD34D',
+    400: '#FBBF24',
+    500: '#F59E0B', // Main fintech brand color
+    600: '#D97706',
+    700: '#B45309',
+    800: '#92400E',
+    900: '#78350F',
   },
 
   // Neutral Grays
@@ -151,6 +151,7 @@ const shadows = {
   lg: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
   xl: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
   '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+  card: '0 25px 70px rgba(0, 0, 0, 0.5), 0 10px 40px rgba(245, 158, 11, 0.1)',
   inner: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)',
 };
 
@@ -171,6 +172,7 @@ const zIndex = {
   modal: 1050,
   popover: 1060,
   tooltip: 1070,
+  toast: 2000,
 };
 
 // ============================================
@@ -213,6 +215,7 @@ export const lightTheme = {
       tertiary: colors.gray[100],
       inverse: colors.gray[900],
       overlay: 'rgba(0, 0, 0, 0.5)',
+      input: '#FFFFFF',
     },
 
     // Background alias for component compatibility
@@ -279,54 +282,57 @@ export const darkTheme = {
   name: 'dark',
 
   colors: {
-    // Brand (brighter for dark mode)
-    primary: colors.primary[400],
-    primaryHover: colors.primary[300],
-    primaryActive: colors.primary[200],
-    primaryLight: colors.primary[900],
+    // Brand (brighter for dark mode - Amber Gold)
+    primary: '#FBBF24',       // Amber 400 - bright gold
+    primaryHover: '#FCD34D',  // Amber 300 - lighter
+    primaryActive: '#F59E0B', // Amber 500 - click state
+    primaryLight: '#78350F',  // Amber 900
 
-    // Status
-    success: colors.success[500],
-    successLight: colors.success[900],
-    warning: colors.warning[500],
-    warningLight: colors.warning[900],
-    error: colors.error[500],
-    errorLight: colors.error[900],
-    info: colors.info[500],
-    infoLight: colors.info[900],
+    // Status - High contrast for dark mode
+    success: '#22C55E',       // Green 500 - brighter green
+    successLight: '#14532D',
+    warning: '#FBBF24',       // Amber
+    warningLight: '#78350F',
+    error: '#EF4444',
+    errorLight: '#7F1D1D',
+    info: '#3B82F6',
+    infoLight: '#1E3A8A',
 
-    // Text
+    // Text - High contrast for readability
     text: {
-      primary: colors.gray[50],
-      secondary: colors.gray[300],
-      tertiary: colors.gray[400],
-      disabled: colors.gray[600],
-      inverse: colors.gray[900],
+      primary: '#F8FAFC',     // Almost white
+      secondary: '#CBD5E1',   // Slate 300
+      tertiary: '#94A3B8',    // Slate 400
+      disabled: '#64748B',    // Slate 500
+      inverse: '#0F172A',     // Dark for light backgrounds
     },
 
-    // Background
+    // Background - Fintech Dark Navy
     bg: {
-      primary: colors.gray[950],
-      secondary: colors.gray[900],
-      tertiary: colors.gray[800],
+      primary: '#0F172A',     // Slate 900 - Main dark bg
+      secondary: '#1E293B',   // Slate 800 - Cards/Panels
+      tertiary: '#334155',    // Slate 700 - Input/Controls
       inverse: '#FFFFFF',
       overlay: 'rgba(0, 0, 0, 0.8)',
+      input: '#1E293B',       // Darker input for dark mode
     },
 
     // Background alias for component compatibility
     background: {
-      paper: colors.gray[900],
-      default: colors.gray[950],
-      secondary: colors.gray[800],
+      paper: '#1E293B',
+      default: '#0F172A',
+      secondary: '#334155',
+      alt: '#1E293B',
+      hover: '#334155',
     },
 
-    // Border
+    // Border - Fintech Navy
     border: {
-      default: colors.gray[700],
-      hover: colors.gray[600],
+      default: '#334155',
+      hover: '#475569',
       focus: colors.primary[400],
       error: colors.error[500],
-      light: colors.gray[700],
+      light: '#334155',
     },
 
     // Interactive
@@ -337,11 +343,11 @@ export const darkTheme = {
       disabled: colors.gray[700],
     },
 
-    // Surface (cards, panels)
+    // Surface (cards, panels) - Fintech Navy
     surface: {
-      default: colors.gray[900],
-      hover: colors.gray[800],
-      active: colors.gray[700],
+      default: '#1E293B',
+      hover: '#334155',
+      active: '#475569',
     },
 
     // Raw color palette
@@ -358,6 +364,7 @@ export const darkTheme = {
     lg: '0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 8px 10px -6px rgba(0, 0, 0, 0.7)',
     xl: '0 25px 50px -12px rgba(0, 0, 0, 0.8)',
     '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.9)',
+    card: '0 25px 70px rgba(0, 0, 0, 0.5), 0 10px 40px rgba(245, 158, 11, 0.1)',
     inner: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.3)',
   },
 };

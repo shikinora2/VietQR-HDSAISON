@@ -60,8 +60,9 @@ const StyledButton = styled(motion.button)`
       case 'primary':
         return `
           background: ${theme.colors.primary};
-          color: ${theme.colors.text.inverse};
+          color: #0F172A;  /* Dark text for Amber contrast */
           box-shadow: ${theme.shadows.sm};
+          font-weight: 600;
           
           &:hover:not(:disabled) {
             background: ${theme.colors.primaryHover};
@@ -75,7 +76,7 @@ const StyledButton = styled(motion.button)`
             transform: translateY(0);
           }
         `;
-        
+
       case 'secondary':
         return `
           background: ${theme.colors.surface.default};
@@ -91,7 +92,7 @@ const StyledButton = styled(motion.button)`
             background: ${theme.colors.surface.active};
           }
         `;
-        
+
       case 'ghost':
         return `
           background: transparent;
@@ -106,7 +107,7 @@ const StyledButton = styled(motion.button)`
             background: ${theme.colors.surface.active};
           }
         `;
-        
+
       case 'danger':
         return `
           background: ${theme.colors.error};
@@ -125,30 +126,52 @@ const StyledButton = styled(motion.button)`
             transform: translateY(0);
           }
         `;
-        
+
       case 'success':
         return `
           background: ${theme.colors.success};
-          color: ${theme.colors.text.inverse};
+          color: #FFFFFF;
           box-shadow: ${theme.shadows.sm};
+          font-weight: 600;
           
           &:hover:not(:disabled) {
-            background: ${theme.colors.success[600]};
+            filter: brightness(1.1);
             box-shadow: ${theme.shadows.base};
             transform: translateY(-1px);
           }
           
           &:active:not(:disabled) {
-            background: ${theme.colors.success[700]};
+            filter: brightness(0.95);
             box-shadow: ${theme.shadows.xs};
             transform: translateY(0);
           }
         `;
-        
+
+      case 'warning':
+        return `
+          background: ${theme.colors.warning || '#F59E0B'};
+          color: #0F172A;
+          box-shadow: ${theme.shadows.sm};
+          font-weight: 600;
+          
+          &:hover:not(:disabled) {
+            filter: brightness(1.1);
+            box-shadow: ${theme.shadows.base};
+            transform: translateY(-1px);
+          }
+          
+          &:active:not(:disabled) {
+            filter: brightness(0.95);
+            box-shadow: ${theme.shadows.xs};
+            transform: translateY(0);
+          }
+        `;
+
       default:
         return `
           background: ${theme.colors.primary};
-          color: ${theme.colors.text.inverse};
+          color: #0F172A;
+          font-weight: 600;
         `;
     }
   }}

@@ -26,10 +26,10 @@ const StyledInput = styled.input`
   line-height: ${({ theme }) => theme.typography.lineHeight.normal};
   color: ${({ theme }) => theme.colors.text.primary};
   background: ${({ theme }) => theme.colors.surface.default};
-  border: 1px solid ${({ theme, $error, $focused }) => 
-    $error ? theme.colors.border.error : 
-    $focused ? theme.colors.border.focus : 
-    theme.colors.border.default
+  border: 1px solid ${({ theme, $error, $focused }) =>
+    $error ? theme.colors.border.error :
+      $focused ? theme.colors.border.focus :
+        theme.colors.border.default
   };
   border-radius: ${({ theme }) => theme.borderRadius.base};
   padding: ${({ theme, $size }) => {
@@ -57,19 +57,19 @@ const StyledInput = styled.input`
   `}
   
   &:hover:not(:disabled) {
-    border-color: ${({ theme, $error }) => 
-      $error ? theme.colors.border.error : theme.colors.border.hover
-    };
+    border-color: ${({ theme, $error }) =>
+    $error ? theme.colors.border.error : theme.colors.border.hover
+  };
   }
   
   &:focus {
     outline: none;
-    border-color: ${({ theme, $error }) => 
-      $error ? theme.colors.border.error : theme.colors.border.focus
-    };
-    box-shadow: 0 0 0 3px ${({ theme, $error }) => 
-      $error ? `${theme.colors.error}20` : `${theme.colors.primary}20`
-    };
+    border-color: ${({ theme, $error }) =>
+    $error ? theme.colors.border.error : theme.colors.border.focus
+  };
+    box-shadow: 0 0 0 3px ${({ theme, $error }) =>
+    $error ? `${theme.colors.error}20` : `${theme.colors.primary}20`
+  };
   }
   
   &:disabled {
@@ -80,7 +80,8 @@ const StyledInput = styled.input`
   }
   
   &::placeholder {
-    color: ${({ theme }) => theme.colors.text.tertiary};
+    color: ${({ theme }) => theme.colors.text.secondary};
+    opacity: 0.8;
   }
 `;
 
@@ -92,14 +93,14 @@ const Label = styled.label`
     background: ${theme.colors.surface.default};
     padding: 0 ${theme.spacing[1]};
   `}
-  font-size: ${({ theme, $floating, $focused, $hasValue }) => 
+  font-size: ${({ theme, $floating, $focused, $hasValue }) =>
     $floating && ($focused || $hasValue) ? theme.typography.fontSize.xs : theme.typography.fontSize.sm
   };
   font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
-  color: ${({ theme, $error, $focused }) => 
-    $error ? theme.colors.error : 
-    $focused ? theme.colors.primary : 
-    theme.colors.text.secondary
+  color: ${({ theme, $error, $focused }) =>
+    $error ? theme.colors.error :
+      $focused ? theme.colors.primary :
+        theme.colors.text.secondary
   };
   transition: all ${({ theme }) => theme.transition.fast};
   pointer-events: none;
@@ -127,7 +128,7 @@ const IconWrapper = styled.div`
 const HelperText = styled.div`
   margin-top: ${({ theme }) => theme.spacing[2]};
   font-size: ${({ theme }) => theme.typography.fontSize.sm};
-  color: ${({ theme, $error }) => 
+  color: ${({ theme, $error }) =>
     $error ? theme.colors.error : theme.colors.text.secondary
   };
 `;
@@ -151,26 +152,26 @@ const Input = ({
   const [focused, setFocused] = useState(false);
   const [hasValue, setHasValue] = useState(!!value);
   const inputRef = useRef(null);
-  
+
   useEffect(() => {
     setHasValue(!!value);
   }, [value]);
-  
+
   const handleFocus = (e) => {
     setFocused(true);
     props.onFocus?.(e);
   };
-  
+
   const handleBlur = (e) => {
     setFocused(false);
     props.onBlur?.(e);
   };
-  
+
   const handleChange = (e) => {
     setHasValue(!!e.target.value);
     onChange?.(e);
   };
-  
+
   return (
     <InputWrapper>
       <InputContainer>
@@ -184,13 +185,13 @@ const Input = ({
             {label}{required && ' *'}
           </Label>
         )}
-        
+
         {leftIcon && (
           <IconWrapper $position="left">
             {leftIcon}
           </IconWrapper>
         )}
-        
+
         <StyledInput
           ref={inputRef}
           type={type}
@@ -206,17 +207,17 @@ const Input = ({
           onBlur={handleBlur}
           disabled={disabled}
           required={required}
-          placeholder={focused ? placeholder : ''}
+          placeholder={placeholder}
           {...props}
         />
-        
+
         {rightIcon && (
           <IconWrapper $position="right">
             {rightIcon}
           </IconWrapper>
         )}
       </InputContainer>
-      
+
       {(error || helperText) && (
         <HelperText $error={!!error}>
           {error || helperText}

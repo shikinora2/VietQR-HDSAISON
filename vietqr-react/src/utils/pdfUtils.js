@@ -103,7 +103,12 @@ export const extractAllDataFromPdfText = (fullText, paymentPageText = '') => {
     findValue(/Monthly Payment:\s*([\d,.]+)\s*VNĐ/, paymentPageText);
 
   // Debug log for QR data
-  console.log('[extractAllDataFromPdfText] QR Data:', { contract, name, amount });
+  console.log('[extractAllDataFromPdfText] Raw Payment Page Text (start):', paymentPageText ? paymentPageText.substring(0, 200) : 'EMPTY');
+  console.log('[extractAllDataFromPdfText] Regex Results:', {
+    contractMatch: contract,
+    nameMatch: name,
+    amountMatch: amount
+  });
 
   // Extract additional fields
   const ngaySinh = findValue(/1\.2\.\s*Ngày sinh:\s*([0-9\/]+)/) ||
@@ -426,9 +431,12 @@ export const findPaymentPage = async (pdf) => {
     const textContent = await page.getTextContent();
     const pageText = textContent.items.map(item => item.str).join(' ');
     if (pageText.includes('HƯỚNG DẪN THANH TOÁN') || (pageText.includes('Số Hợp Đồng:') && pageText.includes('Khoản Thanh Toán Hàng Tháng:'))) {
+      console.log(`[findPaymentPage] Found payment info on page ${i}`);
       return { pageNumber: i, pageText };
     }
   }
+  console.log('[findPaymentPage] Payment page not found via keywords, falling back to last page');
+
   // Default to last page if not found (fallback)
   const lastPage = await pdf.getPage(pdf.numPages);
   const textContent = await lastPage.getTextContent();
@@ -687,6 +695,72 @@ export const generatePdkPdfBytes = async (pdkData, brandName = '', posId = 'POS2
     return await pdfDoc.save();
   } catch (error) {
     console.error('Error generating PDK PDF:', error);
+    throw error;
+  }
+};
+
+/**
+ * Combine PDFs for specific print layouts (Front/Back)
+ * @param {object} fileSet - Object containing file URLs { hopDongUrl, thanhToanUrl, baoHiemUrl, pdkUrl }
+ * @param {string} printType - 'front' or 'back'
+ * @returns {Promise<string>} Blob URL of the combined PDF
+ */
+export const combinePdfsForPrinting = async (fileSet, printType) => {
+  try {
+    const { PDFDocument } = await import('pdf-lib');
+    const finalPdfDoc = await PDFDocument.create();
+
+    // Configuration for React app structure (Using Url suffixes)
+    const printConfigurations = {
+      front: [
+        { fileKey: 'pdkUrl', pages: [0] },          // 1. PDK 0% (Page 1)
+        { fileKey: 'thanhToanUrl', pages: [0] },    // 2. Guide Payment (Page 1) [Contains QR]
+        { fileKey: 'hopDongUrl', pages: [0] },      // 3. Contract (Page 1)
+        { fileKey: 'hopDongUrl', pages: [2] },      // 4. Contract (Page 3)
+        { fileKey: 'baoHiemUrl', pages: [0] }       // 5. Insurance (Page 1)
+      ],
+      back: [
+        { fileKey: 'baoHiemUrl', pages: [1] },      // 1. Insurance (Page 2)
+        { fileKey: 'hopDongUrl', pages: [3] },      // 2. Contract (Page 4)
+        { fileKey: 'hopDongUrl', pages: [1] }       // 3. Contract (Page 2)
+      ]
+    };
+
+    const filesToProcess = printConfigurations[printType];
+    if (!filesToProcess) throw new Error(`Invalid print type: ${printType}`);
+
+    for (const item of filesToProcess) {
+      const { fileKey, pages } = item;
+      const fileUrl = fileSet[fileKey];
+
+      if (fileUrl) {
+        try {
+          // Fetch the blob from the internal object URL
+          const response = await fetch(fileUrl);
+          const pdfBytes = await response.arrayBuffer();
+          const sourcePdf = await PDFDocument.load(pdfBytes);
+          const sourcePageCount = sourcePdf.getPageCount();
+
+          // Filter valid pages
+          const validPageIndices = pages.filter(index => index < sourcePageCount);
+          if (validPageIndices.length === 0) continue;
+
+          const copiedPages = await finalPdfDoc.copyPages(sourcePdf, validPageIndices);
+          copiedPages.forEach(page => finalPdfDoc.addPage(page));
+        } catch (err) {
+          console.warn(`Error processing ${fileKey} for printing:`, err);
+        }
+      }
+    }
+
+    if (finalPdfDoc.getPageCount() === 0) {
+      throw new Error('Không có trang nào hợp lệ để tạo file in.');
+    }
+
+    const finalPdfBytes = await finalPdfDoc.save();
+    return URL.createObjectURL(new Blob([finalPdfBytes], { type: 'application/pdf' }));
+  } catch (error) {
+    console.error('Error combining PDFs:', error);
     throw error;
   }
 };

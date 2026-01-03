@@ -29,60 +29,65 @@ const QRSection = styled.div`
 
 const QRImageLarge = styled.img`
   width: 100%;
-  max-width: 400px;
+  max-width: 280px;
   height: auto;
   aspect-ratio: 1;
   object-fit: contain;
   background: white;
-  padding: ${props => props.theme.spacing.md};
+  padding: ${props => props.theme.spacing.sm};
   border-radius: ${props => props.theme.borderRadius.lg};
-  box-shadow: ${props => props.theme.shadows.xl};
+  box-shadow: ${props => props.theme.shadows.md};
 `;
 
 const InfoSection = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: ${props => props.theme.spacing.md};
+  gap: ${props => props.theme.spacing.sm};
 `;
 
 const InfoTitle = styled.h3`
-  font-size: ${props => props.theme.typography.fontSize.xl};
+  font-size: ${props => props.theme.typography.fontSize.lg};
   font-weight: ${props => props.theme.typography.fontWeight.bold};
   color: ${props => props.theme.colors.text.primary};
-  margin: 0;
+  margin: 0 0 8px 0;
 `;
 
 const InfoItem = styled.div`
-  padding: ${props => props.theme.spacing.md};
-  background: ${props => props.theme.colors.background.alt};
+  padding: ${props => props.theme.spacing.sm} ${props => props.theme.spacing.md};
+  background: ${props => props.theme.colors.bg.tertiary};
   border-radius: ${props => props.theme.borderRadius.md};
-  border-left: 4px solid ${props => props.theme.colors.primary.main};
+  border: 1px solid ${props => props.theme.colors.border.default};
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 `;
 
 const InfoLabel = styled.div`
-  font-size: ${props => props.theme.typography.fontSize.sm};
+  font-size: ${props => props.theme.typography.fontSize.xs};
   color: ${props => props.theme.colors.text.secondary};
-  margin-bottom: ${props => props.theme.spacing.xs};
+  margin-bottom: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 `;
 
 const InfoValue = styled.div`
-  font-size: ${props => props.theme.typography.fontSize.lg};
+  font-size: ${props => props.theme.typography.fontSize.base};
   font-weight: ${props => props.theme.typography.fontWeight.semibold};
   color: ${props => props.theme.colors.text.primary};
 `;
 
 const Actions = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  display: flex;
   gap: ${props => props.theme.spacing.sm};
-  margin-top: ${props => props.theme.spacing.md};
+  margin-top: ${props => props.theme.spacing.sm};
 `;
 
 const BankInfo = styled.div`
   padding: ${props => props.theme.spacing.md};
-  background: ${props => props.theme.colors.primary.main}10;
+  background: ${props => props.theme.colors.bg.tertiary};
   border-radius: ${props => props.theme.borderRadius.md};
+  border: 1px dashed ${props => props.theme.colors.border.default};
   margin-top: auto;
 `;
 
@@ -98,27 +103,27 @@ const BankValue = styled.div`
   color: ${props => props.theme.colors.primary.main};
 `;
 
-const QRModal = ({ contract, onClose }) => {
+const QRModal = ({ contract, bank, onClose }) => {
   const { generateContractQRCode, downloadQR } = useQRGenerator();
-  const { showToast } = useToast();
+  const toast = useToast();
 
   const qrUrl = generateContractQRCode(contract);
 
   const handleDownload = async () => {
     try {
       await downloadQR(qrUrl, `QR_${contract.contractNumber}.jpg`);
-      showToast('Đã tải xuống mã QR', 'success');
+      toast.success('Đã tải xuống mã QR');
     } catch (error) {
-      showToast('Lỗi khi tải xuống: ' + error.message, 'error');
+      toast.error('Lỗi khi tải xuống: ' + error.message);
     }
   };
 
   const handlePrint = () => {
     try {
       printQRCode(qrUrl, contract);
-      showToast('Đang mở cửa sổ in...', 'info');
+      toast.info('Đang mở cửa sổ in...');
     } catch (error) {
-      showToast('Lỗi khi in: ' + error.message, 'error');
+      toast.error('Lỗi khi in: ' + error.message);
     }
   };
 
@@ -126,10 +131,10 @@ const QRModal = ({ contract, onClose }) => {
     try {
       const shared = await shareQRCode(qrUrl, contract);
       if (shared) {
-        showToast('Đã chia sẻ mã QR', 'success');
+        toast.success('Đã chia sẻ mã QR');
       }
     } catch (error) {
-      showToast('Lỗi khi chia sẻ: ' + error.message, 'error');
+      toast.error('Lỗi khi chia sẻ: ' + error.message);
     }
   };
 
@@ -138,55 +143,30 @@ const QRModal = ({ contract, onClose }) => {
       isOpen={true}
       onClose={onClose}
       title="Xem Mã QR"
-      size="large"
+      size="medium"
     >
       <ModalContent>
         <QRSection>
           <QRImageLarge src={qrUrl} alt="QR Code" />
-          <Actions>
-            <Button
-              variant="primary"
-              icon={<Download size={18} />}
-              onClick={handleDownload}
-              fullWidth
-            >
-              Tải xuống
-            </Button>
-            <Button
-              variant="secondary"
-              icon={<Printer size={18} />}
-              onClick={handlePrint}
-              fullWidth
-            >
-              In
-            </Button>
-            <Button
-              variant="secondary"
-              icon={<Share2 size={18} />}
-              onClick={handleShare}
-              fullWidth
-            >
-              Chia sẻ
-            </Button>
-          </Actions>
+
         </QRSection>
 
         <InfoSection>
           <InfoTitle>Thông Tin Chuyển Khoản</InfoTitle>
 
-          <InfoItem>
+          <InfoItem style={{ padding: '12px' }}>
             <InfoLabel>Số Hợp Đồng</InfoLabel>
-            <InfoValue>{contract.contractNumber}</InfoValue>
+            <InfoValue style={{ fontSize: '16px' }}>{contract.contractNumber}</InfoValue>
           </InfoItem>
 
-          <InfoItem>
+          <InfoItem style={{ padding: '12px' }}>
             <InfoLabel>Tên Khách Hàng</InfoLabel>
-            <InfoValue>{contract.customerName}</InfoValue>
+            <InfoValue style={{ fontSize: '16px' }}>{contract.customerName}</InfoValue>
           </InfoItem>
 
-          <InfoItem>
+          <InfoItem style={{ padding: '12px' }}>
             <InfoLabel>Số Tiền</InfoLabel>
-            <InfoValue>{formatCurrency(contract.amount)}</InfoValue>
+            <InfoValue style={{ fontSize: '18px', color: '#EF4444' }}>{formatCurrency(contract.amount)}</InfoValue>
           </InfoItem>
 
           {contract.phoneNumber && (
@@ -198,10 +178,42 @@ const QRModal = ({ contract, onClose }) => {
 
           <BankInfo>
             <BankLabel>Ngân Hàng</BankLabel>
-            <BankValue>HD SAISON (HDBANK)</BankValue>
+            <BankValue>{bank?.bankName || 'HD SAISON (HDBANK)'}</BankValue>
             <BankLabel style={{ marginTop: '8px' }}>Số Tài Khoản</BankLabel>
-            <BankValue>19036897588015</BankValue>
+            <BankValue>{bank?.accountNumber || '002704070014601'}</BankValue>
+            <BankLabel style={{ marginTop: '8px' }}>Tên người thụ hưởng</BankLabel>
+            <BankValue>{bank?.accountName || 'HD SAISON'}</BankValue>
           </BankInfo>
+
+          <Actions>
+            <Button
+              variant="primary"
+              icon={<Download size={16} />}
+              onClick={handleDownload}
+              fullWidth
+              size="small"
+            >
+              Tải
+            </Button>
+            <Button
+              variant="secondary"
+              icon={<Printer size={16} />}
+              onClick={handlePrint}
+              fullWidth
+              size="small"
+            >
+              In
+            </Button>
+            <Button
+              variant="secondary"
+              icon={<Share2 size={16} />}
+              onClick={handleShare}
+              fullWidth
+              size="small"
+            >
+              Chia sẻ
+            </Button>
+          </Actions>
         </InfoSection>
       </ModalContent>
     </Modal>

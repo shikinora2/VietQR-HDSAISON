@@ -1,88 +1,19 @@
 import React, { useState } from 'react';
-import styled from 'styled-components';
-import { Upload, FileText, Trash2, Printer } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useContract } from '../../contexts/ContractContext';
 import usePdfProcessor from '../../hooks/usePdfProcessor';
 import { useToast } from '../../contexts';
 import { useLocalStorage } from '../../hooks';
-import { Button, Loading } from '../../components';
-import FileUploadZone from './FileUploadZone';
-import ContractFileCard from './ContractFileCard';
-import PrintDialog from './PrintDialog';
-import POSSelector from './POSSelector';
+import { useBreakpoint } from '../../hooks/useResponsive';
 import { generateContractFileSet, generatePdkPdfBytes } from '../../utils/pdfUtils';
-
-const Container = styled.div`
-  width: 100%;
-  /* Padding is handled by AppShell's Content wrapper */
-  display: flex;
-  flex-direction: column;
-  gap: ${props => props.theme.spacing.xl};
-`;
-
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: ${props => props.theme.spacing.xl};
-  background: ${props => props.theme.colors.surface.default};
-  border-bottom: 1px solid ${props => props.theme.colors.border.light};
-  box-shadow: ${props => props.theme.shadows.sm};
-  flex-wrap: wrap;
-  gap: ${props => props.theme.spacing.md};
-  margin: -${props => props.theme.spacing.xl} -${props => props.theme.spacing.xl} 0 -${props => props.theme.spacing.xl};
-  border-radius: 0;
-  border-left: none;
-  border-right: none;
-  border-top: none;
-`;
-
-const Title = styled.h1`
-  font-size: ${props => props.theme.typography.fontSize['2xl']};
-  font-weight: ${props => props.theme.typography.fontWeight.bold};
-  color: ${props => props.theme.colors.text.primary};
-  margin: 0;
-`;
-
-const Actions = styled.div`
-  display: flex;
-  gap: ${props => props.theme.spacing.sm};
-`;
-
-const FilesList = styled.div`
-  display: grid;
-  gap: ${props => props.theme.spacing.md};
-  margin-top: ${props => props.theme.spacing.xl};
-  grid-template-columns: 1fr;
-
-  @media (min-width: ${props => props.theme.breakpoints.tablet}) {
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  }
-`;
-
-const EmptyState = styled(motion.div)`
-  text-align: center;
-  padding: ${props => props.theme.spacing['3xl']} ${props => props.theme.spacing.xl};
-  background: ${props => props.theme.colors.surface.default};
-  border-radius: ${props => props.theme.borderRadius.lg};
-`;
-
-const EmptyIcon = styled.div`
-  font-size: 64px;
-  margin-bottom: ${props => props.theme.spacing.md};
-  opacity: 0.3;
-`;
-
-const EmptyText = styled.p`
-  color: ${props => props.theme.colors.text.secondary};
-  margin-bottom: ${props => props.theme.spacing.lg};
-`;
+import PrintDialog from './PrintDialog';
+import ContractFilesDesktop from './ContractFilesDesktop';
+import ContractFilesMobile from './ContractFilesMobile';
 
 const ContractFilesTab = () => {
   const { contracts, addContract, updateContract, deleteContract } = useContract();
   const { processPdf, processMultiplePdfs, isProcessing, progress } = usePdfProcessor();
   const toast = useToast();
+  const { isMobileOrTablet } = useBreakpoint();
 
   const [files, setFiles] = useState([]);
   const [showPrintDialog, setShowPrintDialog] = useState(false);
@@ -212,15 +143,6 @@ const ContractFilesTab = () => {
     setShowPrintDialog(true);
   };
 
-  const handleClearAll = () => {
-    if (window.confirm('Bạn có chắc muốn xóa tất cả file?')) {
-      files.forEach(file => deleteContract(file.id));
-      setFiles([]);
-      setSelectedFiles([]);
-      toast.success('Đã xóa tất cả file');
-    }
-  };
-
   const toggleFileSelection = (fileId) => {
     setSelectedFiles(prev =>
       prev.includes(fileId)
@@ -229,94 +151,31 @@ const ContractFilesTab = () => {
     );
   };
 
-  const selectAll = () => {
-    setSelectedFiles(files.map(f => f.id));
-  };
-
   const deselectAll = () => {
     setSelectedFiles([]);
   };
 
+  // Common props for both layouts
+  const layoutProps = {
+    files,
+    selectedFiles,
+    isProcessing,
+    progress,
+    onFilesUpload: handleFilesUpload,
+    onPosChange: handlePosChange,
+    onToggleSelect: toggleFileSelection,
+    onUpdateFile: handleUpdateFile,
+    onDeleteFile: handleDeleteFile,
+    onPrintSelected: handlePrintSelected,
+    onDeselectAll: deselectAll,
+  };
+
   return (
-    <Container>
-      <Header>
-        <Title>🖨️ In bộ hợp đồng</Title>
-        <Actions>
-          {files.length > 0 && (
-            <>
-              {selectedFiles.length > 0 ? (
-                <>
-                  <Button
-                    variant="primary"
-                    icon={<Printer size={18} />}
-                    onClick={handlePrintSelected}
-                  >
-                    In ({selectedFiles.length})
-                  </Button>
-                  <Button variant="secondary" onClick={deselectAll}>
-                    Bỏ chọn
-                  </Button>
-                </>
-              ) : (
-                <Button variant="secondary" onClick={selectAll}>
-                  Chọn tất cả
-                </Button>
-              )}
-              <Button
-                variant="ghost"
-                icon={<Trash2 size={18} />}
-                onClick={handleClearAll}
-              >
-                Xóa tất cả
-              </Button>
-            </>
-          )}
-        </Actions>
-      </Header>
-
-      {/* POS section */}
-      <POSSelector onChange={(posId) => handlePosChange(posId)} />
-
-      <FileUploadZone onFilesUpload={handleFilesUpload} />
-
-      {isProcessing && (
-        <div style={{ marginTop: '2rem' }}>
-          <Loading type="progress" progress={progress} />
-        </div>
-      )}
-
-      {files.length === 0 ? (
-        <EmptyState
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <EmptyIcon>📂</EmptyIcon>
-          <EmptyText>
-            Chưa có file nào. Kéo thả hoặc nhấn vào vùng phía trên để tải lên.
-          </EmptyText>
-        </EmptyState>
+    <>
+      {isMobileOrTablet ? (
+        <ContractFilesMobile {...layoutProps} />
       ) : (
-        <FilesList>
-          <AnimatePresence mode="popLayout">
-            {files.map((file) => (
-              <motion.div
-                key={file.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, x: -100 }}
-                transition={{ duration: 0.2 }}
-              >
-                <ContractFileCard
-                  file={file}
-                  isSelected={selectedFiles.includes(file.id)}
-                  onToggleSelect={() => toggleFileSelection(file.id)}
-                  onUpdate={(updates) => handleUpdateFile(file.id, updates)}
-                  onDelete={() => handleDeleteFile(file.id)}
-                />
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </FilesList>
+        <ContractFilesDesktop {...layoutProps} />
       )}
 
       {showPrintDialog && (
@@ -325,8 +184,9 @@ const ContractFilesTab = () => {
           onClose={() => setShowPrintDialog(false)}
         />
       )}
-    </Container>
+    </>
   );
 };
 
 export default ContractFilesTab;
+

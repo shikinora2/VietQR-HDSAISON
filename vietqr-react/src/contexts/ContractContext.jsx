@@ -13,8 +13,9 @@ export const useContract = () => {
 };
 
 export const ContractProvider = ({ children }) => {
-  // State management
-  const [contracts, setContracts] = useLocalStorage('contracts', []);
+  // State management - use useState instead of localStorage for contracts
+  // This ensures data is cleared on page refresh
+  const [contracts, setContracts] = useState([]);
   const [currentContract, setCurrentContract] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -50,8 +51,8 @@ export const ContractProvider = ({ children }) => {
    */
   const updateContract = useCallback((contractId, updates) => {
     try {
-      setContracts(prev => 
-        prev.map(contract => 
+      setContracts(prev =>
+        prev.map(contract =>
           contract.id === contractId
             ? { ...contract, ...updates, updatedAt: new Date().toISOString() }
             : contract
@@ -73,7 +74,7 @@ export const ContractProvider = ({ children }) => {
   const deleteContract = useCallback((contractId) => {
     try {
       setContracts(prev => prev.filter(contract => contract.id !== contractId));
-      
+
       if (currentContract?.id === contractId) {
         setCurrentContract(null);
       }
@@ -95,7 +96,7 @@ export const ContractProvider = ({ children }) => {
    */
   const searchContracts = useCallback((query) => {
     const lowerQuery = query.toLowerCase();
-    return contracts.filter(contract => 
+    return contracts.filter(contract =>
       contract.contractNumber?.toLowerCase().includes(lowerQuery) ||
       contract.customerName?.toLowerCase().includes(lowerQuery) ||
       contract.phoneNumber?.includes(query)

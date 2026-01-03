@@ -1,27 +1,29 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { FileText, QrCode, Shield, FileSignature, Printer, Download, Trash2 } from 'lucide-react';
+import { FileText, QrCode, Shield, FileSignature, Printer, Download, Trash2, X, Loader2 } from 'lucide-react';
 import { Button, Input } from '../../components';
+import { combinePdfsForPrinting } from '../../utils/pdfUtils';
+import { useToast } from '../../contexts';
 
 const CardContainer = styled.div`
-  background: ${props => props.theme.colors.background.secondary};
-  border-radius: ${props => props.theme.borderRadius.lg};
-  border: 1px solid ${props => props.theme.colors.border.default};
+  background: rgba(30, 41, 59, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: ${props => props.theme.borderRadius.md};
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: ${props => props.theme.shadows.base};
   overflow: hidden;
-  margin-bottom: ${props => props.theme.spacing.md};
 `;
 
 const CardHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: ${props => props.theme.spacing.md} ${props => props.theme.spacing.lg};
-  background: ${props => props.theme.colors.background.tertiary};
-  border-bottom: 1px solid ${props => props.theme.colors.border.default};
-
+  padding: ${props => props.theme.spacing.sm} ${props => props.theme.spacing.md};
+  
   @media (max-width: ${props => props.theme.breakpoints.mobile}) {
     flex-direction: column;
-    gap: ${props => props.theme.spacing.sm};
+    gap: ${props => props.theme.spacing.xs};
     align-items: flex-start;
   }
 `;
@@ -75,21 +77,28 @@ const DeleteButton = styled(Button)`
 `;
 
 const FilesList = styled.div`
-  padding: ${props => props.theme.spacing.sm};
+  padding: ${props => props.theme.spacing.md};
+  display: flex;
+  flex-direction: column;
+  gap: ${props => props.theme.spacing.xs};
 `;
 
 const FileItem = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: ${props => props.theme.spacing.sm} ${props => props.theme.spacing.md};
-  background: ${props => props.theme.colors.background.primary};
-  border-radius: ${props => props.theme.borderRadius.md};
-  margin-bottom: ${props => props.theme.spacing.xs};
+  padding: ${props => props.theme.spacing.xs} ${props => props.theme.spacing.sm};
+  background: ${props => props.theme.colors.bg.primary};
+  border-radius: ${props => props.theme.borderRadius.sm};
+  margin-bottom: 4px;
   border: 1px solid ${props => props.theme.colors.border.light};
   
   &:hover {
-    background: ${props => props.theme.colors.background.secondary};
+    background: ${props => props.theme.colors.surface.hover};
+  }
+  
+  &:last-child {
+    margin-bottom: 0;
   }
 `;
 
@@ -108,9 +117,16 @@ const FileIcon = styled.span`
   color: ${props => props.color || props.theme.colors.primary[500]};
 `;
 
-const FileName = styled.span`
+const FileName = styled.a`
   font-weight: 500;
   color: ${props => props.theme.colors.text.primary};
+  text-decoration: none;
+  cursor: pointer;
+  
+  &:hover {
+    color: ${props => props.theme.colors.primary[500]};
+    text-decoration: underline;
+  }
 `;
 
 const FileActions = styled.div`
@@ -142,11 +158,85 @@ const PrintButtonsWrapper = styled.div`
   justify-content: center;
   gap: ${props => props.theme.spacing.md};
   padding: ${props => props.theme.spacing.md};
-  border-top: 1px solid ${props => props.theme.colors.border.default};
+  padding-top: 0;
 `;
 
-const PrintButton = styled(Button)`
-  padding: ${props => props.theme.spacing.sm} ${props => props.theme.spacing.lg};
+// Primary button - bright blue
+const PrimaryPrintButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #5BA3E8 0%, #4896de 100%);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 14px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(72, 150, 222, 0.4);
+    background: linear-gradient(135deg, #6BB0F0 0%, #5BA3E8 100%);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+`;
+
+// Secondary button - outline style
+const SecondaryPrintButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: transparent;
+  color: #4896de;
+  font-weight: 600;
+  font-size: 14px;
+  border: 2px solid #4896de;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(72, 150, 222, 0.1);
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+    border-color: rgba(72, 150, 222, 0.5);
+    color: rgba(72, 150, 222, 0.5);
+  }
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
 `;
 
 const formatCurrency = (num) => {
@@ -157,31 +247,20 @@ const formatCurrency = (num) => {
 };
 
 const ContractFileCard = ({ file, isSelected, onToggleSelect, onUpdate, onDelete }) => {
-  const [brandName, setBrandName] = useState(file.brandName || '');
-  const [brandTimeout, setBrandTimeout] = useState(null);
-
-  const handleBrandChange = (e) => {
-    const value = e.target.value;
-    setBrandName(value);
-
-    // Debounce update
-    if (brandTimeout) clearTimeout(brandTimeout);
-    setBrandTimeout(setTimeout(() => {
-      onUpdate({ brandName: value });
-    }, 1000));
-  };
-
   const { fileSet, shd, tenKH, insuranceFee, qrData } = file;
   const contractNumber = shd || qrData?.contract || file.contractNumber || '';
   const customerName = tenKH || file.customerName || '';
   const isDL = contractNumber.startsWith('DL');
+
+  const { error: showError } = useToast();
+  const [loading, setLoading] = useState({ front: false, back: false });
 
   // File definitions
   const fileItems = [
     {
       id: 'hopDong',
       icon: <FileText size={18} />,
-      color: '#F59E0B',
+      color: '#4896de',
       name: 'Hợp Đồng Tín Dụng',
       url: fileSet?.hopDongUrl,
       downloadName: `HopDongTinDung_${contractNumber}.pdf`
@@ -212,22 +291,23 @@ const ContractFileCard = ({ file, isSelected, onToggleSelect, onUpdate, onDelete
       color: '#EC4899',
       name: 'Phiếu Đăng Ký 0%',
       url: fileSet.pdkUrl,
-      downloadName: `PDK_0%_${contractNumber}${brandName ? '_' + brandName.toUpperCase() : ''}.pdf`
+      downloadName: `PDK_0%_${contractNumber}.pdf`
     });
   }
 
-  const handlePrint = (url) => {
-    if (url) window.open(url, '_blank');
-  };
+  const handlePrint = async (type) => {
+    if (loading.front || loading.back) return;
 
-  const handlePrintFront = () => {
-    // TODO: Combine PDFs for front printing
-    console.log('Print front for', contractNumber);
-  };
-
-  const handlePrintBack = () => {
-    // TODO: Combine PDFs for back printing
-    console.log('Print back for', contractNumber);
+    setLoading(prev => ({ ...prev, [type]: true }));
+    try {
+      const url = await combinePdfsForPrinting(fileSet, type);
+      window.open(url, '_blank');
+    } catch (error) {
+      console.error(`In mặt ${type === 'front' ? 'trước' : 'sau'} thất bại:`, error);
+      showError('Lỗi tạo file in', error.message);
+    } finally {
+      setLoading(prev => ({ ...prev, [type]: false }));
+    }
   };
 
   return (
@@ -247,7 +327,7 @@ const ContractFileCard = ({ file, isSelected, onToggleSelect, onUpdate, onDelete
 
         <DeleteButton
           size="sm"
-          icon={<Trash2 size={16} />}
+          icon={<X size={16} />}
           onClick={(e) => {
             e.stopPropagation();
             onDelete();
@@ -255,26 +335,19 @@ const ContractFileCard = ({ file, isSelected, onToggleSelect, onUpdate, onDelete
         />
       </CardHeader>
 
-      <div style={{ padding: '0 16px' }}>
-        <BrandSection>
-          <BrandLabel>Tên hãng:</BrandLabel>
-          <BrandInput
-            value={brandName}
-            onChange={handleBrandChange}
-            placeholder="Nhập tên hãng"
-            size="sm"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </BrandSection>
-      </div>
-
       <FilesList>
         {fileItems.map((item) => (
           item.url && (
             <FileItem key={item.id}>
               <FileItemLeft>
                 <FileIcon color={item.color}>{item.icon}</FileIcon>
-                <FileName>{item.name}</FileName>
+                <FileName
+                  href={item.url}
+                  target="_blank"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {item.name}
+                </FileName>
               </FileItemLeft>
               <FileActions>
                 <IconButton
@@ -300,26 +373,28 @@ const ContractFileCard = ({ file, isSelected, onToggleSelect, onUpdate, onDelete
       </FilesList>
 
       <PrintButtonsWrapper>
-        <PrintButton
-          variant="primary"
-          icon={<Printer size={18} />}
+        <PrimaryPrintButton
+          style={{ flex: 1 }}
+          disabled={loading.front}
           onClick={(e) => {
             e.stopPropagation();
-            handlePrintFront();
+            handlePrint('front');
           }}
         >
-          In mặt trước
-        </PrintButton>
-        <PrintButton
-          variant="warning"
-          icon={<Printer size={18} />}
+          {loading.front ? <Loader2 className="animate-spin" /> : <Printer />}
+          {loading.front ? 'Đang xử lý...' : 'In mặt trước'}
+        </PrimaryPrintButton>
+        <SecondaryPrintButton
+          style={{ flex: 1 }}
+          disabled={loading.back}
           onClick={(e) => {
             e.stopPropagation();
-            handlePrintBack();
+            handlePrint('back');
           }}
         >
-          In mặt sau
-        </PrintButton>
+          {loading.back ? <Loader2 className="animate-spin" /> : <Printer />}
+          {loading.back ? 'Đang xử lý...' : 'In mặt sau'}
+        </SecondaryPrintButton>
       </PrintButtonsWrapper>
     </CardContainer>
   );

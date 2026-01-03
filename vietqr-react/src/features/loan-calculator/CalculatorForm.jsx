@@ -5,6 +5,15 @@ import { formatCurrency } from '../../utils/formatUtils';
 
 const StyledCard = styled(Card)`
   padding: ${props => props.theme.spacing.xl};
+  @media (max-width: ${props => props.theme.breakpoints.tablet}) {
+    padding: ${props => props.theme.spacing.md};
+    
+    /* Target nested inputs for mobile 44px touch target */
+    input {
+      min-height: 44px;
+      font-size: 16px;
+    }
+  }
 `;
 
 const FormTitle = styled.h2`
@@ -12,11 +21,20 @@ const FormTitle = styled.h2`
   font-weight: ${props => props.theme.typography.fontWeight.bold};
   color: ${props => props.theme.colors.text.primary};
   margin-bottom: ${props => props.theme.spacing.lg};
+  
+  @media (max-width: ${props => props.theme.breakpoints.tablet}) {
+    font-size: ${props => props.theme.typography.fontSize.lg};
+    margin-bottom: ${props => props.theme.spacing.md};
+  }
 `;
 
 const FormGrid = styled.div`
   display: grid;
   gap: ${props => props.theme.spacing.lg};
+  
+  @media (max-width: ${props => props.theme.breakpoints.tablet}) {
+    gap: ${props => props.theme.spacing.md};
+  }
 `;
 
 const InputGroup = styled.div`
@@ -48,6 +66,11 @@ const Select = styled.select`
     outline: none;
     border-color: ${props => props.theme.colors.primary.main};
     box-shadow: 0 0 0 2px ${props => props.theme.colors.primary.light}50;
+  }
+
+  @media (max-width: ${props => props.theme.breakpoints.tablet}) {
+    min-height: 44px; /* Ensure 44px on mobile */
+    font-size: 16px;
   }
 `;
 
@@ -82,15 +105,56 @@ const HiddenCheckbox = styled.input.attrs({ type: 'checkbox' })`
   accent-color: ${props => props.theme.colors.primary.main};
 `;
 
-const CalculatorForm = ({ formData, onChange }) => {
+const DownPaymentRow = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${props => props.theme.spacing.sm};
+  width: 100%;
+`;
+
+const PercentInput = styled(Input)`
+  width: 100%;
+  flex-shrink: 0;
+  
+  /* Remove the default Input label styling since we use parent Label */
+  label {
+    display: none;
+  }
+  
+  input {
+    text-align: center;
+  }
+`;
+
+const AmountInput = styled.div`
+  flex: 1;
+  display: flex;
+  
+  /* Ensure inner input wrapper fills width */
+  > div {
+    width: 100%;
+  }
+  
+  /* Remove the default Input label styling since we use parent Label */
+  label {
+    display: none;
+  }
+`;
+
+const CalculatorForm = ({ formData, onChange, compact }) => {
   const handlePriceChange = (value) => {
     const numericValue = Number(value.replace(/\D/g, ''));
-    onChange({ productPrice: numericValue });
-  };
 
-  const handleDownPaymentChange = (value) => {
-    const numericValue = Number(value.replace(/\D/g, ''));
-    onChange({ downPaymentAmount: numericValue });
+    // Auto calculate down payment amount if percent exists
+    if (formData.downPaymentPercent > 0) {
+      const amount = Math.round(numericValue * (formData.downPaymentPercent / 100));
+      onChange({
+        productPrice: numericValue,
+        downPaymentAmount: amount
+      });
+    } else {
+      onChange({ productPrice: numericValue });
+    }
   };
 
   const handleDownPaymentPercentChange = (value) => {
@@ -124,15 +188,16 @@ const CalculatorForm = ({ formData, onChange }) => {
   };
 
   return (
-    <StyledCard variant="elevated">
+    <StyledCard variant="glass">
       <FormTitle>Thông Tin Khoản Vay (HD SAISON)</FormTitle>
 
       <FormGrid>
+        {/* Row 1: Giá sản phẩm + Chương trình vay */}
         <InputGroup>
           <Input
             label="Giá sản phẩm (VNĐ)"
             placeholder="Nhập giá bán"
-            value={formData.productPrice ? formatCurrency(formData.productPrice) : ''}
+            value={formData.productPrice ? formatCurrency(formData.productPrice, false) : ''}
             onChange={(e) => handlePriceChange(e.target.value)}
           />
 
@@ -150,26 +215,46 @@ const CalculatorForm = ({ formData, onChange }) => {
           </div>
         </InputGroup>
 
+        {/* Row 2: Trả trước */}
+        <InputGroup>
+          <div style={{ gridColumn: '1 / -1' }}>
+            <Label>Trả trước</Label>
+            <DownPaymentRow>
+              <PercentInput
+                placeholder="Nhập % trả trước"
+                value={formData.downPaymentPercent > 0 ? formData.downPaymentPercent : ''}
+                onChange={(e) => handleDownPaymentPercentChange(e.target.value)}
+                inputMode="numeric"
+              />
+              <AmountInput>
+                <Input
+                  placeholder="Hoặc nhập số tiền trả trước"
+                  value={formData.downPaymentAmount > 0 ? formatCurrency(formData.downPaymentAmount, false) : ''}
+                  onChange={(e) => handleDownPaymentAmountChange(e.target.value)}
+                  inputMode="numeric"
+                />
+              </AmountInput>
+            </DownPaymentRow>
+          </div>
+        </InputGroup>
+
+        {/* Row 3: Số tiền vay (readonly) */}
         <InputGroup>
           <Input
-            label="Trả trước (VNĐ)"
-            placeholder="Số tiền trả trước"
-            value={formData.downPaymentAmount ? formatCurrency(formData.downPaymentAmount) : ''}
-            onChange={(e) => handleDownPaymentAmountChange(e.target.value)}
-          />
-
-          <Input
-            label="% Trả trước"
-            placeholder="Nhập %"
-            type="number"
-            value={formData.downPaymentPercent ? Math.round(formData.downPaymentPercent) : ''}
-            onChange={(e) => handleDownPaymentPercentChange(e.target.value)}
+            label="Số tiền vay"
+            placeholder="Tự động tính"
+            value={formData.productPrice > 0 && formData.productPrice >= formData.downPaymentAmount
+              ? formatCurrency(formData.productPrice - formData.downPaymentAmount, false)
+              : ''}
+            disabled
+            readOnly
           />
         </InputGroup>
 
+        {/* Row 4: Kỳ hạn vay + Bảo hiểm */}
         <InputGroup>
           <div>
-            <Label>ky hạn vay (tháng)</Label>
+            <Label>Kỳ hạn vay (tháng)</Label>
             <Select
               value={formData.loanTerm}
               onChange={(e) => onChange({ loanTerm: Number(e.target.value) })}

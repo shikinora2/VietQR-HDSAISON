@@ -13,7 +13,7 @@ const StyledCard = styled(motion.div)`
       default: return theme.borderRadius.base;
     }
   }};
-  box-shadow: ${({ theme, $elevated }) => 
+  box-shadow: ${({ theme, $elevated }) =>
     $elevated ? theme.shadows.base : theme.shadows.none
   };
   transition: all ${({ theme }) => theme.transition.base};
@@ -56,10 +56,19 @@ const StyledCard = styled(motion.div)`
       box-shadow: ${theme.shadows.none};
     }
   `}
+  
+  /* Variant: Glass (Legacy/Premium UI) */
+  ${({ theme, $variant }) => $variant === 'glass' && `
+    background: rgba(30, 41, 59, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(248, 250, 252, 0.2);
+    box-shadow: ${theme.shadows.card || theme.shadows.xl};
+  `}
 `;
 
 const CardHeader = styled.div`
-  padding: ${({ theme, $compact }) => 
+  padding: ${({ theme, $compact }) =>
     $compact ? theme.spacing[4] : theme.spacing[6]
   };
   border-bottom: 1px solid ${({ theme }) => theme.colors.border.default};
@@ -84,13 +93,13 @@ const CardDescription = styled.p`
 `;
 
 const CardBody = styled.div`
-  padding: ${({ theme, $compact }) => 
+  padding: ${({ theme, $compact }) =>
     $compact ? theme.spacing[4] : theme.spacing[6]
   };
 `;
 
 const CardFooter = styled.div`
-  padding: ${({ theme, $compact }) => 
+  padding: ${({ theme, $compact }) =>
     $compact ? theme.spacing[4] : theme.spacing[6]
   };
   border-top: 1px solid ${({ theme }) => theme.colors.border.default};
@@ -125,6 +134,7 @@ const Card = ({
       $elevated={elevated}
       $hoverable={hoverable}
       $disabled={disabled}
+      $variant={props.variant} // Pass variant prop
       onClick={!disabled ? onClick : undefined}
       whileHover={hoverable && !disabled ? { y: -2 } : {}}
       whileTap={hoverable && !disabled ? { y: 0 } : {}}

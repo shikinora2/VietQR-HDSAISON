@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { Trash2, Download, Printer, Share2, QrCode } from 'lucide-react';
 import useQRGenerator from '../../hooks/useQRGenerator';
@@ -22,8 +22,15 @@ const RowContainer = styled.div`
   }
 
   @media (max-width: ${props => props.theme.breakpoints.tablet}) {
+    padding: 16px;
+    margin-bottom: 8px;
+    background: rgba(30, 41, 59, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     flex-direction: column;
     align-items: stretch;
+    border: 1px solid rgba(100, 116, 139, 0.3);
+    border-radius: 12px;
   }
 `;
 
@@ -35,7 +42,7 @@ const RowLine = styled.div`
 
   @media (max-width: ${props => props.theme.breakpoints.tablet}) {
     flex-direction: column;
-    gap: ${props => props.theme.spacing.sm};
+    gap: 6px;
   }
 `;
 
@@ -53,11 +60,12 @@ const FieldWrapper = styled.div`
 `;
 
 const Label = styled.label`
-  font-size: ${props => props.theme.typography.fontSize.xs};
-  color: ${props => props.theme.colors.text.secondary};
+  font-size: 12px;
+  color: rgba(248, 250, 252, 0.9);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  font-weight: ${props => props.theme.typography.fontWeight.medium};
+  font-weight: 600;
+  margin-bottom: 4px;
 
   @media (min-width: ${props => props.theme.breakpoints.tablet}) {
     display: none; /* Hide on desktop - show header row instead */
@@ -66,10 +74,10 @@ const Label = styled.label`
 
 const Input = styled.input`
   padding: ${props => props.theme.spacing.sm} ${props => props.theme.spacing.md};
-  border: 1px solid ${props => props.theme.colors.border.default};
-  border-radius: ${props => props.theme.borderRadius.md};
+  border: 1px solid rgba(100, 116, 139, 0.5);
+  border-radius: 12px;
   font-size: ${props => props.theme.typography.fontSize.base};
-  background: ${props => props.theme.colors.bg.input};
+  background: rgba(30, 41, 59, 0.8);
   color: ${props => props.theme.colors.text.primary};
   transition: border-color 0.2s;
   width: 100%;
@@ -81,7 +89,14 @@ const Input = styled.input`
   }
 
   &::placeholder {
-    color: ${props => props.theme.colors.text.tertiary};
+    color: rgba(148, 163, 184, 0.7);
+  }
+
+  @media (max-width: ${props => props.theme.breakpoints.tablet}) {
+    min-height: 50px;
+    font-size: 16px;
+    padding: 12px 16px;
+    border-radius: 8px;
   }
 `;
 
@@ -89,6 +104,10 @@ const ErrorMsg = styled.div`
   font-size: ${props => props.theme.typography.fontSize.xs};
   color: ${props => props.theme.colors.error.main};
   min-height: 16px;
+
+  @media (max-width: ${props => props.theme.breakpoints.tablet}) {
+    display: none;
+  }
 `;
 
 const QRDisplay = styled.div`
@@ -100,8 +119,11 @@ const QRDisplay = styled.div`
   @media (max-width: ${props => props.theme.breakpoints.tablet}) {
     width: 100%;
     justify-content: center;
-    padding-top: ${props => props.theme.spacing.md};
+    padding-top: 10px;
     border-top: 1px solid ${props => props.theme.colors.border.light};
+    margin-top: 4px;
+    /* Hide if empty on mobile */
+    &:empty { display: none; }
   }
 `;
 
@@ -129,19 +151,27 @@ const QRPlaceholder = styled.div`
   align-items: center;
   justify-content: center;
   color: ${props => props.theme.colors.text.tertiary};
+
+  @media (max-width: ${props => props.theme.breakpoints.tablet}) {
+    display: none;
+  }
 `;
 
 const QRActions = styled.div`
   display: flex;
   gap: ${props => props.theme.spacing.xs};
+
+  @media (max-width: ${props => props.theme.breakpoints.tablet}) {
+    display: none;
+  }
 `;
 
 const ActionButton = styled.button`
   width: 36px;
   height: 36px;
-  border: none;
+  border: 1px solid ${props => props.theme.colors.border.default};
   border-radius: ${props => props.theme.borderRadius.full};
-  background: ${props => props.theme.colors.surface.elevated};
+  background: ${props => props.theme.colors.surface.default};
   color: ${props => props.theme.colors.text.secondary};
   cursor: pointer;
   display: flex;
@@ -150,8 +180,8 @@ const ActionButton = styled.button`
   transition: all 0.2s;
 
   &:hover {
-    background: ${props => props.theme.colors.primary.main};
-    color: white;
+    background: ${props => props.theme.colors.surface.hover};
+    border-color: ${props => props.theme.colors.border.light};
   }
 
   &:disabled {
@@ -162,8 +192,8 @@ const ActionButton = styled.button`
 
 const DeleteButton = styled(ActionButton)`
   &:hover {
-    background: ${props => props.theme.colors.error.main};
-    color: white;
+    background: ${props => props.theme.colors.surface.hover};
+    border-color: ${props => props.theme.colors.border.light};
   }
 `;
 
@@ -182,7 +212,7 @@ const MobileRowActions = styled.div`
 const MobileActionBtn = styled.button`
   flex: 1;
   padding: ${props => props.theme.spacing.sm} ${props => props.theme.spacing.md};
-  border: none;
+  border: 1px solid ${props => props.theme.colors.border.default};
   border-radius: ${props => props.theme.borderRadius.md};
   font-size: ${props => props.theme.typography.fontSize.sm};
   font-weight: ${props => props.theme.typography.fontWeight.medium};
@@ -192,15 +222,23 @@ const MobileActionBtn = styled.button`
   justify-content: center;
   gap: ${props => props.theme.spacing.xs};
   transition: all 0.2s;
+  background: ${props => props.theme.colors.surface.default};
+  color: ${props => props.theme.colors.text.secondary};
+  min-height: 40px;
+
+  &:hover {
+    background: ${props => props.theme.colors.surface.hover};
+    border-color: ${props => props.theme.colors.border.light};
+  }
 
   &.primary {
-    background: ${props => props.theme.colors.primary.main};
-    color: white;
+    background: ${props => props.theme.colors.surface.default};
+    color: ${props => props.theme.colors.text.secondary};
   }
 
   &.danger {
-    background: ${props => props.theme.colors.error.light};
-    color: ${props => props.theme.colors.error.main};
+    background: ${props => props.theme.colors.surface.default};
+    color: ${props => props.theme.colors.text.secondary};
   }
 `;
 
@@ -214,14 +252,43 @@ const QRRowItem = ({ row, index, onUpdate, onDelete, onDuplicate, onViewQR }) =>
   const [errors, setErrors] = useState({});
   const { generateContractQRCode, downloadQR } = useQRGenerator();
 
+  // Use ref to store callback to avoid dependency issues
+  const onUpdateRef = useRef(onUpdate);
+  onUpdateRef.current = onUpdate;
+
   // Debounce form data
   const debouncedFormData = useDebounce(formData, 500);
 
+  // Track if initial data has been set to avoid triggering update on mount
+  const isInitialMountRef = useRef(true);
+
+  // Sync props to state when row data changes externally
   useEffect(() => {
-    if (debouncedFormData.contractNumber || debouncedFormData.customerName) {
-      onUpdate(debouncedFormData);
+    setFormData(prev => {
+      if (
+        prev.contractNumber !== (row.contractNumber || '') ||
+        prev.customerName !== (row.customerName || '') ||
+        prev.amount !== (row.amount || '')
+      ) {
+        return {
+          contractNumber: row.contractNumber || '',
+          customerName: row.customerName || '',
+          amount: row.amount || '',
+        };
+      }
+      return prev;
+    });
+  }, [row.contractNumber, row.customerName, row.amount]);
+
+  useEffect(() => {
+    if (isInitialMountRef.current) {
+      isInitialMountRef.current = false;
+      return;
     }
-  }, [debouncedFormData]);
+    if (debouncedFormData.contractNumber || debouncedFormData.customerName || debouncedFormData.amount) {
+      onUpdateRef.current(debouncedFormData);
+    }
+  }, [debouncedFormData.contractNumber, debouncedFormData.customerName, debouncedFormData.amount]);
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -256,10 +323,10 @@ const QRRowItem = ({ row, index, onUpdate, onDelete, onDuplicate, onViewQR }) =>
         <head>
           <title>In QR - ${formData.contractNumber}</title>
           <style>
-            body { 
-              font-family: sans-serif; 
-              text-align: center; 
-              padding: 40px; 
+            body {
+              font-family: sans-serif;
+              text-align: center;
+              padding: 40px;
             }
             img { width: 300px; height: 300px; }
             .info { margin-top: 20px; font-size: 14px; }
@@ -273,8 +340,8 @@ const QRRowItem = ({ row, index, onUpdate, onDelete, onDuplicate, onViewQR }) =>
             <div><strong>Số tiền:</strong> ${formatCurrency(formData.amount)} VNĐ</div>
           </div>
           <script>
-            window.onload = () => { 
-              setTimeout(() => { window.print(); window.close(); }, 500); 
+            window.onload = () => {
+              setTimeout(() => { window.print(); window.close(); }, 500);
             };
           </script>
         </body>
@@ -290,7 +357,6 @@ const QRRowItem = ({ row, index, onUpdate, onDelete, onDuplicate, onViewQR }) =>
 
     try {
       await navigator.clipboard.writeText(shareUrl);
-      // Show toast here if needed
     } catch (error) {
       console.error('Error copying share link:', error);
     }
@@ -374,14 +440,9 @@ const QRRowItem = ({ row, index, onUpdate, onDelete, onDuplicate, onViewQR }) =>
             </QRActions>
           </>
         ) : (
-          <>
-            <QRPlaceholder>
-              <QrCode size={24} />
-            </QRPlaceholder>
-            <DeleteButton onClick={onDelete} title="Xóa">
-              <Trash2 size={16} />
-            </DeleteButton>
-          </>
+          <QRPlaceholder>
+            <QrCode size={24} />
+          </QRPlaceholder>
         )}
       </QRDisplay>
     </RowContainer>
