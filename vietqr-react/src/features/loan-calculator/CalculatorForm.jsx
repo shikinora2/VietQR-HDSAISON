@@ -93,9 +93,11 @@ const CheckboxContainer = styled.label`
   border-radius: ${props => props.theme.borderRadius.md};
   border: 1px solid ${props => props.isChecked ? props.theme.colors.primary.main : 'transparent'};
   transition: all 0.2s;
+  opacity: 0.5;
 
   &:hover {
     background: ${props => props.theme.colors.background.hover};
+    opacity: 0.7;
   }
 `;
 
@@ -105,12 +107,6 @@ const HiddenCheckbox = styled.input.attrs({ type: 'checkbox' })`
   accent-color: ${props => props.theme.colors.primary.main};
 `;
 
-const DownPaymentRow = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: ${props => props.theme.spacing.sm};
-  width: 100%;
-`;
 
 const PercentInput = styled(Input)`
   width: 100%;
@@ -217,24 +213,25 @@ const CalculatorForm = ({ formData, onChange, compact }) => {
 
         {/* Row 2: Trả trước */}
         <InputGroup>
-          <div style={{ gridColumn: '1 / -1' }}>
-            <Label>Trả trước</Label>
-            <DownPaymentRow>
-              <PercentInput
-                placeholder="Nhập % trả trước"
-                value={formData.downPaymentPercent > 0 ? formData.downPaymentPercent : ''}
-                onChange={(e) => handleDownPaymentPercentChange(e.target.value)}
+          <div>
+            <Label>Phần trăm trả trước (%)</Label>
+            <PercentInput
+              placeholder="Nhập %"
+              value={formData.downPaymentPercent > 0 ? formData.downPaymentPercent : ''}
+              onChange={(e) => handleDownPaymentPercentChange(e.target.value)}
+              inputMode="numeric"
+            />
+          </div>
+          <div>
+            <Label>Số tiền trả trước (VNĐ)</Label>
+            <AmountInput>
+              <Input
+                placeholder="Hoặc nhập số tiền"
+                value={formData.downPaymentAmount > 0 ? formatCurrency(formData.downPaymentAmount, false) : ''}
+                onChange={(e) => handleDownPaymentAmountChange(e.target.value)}
                 inputMode="numeric"
               />
-              <AmountInput>
-                <Input
-                  placeholder="Hoặc nhập số tiền trả trước"
-                  value={formData.downPaymentAmount > 0 ? formatCurrency(formData.downPaymentAmount, false) : ''}
-                  onChange={(e) => handleDownPaymentAmountChange(e.target.value)}
-                  inputMode="numeric"
-                />
-              </AmountInput>
-            </DownPaymentRow>
+            </AmountInput>
           </div>
         </InputGroup>
 
