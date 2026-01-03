@@ -302,7 +302,7 @@ const QRRowItem = ({ row, index, onUpdate, onDelete, onDuplicate, onViewQR }) =>
     setFormData(prev => ({ ...prev, amount: numericValue }));
   };
 
-  const isComplete = formData.contractNumber && formData.customerName && formData.amount;
+  const isComplete = formData.contractNumber && formData.amount;
   const qrUrl = isComplete ? generateContractQRCode(formData) : null;
 
   const handleDownload = async () => {
@@ -390,7 +390,7 @@ const QRRowItem = ({ row, index, onUpdate, onDelete, onDuplicate, onViewQR }) =>
           <Input
             placeholder="Số tiền (VND)"
             inputMode="numeric"
-            value={formData.amount ? formatCurrency(formData.amount) : ''}
+            value={formData.amount ? formatCurrency(formData.amount, false) : ''}
             onChange={(e) => handleAmountChange(e.target.value)}
           />
           <ErrorMsg>{errors.amount || ''}</ErrorMsg>
