@@ -172,7 +172,7 @@ const ContractFilesDesktop = ({
                         >
                             <EmptyIcon>📂</EmptyIcon>
                             <EmptyText>
-                                Chưa có file nào. Tải lên file PDF ở bên trái.
+                                Chưa có file nào. Tải lên file PDF ở bên trên.
                             </EmptyText>
                         </EmptyState>
                     ) : (
