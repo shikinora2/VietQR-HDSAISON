@@ -8,6 +8,7 @@ import { POSProvider } from './contexts/POSContext';
 import { AdvisorProvider } from './contexts/AdvisorContext';
 import { UIProvider } from './contexts/UIContext';
 import { NotificationProvider } from './contexts/NotificationContext';
+import { BREAKPOINTS } from './hooks/useResponsive';
 import {
   QrCode,
   Printer,
@@ -23,8 +24,15 @@ const ExportTab = lazy(() => import('./features/export/ExportTab'));
 
 const QRViewer = lazy(() => import('./features/qr-generator/QRViewer'));
 
+// Determine default tab based on device type
+const getDefaultTab = () => {
+  if (typeof window === 'undefined') return 'print-contract';
+  // Mobile/tablet: default to loan calculator (ED), Desktop: default to print contract
+  return window.innerWidth < BREAKPOINTS.desktop ? 'loan-calculator' : 'print-contract';
+};
+
 function AppContent() {
-  const [activeTab, setActiveTab] = useState('print-contract');
+  const [activeTab, setActiveTab] = useState(getDefaultTab);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isViewerMode, setIsViewerMode] = useState(false);
 
