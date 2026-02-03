@@ -444,11 +444,101 @@ export const findPaymentPage = async (pdf) => {
 };
 
 /**
+ * ==================== INFO BOX - BORDER ====================
+ * Vẽ khung chữ nhật (có thể điều chỉnh độc lập)
+ * @param {object} page - pdf-lib page object
+ * @param {function} rgb - rgb function from pdf-lib
+ * @param {object} borderConfig - { x, y, width, height, borderWidth }
+ */
+const drawInfoBoxBorder = (page, rgb, borderConfig = {}) => {
+  const boxX = borderConfig.x ?? 5;
+  const boxY = borderConfig.y ?? (page.getHeight() - 65);
+  const boxWidth = borderConfig.width ?? 200;
+  const boxHeight = borderConfig.height ?? 60;
+  const borderWidth = borderConfig.borderWidth ?? 1;
+
+  page.drawRectangle({
+    x: boxX,
+    y: boxY,
+    width: boxWidth,
+    height: boxHeight,
+    borderColor: rgb(0, 0, 0),
+    borderWidth: borderWidth,
+  });
+};
+
+/**
+ * ==================== INFO BOX - TEXT ====================
+ * Vẽ 4 dòng dữ liệu text (có thể điều chỉnh độc lập)
+ * @param {object} page - pdf-lib page object
+ * @param {object} font - Vietnamese font object
+ * @param {object} data - { chuongTrinh, thoiHanVay, laiSuat, phiBaoHiem }
+ * @param {function} rgb - rgb function from pdf-lib
+ * @param {object} textConfig - { x, y, fontSize, lineHeight }
+ */
+const drawInfoBoxText = (page, font, data = {}, rgb, textConfig = {}) => {
+  const textX = textConfig.x ?? 10;
+  let textY = textConfig.y ?? (page.getHeight() - 75);
+  const fontSize = textConfig.fontSize ?? 7;
+  const lineHeight = textConfig.lineHeight ?? 12;
+
+  const lines = [
+    `Chương trình: ${data.chuongTrinh || '...'}`,
+    `Thời hạn vay: ${data.thoiHanVay || '...'}`,
+    `Lãi suất thực tế hàng tháng: ${data.laiSuat || '...'}%`,
+    `Phí bảo hiểm: ${data.phiBaoHiem || '...'}vnđ/tháng`
+  ];
+
+  lines.forEach(line => {
+    page.drawText(line, {
+      x: textX,
+      y: textY,
+      size: fontSize,
+      font: font,
+      color: rgb(0, 0, 0),
+    });
+    textY -= lineHeight;
+  });
+};
+
+/**
+ * ==================== INFO BOX - COMBINED ====================
+ * Vẽ cả khung và dữ liệu (wrapper function)
+ */
+const drawInfoBox = (page, fonts, data = {}, rgb, boxConfig = {}) => {
+  const pageHeight = page.getHeight();
+
+  // Config cho KHUNG (điều chỉnh ở đây)
+  const borderConfig = {
+    x: 135,                      // Vị trí X
+    y: pageHeight - 80,        // Vị trí Y
+    width: 275,                // Chiều rộng
+    height: 60,                // Chiều cao
+    borderWidth: 1             // Độ dày viền
+  };
+
+  // Config cho TEXT (điều chỉnh ở đây)
+  const textConfig = {
+    x: 140,                     // Vị trí X của text
+    y: pageHeight - 30,        // Vị trí Y của dòng đầu
+    fontSize: 11,               // Cỡ chữ
+    lineHeight: 15             // Khoảng cách giữa các dòng
+  };
+
+  // Vẽ khung
+  drawInfoBoxBorder(page, rgb, borderConfig);
+
+  // Vẽ text
+  drawInfoBoxText(page, fonts.regular, data, rgb, textConfig);
+};
+
+
+/**
  * Generate Contract File Set (HopDong.pdf, ThanhToan.pdf with QR, BaoHiem.pdf, PDK 0%)
- * @param {object} data - { file, qrData, pdkData, brandName, posId }
+ * @param {object} data - { file, qrData, pdkData, brandName, posId, infoBoxData }
  * @returns {Promise<object>} { hopDongUrl, thanhToanUrl, baoHiemUrl, pdkUrl }
  */
-export const generateContractFileSet = async ({ file, qrData, pdkData, brandName = '', posId = 'POS24414' }) => {
+export const generateContractFileSet = async ({ file, qrData, pdkData, brandName = '', posId = 'POS24414', infoBoxData = {} }) => {
   try {
     const { PDFDocument } = await import('pdf-lib');
     const arrayBuffer = await file.arrayBuffer();
@@ -478,6 +568,36 @@ export const generateContractFileSet = async ({ file, qrData, pdkData, brandName
 
     const copiedPages = await hopDongDoc.copyPages(originalPdfDoc, pagesToCopy);
     copiedPages.forEach(p => hopDongDoc.addPage(p));
+
+    // Embed Vietnamese font for info box
+    const { rgb } = await import('pdf-lib');
+    const fontkit = (await import('@pdf-lib/fontkit')).default;
+    hopDongDoc.registerFontkit(fontkit);
+
+    // Fetch Vietnamese font (Times New Roman)
+    const FONT_URL = 'https://rawcdn.githack.com/shikinora2/VietQR-HDSAISON/f0381eb2e75227df3ceeb4ff3e8979f11229af35/SVN-Times%20New%20Roman%20Bold.ttf';
+    const fontResponse = await fetch(FONT_URL);
+    const fontBytes = await fontResponse.arrayBuffer();
+    const vietnameseFont = await hopDongDoc.embedFont(fontBytes, { subset: false });
+
+    // Draw info box on first page (top-left corner, above HDSAISON logo)
+    if (hopDongDoc.getPageCount() > 0) {
+      const firstPage = hopDongDoc.getPages()[0];
+      const pageHeight = firstPage.getHeight();
+
+      drawInfoBox(firstPage, { regular: vietnameseFont, bold: vietnameseFont }, {
+        chuongTrinh: infoBoxData.chuongTrinh || '',
+        thoiHanVay: infoBoxData.thoiHanVay || '',
+        laiSuat: infoBoxData.laiSuat || '',
+        phiBaoHiem: infoBoxData.phiBaoHiem || ''
+      }, rgb, {
+        x: 5,                    // Cách lề trái 30px
+        y: pageHeight - 65,       // Cách đỉnh trang 75px (nằm trên HDSAISON)
+        width: 200,               // Chiều rộng gọn 200px
+        height: 60                // Chiều cao gọn 60px
+      });
+    }
+
     const hopDongBytes = await hopDongDoc.save();
     const hopDongUrl = URL.createObjectURL(new Blob([hopDongBytes], { type: 'application/pdf' }));
 

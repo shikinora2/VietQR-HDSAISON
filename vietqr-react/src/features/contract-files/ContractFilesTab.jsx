@@ -83,12 +83,36 @@ const ContractFilesTab = () => {
         try {
           if (file && data.qrData) {
             console.log('[ContractFilesTab] Generating file set for:', data.fileName);
+
+            // Determine program type based on product
+            // "0% - có trả trước" for phone products, "0% - Không trả trước" for others
+            const sanPham = (data.sanPham || '').toUpperCase();
+            const isPhone = sanPham.includes('ĐIỆN THOẠI') ||
+              sanPham.includes('DIEN THOAI') ||
+              sanPham.includes('PHONE') ||
+              sanPham.includes('IPHONE') ||
+              sanPham.includes('SAMSUNG') ||
+              sanPham.includes('OPPO') ||
+              sanPham.includes('XIAOMI') ||
+              sanPham.includes('REALME') ||
+              sanPham.includes('VIVO');
+            const chuongTrinh = isPhone ? '0% - có trả trước' : '0% - Không trả trước';
+
+            // Create infoBoxData
+            const infoBoxData = {
+              chuongTrinh: chuongTrinh,
+              thoiHanVay: data.thoiHanVay || data.thoiHan || '',
+              laiSuat: '0',  // Always 0% for all products
+              phiBaoHiem: data.insuranceFee || ''
+            };
+
             fileSet = await generateContractFileSet({
               file,
               qrData: data.qrData,
               pdkData: data,
               brandName: '',
-              posId: selectedPOS
+              posId: selectedPOS,
+              infoBoxData: infoBoxData
             });
             console.log('[ContractFilesTab] Generated file set:', fileSet);
           }
