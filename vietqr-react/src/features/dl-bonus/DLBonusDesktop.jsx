@@ -157,9 +157,6 @@ const DLBonusDesktop = ({
                             <thead>
                                 <tr>
                                     <ContractsTh style={{ width: '30px' }}>#</ContractsTh>
-                                    <ContractsTh style={{ width: '100px' }}>NGÀY LÀM HĐ</ContractsTh>
-                                    <ContractsTh style={{ minWidth: '150px' }}>TÊN KHÁCH HÀNG</ContractsTh>
-                                    <ContractsTh style={{ width: '100px' }}>SỐ HĐ</ContractsTh>
                                     <ContractsTh style={{ width: '70px' }}>KỲ HẠN</ContractsTh>
                                     <ContractsTh style={{ width: '120px' }}>KHOẢN VAY</ContractsTh>
                                     <ContractsTh style={{ width: '70px' }}>BẢO HIỂM<br />(Có=Y)</ContractsTh>
@@ -175,29 +172,6 @@ const DLBonusDesktop = ({
                                     <tr key={contract.id}>
                                         <ContractsTd>
                                             <ContractResultCell>{index + 1}</ContractResultCell>
-                                        </ContractsTd>
-                                        <ContractsTd>
-                                            <ContractInput
-                                                type="date"
-                                                value={contract.ngayLamHD}
-                                                onChange={(e) => onContractChange(contract.id, 'ngayLamHD', e.target.value)}
-                                            />
-                                        </ContractsTd>
-                                        <ContractsTd>
-                                            <ContractInput
-                                                type="text"
-                                                value={contract.tenKhachHang}
-                                                onChange={(e) => onContractChange(contract.id, 'tenKhachHang', e.target.value)}
-                                                placeholder="Nhập tên..."
-                                            />
-                                        </ContractsTd>
-                                        <ContractsTd>
-                                            <ContractInput
-                                                type="text"
-                                                value={contract.soHD}
-                                                onChange={(e) => onContractChange(contract.id, 'soHD', e.target.value)}
-                                                placeholder="Số HĐ"
-                                            />
                                         </ContractsTd>
                                         <ContractsTd>
                                             <ContractSelect

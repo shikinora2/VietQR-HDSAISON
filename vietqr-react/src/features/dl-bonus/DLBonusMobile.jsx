@@ -3,9 +3,9 @@
  * Layout: TỔNG THƯỞNG trung tâm, inputs gọn, chi tiết gộp
  */
 
-import React from 'react';
-import { motion } from 'framer-motion';
-import { RotateCcw } from 'lucide-react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { RotateCcw, FileText, X, Plus, Trash2, Save } from 'lucide-react';
 import styled from 'styled-components';
 import { Button } from '../../components';
 import {
@@ -18,10 +18,6 @@ import {
     DetailCard,
     DetailCardLabel,
     DetailCardValue,
-    InputGrid,
-    InputItem,
-    InputLabel,
-    InputField,
     KeyValueGrid,
     KeyValueItem,
     KeyLabel,
@@ -57,6 +53,335 @@ const MobileContainer = styled.div`
   padding: ${props => props.theme.spacing.sm};
 `;
 
+// Mobile-specific input styles
+const MobileInputGrid = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${props => props.theme.spacing.md};
+  padding: ${props => props.theme.spacing.sm};
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+`;
+
+const MobileInputRow = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: ${props => props.theme.spacing.sm};
+  width: 100%;
+  min-width: 0;
+`;
+
+const MobileInputItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+  ${props => props.$fullWidth && `
+    grid-column: 1 / -1;
+  `}
+`;
+
+const MobileInputLabel = styled.label`
+  font-size: 12px;
+  font-weight: 600;
+  color: ${props => props.theme.colors.text.secondary};
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const MobileInputField = styled.input`
+  background: rgba(30, 41, 59, 0.6);
+  border: 1.5px solid rgba(248, 250, 252, 0.2);
+  border-radius: ${props => props.theme.borderRadius.md};
+  padding: 12px 10px;
+  font-size: 15px;
+  color: ${props => props.theme.colors.text.primary};
+  text-align: center;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+  
+  &:focus {
+    border-color: rgba(59, 130, 246, 0.6);
+    background: rgba(30, 41, 59, 0.8);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  }
+  
+  &::placeholder {
+    color: ${props => props.theme.colors.text.secondary};
+    opacity: 0.6;
+    font-size: 13px;
+  }
+`;
+
+// Popup Overlay & Modal Styles
+const PopupOverlay = styled(motion.div)`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+`;
+
+const PopupModal = styled(motion.div)`
+  background: rgba(15, 23, 42, 0.98);
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  width: 100%;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(248, 250, 252, 0.1);
+  margin-bottom: 70px;
+`;
+
+const PopupHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: ${props => props.theme.spacing.md};
+  border-bottom: 1px solid rgba(248, 250, 252, 0.1);
+  flex-shrink: 0;
+`;
+
+const PopupTitle = styled.h2`
+  font-size: ${props => props.theme.typography.fontSize.lg};
+  font-weight: ${props => props.theme.typography.fontWeight.bold};
+  color: ${props => props.theme.colors.text.primary};
+  margin: 0;
+`;
+
+const CloseButton = styled.button`
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f87171;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: rgba(239, 68, 68, 0.4);
+  }
+`;
+
+const PopupContent = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  padding: ${props => props.theme.spacing.md};
+  -webkit-overflow-scrolling: touch;
+  max-height: calc(80vh - 150px);
+`;
+
+const PopupFooter = styled.div`
+  display: flex;
+  gap: ${props => props.theme.spacing.sm};
+  padding: ${props => props.theme.spacing.md};
+  border-top: 1px solid rgba(248, 250, 252, 0.1);
+  flex-shrink: 0;
+  background: rgba(15, 23, 42, 0.98);
+  min-height: 60px;
+`;
+
+// Contract Card Styles for Mobile
+const ContractCard = styled.div`
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(248, 250, 252, 0.1);
+  border-radius: ${props => props.theme.borderRadius.lg};
+  padding: ${props => props.theme.spacing.md};
+  margin-bottom: ${props => props.theme.spacing.md};
+`;
+
+const ContractCardHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: ${props => props.theme.spacing.sm};
+`;
+
+const ContractNumber = styled.span`
+  font-size: 14px;
+  font-weight: 600;
+  color: #60a5fa;
+`;
+
+const DeleteButton = styled.button`
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: ${props => props.theme.borderRadius.sm};
+  padding: 6px 10px;
+  font-size: 12px;
+  color: #f87171;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  
+  &:hover {
+    background: rgba(239, 68, 68, 0.4);
+  }
+`;
+
+const ContractFieldsGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: ${props => props.theme.spacing.sm};
+`;
+
+const ContractField = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  ${props => props.$fullWidth && `grid-column: 1 / -1;`}
+`;
+
+const ContractFieldLabel = styled.label`
+  font-size: 11px;
+  color: ${props => props.theme.colors.text.secondary};
+  text-transform: uppercase;
+`;
+
+const ContractFieldInput = styled.input`
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(248, 250, 252, 0.15);
+  border-radius: ${props => props.theme.borderRadius.sm};
+  padding: 10px 12px;
+  font-size: 14px;
+  color: ${props => props.theme.colors.text.primary};
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  
+  &:focus {
+    border-color: rgba(59, 130, 246, 0.5);
+  }
+  
+  &::placeholder {
+    color: ${props => props.theme.colors.text.secondary};
+    opacity: 0.5;
+  }
+`;
+
+const ContractFieldSelect = styled.select`
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(248, 250, 252, 0.15);
+  border-radius: ${props => props.theme.borderRadius.sm};
+  padding: 10px 12px;
+  font-size: 14px;
+  color: ${props => props.theme.colors.text.primary};
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  
+  option {
+    background: #1e293b;
+  }
+`;
+
+const AddContractButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  background: rgba(59, 130, 246, 0.15);
+  border: 2px dashed rgba(59, 130, 246, 0.4);
+  border-radius: ${props => props.theme.borderRadius.lg};
+  color: #60a5fa;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: rgba(59, 130, 246, 0.25);
+    border-color: rgba(59, 130, 246, 0.6);
+  }
+`;
+
+const SaveButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 1;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  border: none;
+  border-radius: ${props => props.theme.borderRadius.lg};
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+    transform: translateY(-1px);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+`;
+
+// Button to open popup
+const OpenPopupButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+  border: 1.5px solid rgba(59, 130, 246, 0.4);
+  border-radius: ${props => props.theme.borderRadius.lg};
+  color: #60a5fa;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(139, 92, 246, 0.3) 100%);
+    border-color: rgba(59, 130, 246, 0.6);
+    transform: translateY(-1px);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+`;
+
+const ContractCount = styled.span`
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 13px;
+`;
+
 // Format number with thousands separator
 const formatNumber = (num) => {
     if (num === '-' || num === null || num === undefined) return '-';
@@ -69,7 +394,23 @@ const parseNumber = (str) => {
     return Number(String(str).replace(/[^0-9.-]/g, '')) || 0;
 };
 
-const DLBonusMobile = ({ formData, results, onFormChange, onReset }) => {
+const DLBonusMobile = ({
+    formData,
+    results,
+    contracts,
+    onFormChange,
+    onContractChange,
+    onAddContract,
+    onDeleteContract,
+    onReset
+}) => {
+    const [isPopupOpen, setIsPopupOpen] = useState(false);
+
+    // Count valid contracts (those with at least some data)
+    const validContractCount = contracts.filter(c =>
+        c.tenKhachHang || c.soHD || c.khoanVay
+    ).length;
+
     return (
         <>
             {/* Header */}
@@ -94,68 +435,90 @@ const DLBonusMobile = ({ formData, results, onFormChange, onReset }) => {
                 >
                     <Section>
                         <SectionTitle>NHẬP THÔNG TIN</SectionTitle>
-                        <div style={{ padding: '0.5rem' }}>
-                            <InputGrid>
-                                <InputItem>
-                                    <InputLabel>TARGET DL</InputLabel>
-                                    <InputField
+                        <MobileInputGrid>
+                            <MobileInputRow>
+                                <MobileInputItem>
+                                    <MobileInputLabel>TARGET DL</MobileInputLabel>
+                                    <MobileInputField
                                         type="text"
                                         inputMode="numeric"
                                         value={formatNumber(formData.targetDL)}
                                         onChange={(e) => onFormChange('targetDL', parseNumber(e.target.value))}
-                                        placeholder="0"
+                                        placeholder="Nhập target DL..."
                                     />
-                                </InputItem>
-                                <InputItem>
-                                    <InputLabel>TARGET ED</InputLabel>
-                                    <InputField
+                                </MobileInputItem>
+                                <MobileInputItem>
+                                    <MobileInputLabel>TARGET ED</MobileInputLabel>
+                                    <MobileInputField
                                         type="text"
                                         inputMode="numeric"
                                         value={formatNumber(formData.targetED)}
                                         onChange={(e) => onFormChange('targetED', parseNumber(e.target.value))}
-                                        placeholder="0"
+                                        placeholder="Nhập target ED..."
                                     />
-                                </InputItem>
-                                <InputItem>
-                                    <InputLabel>DOANH SỐ ED</InputLabel>
-                                    <InputField
-                                        type="text"
-                                        inputMode="numeric"
-                                        value={formatNumber(formData.doanhSoED)}
-                                        onChange={(e) => onFormChange('doanhSoED', parseNumber(e.target.value))}
-                                        placeholder="0"
-                                    />
-                                </InputItem>
-                                <InputItem>
-                                    <InputLabel>PR3 DL</InputLabel>
-                                    <InputField
+                                </MobileInputItem>
+                            </MobileInputRow>
+                            <MobileInputItem $fullWidth>
+                                <MobileInputLabel>DOANH SỐ ED</MobileInputLabel>
+                                <MobileInputField
+                                    type="text"
+                                    inputMode="numeric"
+                                    value={formatNumber(formData.doanhSoED)}
+                                    onChange={(e) => onFormChange('doanhSoED', parseNumber(e.target.value))}
+                                    placeholder="Nhập doanh số ED..."
+                                />
+                            </MobileInputItem>
+                            <MobileInputRow>
+                                <MobileInputItem>
+                                    <MobileInputLabel>PR3 DL (%)</MobileInputLabel>
+                                    <MobileInputField
                                         type="text"
                                         inputMode="decimal"
                                         value={formData.pr3DL}
                                         onChange={(e) => onFormChange('pr3DL', parseFloat(e.target.value) || 0)}
-                                        placeholder="0.00"
+                                        placeholder="VD: 0.5"
                                     />
-                                </InputItem>
-                                <InputItem>
-                                    <InputLabel>PR6 DL</InputLabel>
-                                    <InputField
+                                </MobileInputItem>
+                                <MobileInputItem>
+                                    <MobileInputLabel>PR6 DL (%)</MobileInputLabel>
+                                    <MobileInputField
                                         type="text"
                                         inputMode="decimal"
                                         value={formData.pr6DL}
                                         onChange={(e) => onFormChange('pr6DL', parseFloat(e.target.value) || 0)}
-                                        placeholder="0.00"
+                                        placeholder="VD: 0.3"
                                     />
-                                </InputItem>
-                            </InputGrid>
-                        </div>
+                                </MobileInputItem>
+                            </MobileInputRow>
+                        </MobileInputGrid>
                     </Section>
                 </motion.div>
 
-                {/* Section 2: KẾT QUẢ */}
+                {/* Section 2: CHI TIẾT HỢP ĐỒNG - Button to open popup */}
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.2, delay: 0.05 }}
+                >
+                    <Section>
+                        <SectionTitle>CHI TIẾT HỢP ĐỒNG</SectionTitle>
+                        <div style={{ padding: '0.75rem' }}>
+                            <OpenPopupButton onClick={() => setIsPopupOpen(true)}>
+                                <FileText size={20} />
+                                Nhập chi tiết hợp đồng
+                                {validContractCount > 0 && (
+                                    <ContractCount>{validContractCount} HĐ</ContractCount>
+                                )}
+                            </OpenPopupButton>
+                        </div>
+                    </Section>
+                </motion.div>
+
+                {/* Section 3: KẾT QUẢ */}
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2, delay: 0.1 }}
                 >
                     <Section>
                         <SectionTitle>KẾT QUẢ</SectionTitle>
@@ -190,11 +553,11 @@ const DLBonusMobile = ({ formData, results, onFormChange, onReset }) => {
                     </Section>
                 </motion.div>
 
-                {/* Section 3: CHI TIẾT */}
+                {/* Section 4: CHI TIẾT */}
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2, delay: 0.1 }}
+                    transition={{ duration: 0.2, delay: 0.15 }}
                 >
                     <Section>
                         <SectionTitle>CHI TIẾT TÍNH TOÁN</SectionTitle>
@@ -221,8 +584,108 @@ const DLBonusMobile = ({ formData, results, onFormChange, onReset }) => {
                     </Section>
                 </motion.div>
             </MobileContainer>
+
+            {/* Popup Modal for Contract Details */}
+            <AnimatePresence>
+                {isPopupOpen && (
+                    <PopupOverlay
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setIsPopupOpen(false)}
+                    >
+                        <PopupModal
+                            initial={{ y: '100%' }}
+                            animate={{ y: 0 }}
+                            exit={{ y: '100%' }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <PopupHeader>
+                                <PopupTitle>📋 Chi tiết hợp đồng</PopupTitle>
+                                <CloseButton onClick={() => setIsPopupOpen(false)}>
+                                    <X size={18} />
+                                </CloseButton>
+                            </PopupHeader>
+
+                            <PopupContent>
+                                {contracts.map((contract, index) => (
+                                    <ContractCard key={contract.id}>
+                                        <ContractCardHeader>
+                                            <ContractNumber>Hợp đồng #{index + 1}</ContractNumber>
+                                            <DeleteButton onClick={() => onDeleteContract(contract.id)}>
+                                                <Trash2 size={12} />
+                                                Xóa
+                                            </DeleteButton>
+                                        </ContractCardHeader>
+
+                                        <ContractFieldsGrid>
+                                            <ContractField>
+                                                <ContractFieldLabel>Kỳ hạn</ContractFieldLabel>
+                                                <ContractFieldSelect
+                                                    value={contract.kyHan}
+                                                    onChange={(e) => onContractChange(contract.id, 'kyHan', e.target.value)}
+                                                >
+                                                    <option value="">-- Chọn --</option>
+                                                    <option value="6">6 tháng</option>
+                                                    <option value="9">9 tháng</option>
+                                                    <option value="12">12 tháng</option>
+                                                    <option value="15">15 tháng</option>
+                                                    <option value="18">18 tháng</option>
+                                                    <option value="24">24 tháng</option>
+                                                </ContractFieldSelect>
+                                            </ContractField>
+                                            <ContractField>
+                                                <ContractFieldLabel>Khoản vay</ContractFieldLabel>
+                                                <ContractFieldInput
+                                                    type="text"
+                                                    inputMode="numeric"
+                                                    value={formatNumber(contract.khoanVay)}
+                                                    onChange={(e) => onContractChange(contract.id, 'khoanVay', parseNumber(e.target.value))}
+                                                    placeholder="Nhập số tiền"
+                                                />
+                                            </ContractField>
+                                            <ContractField>
+                                                <ContractFieldLabel>Bảo hiểm</ContractFieldLabel>
+                                                <ContractFieldSelect
+                                                    value={contract.baoHiem}
+                                                    onChange={(e) => onContractChange(contract.id, 'baoHiem', e.target.value)}
+                                                >
+                                                    <option value="N">Không (N)</option>
+                                                    <option value="Y">Có (Y)</option>
+                                                </ContractFieldSelect>
+                                            </ContractField>
+                                            <ContractField>
+                                                <ContractFieldLabel>Mã Scheme</ContractFieldLabel>
+                                                <ContractFieldInput
+                                                    type="text"
+                                                    value={contract.maScheme}
+                                                    onChange={(e) => onContractChange(contract.id, 'maScheme', e.target.value)}
+                                                    placeholder="Nhập mã"
+                                                />
+                                            </ContractField>
+                                        </ContractFieldsGrid>
+                                    </ContractCard>
+                                ))}
+
+                                <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+                                    <AddContractButton onClick={onAddContract} style={{ flex: 1 }}>
+                                        <Plus size={18} />
+                                        Thêm HĐ
+                                    </AddContractButton>
+                                    <SaveButton onClick={() => setIsPopupOpen(false)}>
+                                        <Save size={18} />
+                                        Lưu
+                                    </SaveButton>
+                                </div>
+                            </PopupContent>
+                        </PopupModal>
+                    </PopupOverlay>
+                )}
+            </AnimatePresence>
         </>
     );
 };
 
 export default DLBonusMobile;
+

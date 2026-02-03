@@ -13,7 +13,6 @@ import {
   QrCode,
   Printer,
   Calculator,
-  FileSpreadsheet,
   Award,
 } from 'lucide-react';
 
@@ -21,7 +20,7 @@ import {
 const QRGeneratorTab = lazy(() => import('./features/qr-generator/QRGeneratorTab'));
 const PrintContractTab = lazy(() => import('./features/contract-files/ContractFilesTab'));
 const LoanCalculatorTab = lazy(() => import('./features/loan-calculator/LoanCalculatorTab'));
-const ExportTab = lazy(() => import('./features/export/ExportTab'));
+
 const DLBonusTab = lazy(() => import('./features/dl-bonus/DLBonusTab'));
 
 const QRViewer = lazy(() => import('./features/qr-generator/QRViewer'));
@@ -63,7 +62,6 @@ function AppContent() {
         { id: 'print-contract', label: 'In bộ hợp đồng', icon: <Printer size={20} /> },
         { id: 'qr-generator', label: 'Tạo mã QR', icon: <QrCode size={20} /> },
         { id: 'loan-calculator', label: 'Tính Khoản Vay (ED)', icon: <Calculator size={20} /> },
-        { id: 'export', label: 'Trích xuất hợp đồng', icon: <FileSpreadsheet size={20} /> },
         { id: 'dl-bonus', label: 'Tính thưởng DL', icon: <Award size={20} /> },
       ]
     }
@@ -73,7 +71,6 @@ function AppContent() {
     { id: 'print-contract', label: 'In HĐ', icon: <Printer size={20} /> },
     { id: 'qr-generator', label: 'QR', icon: <QrCode size={20} /> },
     { id: 'loan-calculator', label: 'Tính toán', icon: <Calculator size={20} /> },
-    { id: 'export', label: 'Trích xuất', icon: <FileSpreadsheet size={20} /> },
     { id: 'dl-bonus', label: 'Thưởng DL', icon: <Award size={20} /> },
   ];
 
@@ -87,7 +84,6 @@ function AppContent() {
       case 'print-contract': return 'In bộ hợp đồng';
       case 'qr-generator': return 'Tạo mã QR';
       case 'loan-calculator': return 'Tính Khoản Vay (ED)';
-      case 'export': return 'Trích xuất hợp đồng';
       case 'dl-bonus': return 'Tính thưởng DL';
       default: return 'VietQR HD SAISON';
     }
@@ -107,9 +103,7 @@ function AppContent() {
         <div style={{ display: activeTab === 'loan-calculator' ? 'block' : 'none' }}>
           <LoanCalculatorTab />
         </div>
-        <div style={{ display: activeTab === 'export' ? 'block' : 'none' }}>
-          <ExportTab />
-        </div>
+
         <div style={{ display: activeTab === 'dl-bonus' ? 'block' : 'none' }}>
           <DLBonusTab />
         </div>
