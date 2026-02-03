@@ -47,10 +47,11 @@ const formatNumber = (num) => {
     return Number(num).toLocaleString('vi-VN');
 };
 
-// Parse number from formatted string
+// Parse number from formatted string (vi-VN uses . for thousands, , for decimal)
 const parseNumber = (str) => {
     if (!str) return 0;
-    return Number(String(str).replace(/[^0-9.-]/g, '')) || 0;
+    // Remove dots (thousand separators in vi-VN) and keep only digits
+    return Number(String(str).replace(/\./g, '').replace(/[^0-9-]/g, '')) || 0;
 };
 
 const DLBonusDesktop = ({
@@ -115,7 +116,7 @@ const DLBonusDesktop = ({
                                 />
                             </InputItem>
                             <InputItem>
-                                <InputLabel>PR3 DL</InputLabel>
+                                <InputLabel>PR3 DL (%)</InputLabel>
                                 <InputField
                                     type="text"
                                     value={formData.pr3DL}
@@ -124,7 +125,7 @@ const DLBonusDesktop = ({
                                 />
                             </InputItem>
                             <InputItem>
-                                <InputLabel>PR6 DL</InputLabel>
+                                <InputLabel>PR6 DL (%)</InputLabel>
                                 <InputField
                                     type="text"
                                     value={formData.pr6DL}
@@ -157,12 +158,12 @@ const DLBonusDesktop = ({
                             <thead>
                                 <tr>
                                     <ContractsTh style={{ width: '30px' }}>#</ContractsTh>
-                                    <ContractsTh style={{ width: '70px' }}>KỲ HẠN</ContractsTh>
-                                    <ContractsTh style={{ width: '120px' }}>KHOẢN VAY</ContractsTh>
+                                    <ContractsTh style={{ width: '80px' }}>KỲ HẠN</ContractsTh>
+                                    <ContractsTh style={{ width: '130px' }}>KHOẢN VAY</ContractsTh>
                                     <ContractsTh style={{ width: '70px' }}>BẢO HIỂM<br />(Có=Y)</ContractsTh>
-                                    <ContractsTh style={{ width: '100px' }}>MÃ SCHEME</ContractsTh>
-                                    <ContractsTh style={{ width: '100px' }} $highlight>BẢO HIỂM</ContractsTh>
-                                    <ContractsTh style={{ width: '120px' }} $highlight>THƯỞNG DS</ContractsTh>
+                                    <ContractsTh style={{ width: '90px' }}>ĐIỂM<br />SCHEME</ContractsTh>
+                                    <ContractsTh style={{ width: '100px' }} $highlight>THƯỞNG BH</ContractsTh>
+                                    <ContractsTh style={{ width: '130px' }} $highlight>THƯỞNG DS</ContractsTh>
                                     <ContractsTh style={{ width: '80px' }} $highlight>HỆ SỐ (%)</ContractsTh>
                                     <ContractsTh style={{ width: '40px' }}></ContractsTh>
                                 </tr>
@@ -205,21 +206,25 @@ const DLBonusDesktop = ({
                                             </ContractSelect>
                                         </ContractsTd>
                                         <ContractsTd>
-                                            <ContractInput
-                                                type="text"
-                                                value={contract.maScheme}
-                                                onChange={(e) => onContractChange(contract.id, 'maScheme', e.target.value)}
-                                                placeholder="Mã..."
-                                            />
+                                            <ContractSelect
+                                                value={contract.diemScheme}
+                                                onChange={(e) => onContractChange(contract.id, 'diemScheme', e.target.value)}
+                                            >
+                                                <option value="">--</option>
+                                                <option value="A">A</option>
+                                                <option value="B">B</option>
+                                                <option value="C">C</option>
+                                                <option value="D">D</option>
+                                            </ContractSelect>
                                         </ContractsTd>
                                         <ContractsTd $highlight>
-                                            <ContractResultCell $highlight>{contract.baoHiemValue}</ContractResultCell>
+                                            <ContractResultCell $highlight>{formatNumber(contract.calculatedInsurance)}</ContractResultCell>
                                         </ContractsTd>
                                         <ContractsTd $highlight>
-                                            <ContractResultCell $highlight>{contract.thuongDoanhSo}</ContractResultCell>
+                                            <ContractResultCell $highlight>{formatNumber(contract.calculatedDS)}</ContractResultCell>
                                         </ContractsTd>
                                         <ContractsTd $highlight>
-                                            <ContractResultCell $highlight>{contract.heSo}</ContractResultCell>
+                                            <ContractResultCell $highlight>{contract.calculatedHeSo || '-'}</ContractResultCell>
                                         </ContractsTd>
                                         <ContractsTd>
                                             <DeleteRowButton onClick={() => onDeleteContract(contract.id)}>
@@ -280,32 +285,47 @@ const DLBonusDesktop = ({
                 transition={{ duration: 0.3, delay: 0.3 }}
             >
                 <Section>
-                    <SectionTitle>CHI TIẾT TÍNH TOÁN</SectionTitle>
+                    <SectionTitle>CHI TIẾT CÔNG THỨC: (A + B) × C + D</SectionTitle>
                     <div style={{ padding: '0.5rem' }}>
                         <KeyValueGrid>
                             <KeyValueItem>
-                                <KeyLabel>Hệ số đạt chỉ tiêu</KeyLabel>
-                                <KeyValue>{results.heSoDatChiTieu}</KeyValue>
+                                <KeyLabel>A: Thưởng DS × Hệ số Pr</KeyLabel>
+                                <KeyValue style={{ color: '#60a5fa' }}>{formatNumber(results.details?.A || 0)}</KeyValue>
                             </KeyValueItem>
                             <KeyValueItem>
-                                <KeyLabel>Mức thưởng</KeyLabel>
-                                <KeyValue>{formatNumber(results.thuongDatChiTieu.mucThuong)}</KeyValue>
+                                <KeyLabel>B: Thưởng chỉ tiêu × Hệ số vượt</KeyLabel>
+                                <KeyValue style={{ color: '#34d399' }}>{formatNumber(results.details?.B || 0)}</KeyValue>
                             </KeyValueItem>
                             <KeyValueItem>
-                                <KeyLabel>% Giải ngân</KeyLabel>
-                                <KeyValue>{results.thuongDatChiTieu.phanTramGiaiNgan}</KeyValue>
+                                <KeyLabel>C: Hệ số ngành hàng (CT)</KeyLabel>
+                                <KeyValue style={{ color: '#fbbf24' }}>{results.details?.C || 0}</KeyValue>
                             </KeyValueItem>
                             <KeyValueItem>
-                                <KeyLabel>Hệ số Risk</KeyLabel>
-                                <KeyValue>{results.thuongDoanhSoRisk.heSoRisk}</KeyValue>
+                                <KeyLabel>D: Thưởng bảo hiểm</KeyLabel>
+                                <KeyValue style={{ color: '#f472b6' }}>{formatNumber(results.details?.D || 0)}</KeyValue>
+                            </KeyValueItem>
+                        </KeyValueGrid>
+                        <div style={{ margin: '1rem 0', padding: '0.75rem', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '8px', textAlign: 'center' }}>
+                            <span style={{ color: 'rgba(248, 250, 252, 0.7)', fontSize: '0.85rem' }}>
+                                ({formatNumber(results.details?.A || 0)} + {formatNumber(results.details?.B || 0)}) × {results.details?.C || 0} + {formatNumber(results.details?.D || 0)} = <strong style={{ color: '#22c55e', fontSize: '1rem' }}>{formatNumber(results.tongIncentive?.tongThuong || 0)}</strong>
+                            </span>
+                        </div>
+                        <KeyValueGrid>
+                            <KeyValueItem>
+                                <KeyLabel>Hệ số Pr3\Pr6</KeyLabel>
+                                <KeyValue>{results.thuongDoanhSoRisk?.heSoRisk || 0}</KeyValue>
                             </KeyValueItem>
                             <KeyValueItem>
-                                <KeyLabel>TARGET DI</KeyLabel>
-                                <KeyValue>{formatNumber(results.thuongDatChiTieu.targetDI)}</KeyValue>
+                                <KeyLabel>Hệ số vượt chỉ tiêu</KeyLabel>
+                                <KeyValue>{results.thuongDatChiTieu?.heSo || 0}</KeyValue>
                             </KeyValueItem>
                             <KeyValueItem>
-                                <KeyLabel>Kênh</KeyLabel>
-                                <KeyValue>{results.thuongDoanhSoRisk.kenh}</KeyValue>
+                                <KeyLabel>% Giải ngân DL</KeyLabel>
+                                <KeyValue>{results.thuongDatChiTieu?.phanTramGiaiNgan || '0%'}</KeyValue>
+                            </KeyValueItem>
+                            <KeyValueItem>
+                                <KeyLabel>Tổng giải ngân DL</KeyLabel>
+                                <KeyValue>{results.thuongDatChiTieu?.giaiNganDL || '-'}</KeyValue>
                             </KeyValueItem>
                         </KeyValueGrid>
                     </div>
