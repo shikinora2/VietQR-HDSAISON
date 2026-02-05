@@ -114,6 +114,21 @@ const ContractFilesTab = () => {
               posId: selectedPOS,
               infoBoxData: infoBoxData
             });
+
+            // Nếu không có file bảo hiểm và chưa có phí bảo hiểm, set thành 0
+            if (fileSet && !fileSet.hasInsurance && !data.insuranceFee) {
+              infoBoxData.phiBaoHiem = '0';
+              // Regenerate với phí bảo hiểm = 0
+              fileSet = await generateContractFileSet({
+                file,
+                qrData: data.qrData,
+                pdkData: data,
+                brandName: '',
+                posId: selectedPOS,
+                infoBoxData: infoBoxData
+              });
+            }
+
             console.log('[ContractFilesTab] Generated file set:', fileSet);
           }
         } catch (e) {

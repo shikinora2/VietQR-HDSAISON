@@ -675,7 +675,7 @@ export const generateContractFileSet = async ({ file, qrData, pdkData, brandName
       }
     }
 
-    return { hopDongUrl, thanhToanUrl, baoHiemUrl, pdkUrl };
+    return { hopDongUrl, thanhToanUrl, baoHiemUrl, pdkUrl, hasInsurance: baoHiemUrl !== null };
 
   } catch (error) {
     console.error("Error generating file set:", error);
