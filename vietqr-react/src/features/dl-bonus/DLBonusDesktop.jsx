@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { RotateCcw, Plus, Trash2 } from 'lucide-react';
+import { RotateCcw, Plus, Trash2, Download } from 'lucide-react';
 import { Button } from '../../components';
 import {
     Container,
@@ -62,20 +62,30 @@ const DLBonusDesktop = ({
     onContractChange,
     onAddContract,
     onDeleteContract,
-    onReset
+    onReset,
+    onExportExcel
 }) => {
     return (
         <Container style={{ maxWidth: '1200px' }}>
             {/* Header */}
             <Header>
                 <Title>💰 Tính Thưởng DL</Title>
-                <Button
-                    variant="ghost"
-                    icon={<RotateCcw size={18} />}
-                    onClick={onReset}
-                >
-                    Làm mới
-                </Button>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                    <Button
+                        variant="success"
+                        icon={<Download size={18} />}
+                        onClick={onExportExcel}
+                    >
+                        Xuất Excel
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        icon={<RotateCcw size={18} />}
+                        onClick={onReset}
+                    >
+                        Làm mới
+                    </Button>
+                </div>
             </Header>
 
             {/* Section 1: NHẬP THÔNG TIN - Layout grid gọn */}

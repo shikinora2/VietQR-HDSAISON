@@ -6,6 +6,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useBreakpoint } from '../../hooks/useResponsive';
+import { useToast } from '../../contexts';
+import * as XLSX from 'xlsx';
 import DLBonusDesktop from './DLBonusDesktop';
 import DLBonusMobile from './DLBonusMobile';
 import { calculateDLBonus } from './dlBonusCalculator';
@@ -284,6 +286,94 @@ const DLBonusTab = () => {
         ]);
     };
 
+    // Toast hook
+    const { showToast } = useToast();
+
+    // Export to Excel
+    const handleExportExcel = () => {
+        // Filter valid contracts (có nhập khoản vay)
+        const validContracts = contracts.filter(c => c.khoanVay && c.khoanVay > 0);
+
+        if (validContracts.length === 0) {
+            showToast('Vui lòng nhập ít nhất 1 hợp đồng để xuất Excel', 'warning');
+            return;
+        }
+
+        // Sheet 1: Thông tin tổng quan
+        const infoData = [
+            ['THÔNG TIN TÍNH THƯỞNG DL'],
+            [],
+            ['THÔNG SỐ ĐẦU VÀO'],
+            ['Target DL', formData.targetDL],
+            ['Target ED', formData.targetED],
+            ['Doanh số ED', formData.doanhSoED],
+            ['PR3 DL (%)', formData.pr3DL],
+            ['PR6 DL (%)', formData.pr6DL],
+            [],
+            ['KẾT QUẢ TÍNH TOÁN'],
+            ['Thành phần', 'Giá trị'],
+            ['A: Thưởng DS × Hệ số Pr', results.details?.A || 0],
+            ['B: Thưởng chỉ tiêu × Hệ số vượt', results.details?.B || 0],
+            ['C: Hệ số ngành hàng', results.details?.C || 0],
+            ['D: Thưởng bảo hiểm', results.details?.D || 0],
+            [],
+            ['Công thức: (A + B) × C + D'],
+            ['TỔNG THƯỞNG', results.tongIncentive?.tongThuong || 0],
+            [],
+            ['CHI TIẾT THƯỞNG'],
+            ['Thưởng đạt Target', results.tongIncentive?.thuongDatTarget || '-'],
+            ['Thưởng DS theo HS Risk', results.tongIncentive?.thuongDSTheoHSRisk || '-'],
+            ['Thưởng Bảo Hiểm', results.tongIncentive?.thuongBaoHiem || '-'],
+            [],
+            ['HỆ SỐ'],
+            ['Hệ số Pr3\\Pr6', results.thuongDoanhSoRisk?.heSoRisk || 0],
+            ['Hệ số vượt chỉ tiêu', results.thuongDatChiTieu?.heSo || 0],
+            ['% Giải ngân DL', results.thuongDatChiTieu?.phanTramGiaiNgan || '0%'],
+            ['Tổng giải ngân DL', results.thuongDatChiTieu?.giaiNganDL || '-'],
+        ];
+
+        // Sheet 2: Chi tiết hợp đồng
+        const contractHeaders = ['STT', 'Kỳ hạn (tháng)', 'Khoản vay', 'Bảo hiểm', 'Điểm Scheme', 'Thưởng BH', 'Thưởng DS', 'Hệ số (%)'];
+        const contractRows = validContracts.map((contract, index) => [
+            index + 1,
+            contract.kyHan || '-',
+            contract.khoanVay || 0,
+            contract.baoHiem === 'Y' ? 'Có' : 'Không',
+            contract.diemScheme || '-',
+            contract.calculatedInsurance || 0,
+            contract.calculatedDS || 0,
+            contract.calculatedHeSo || 0,
+        ]);
+        const contractData = [contractHeaders, ...contractRows];
+
+        // Tạo workbook
+        const wb = XLSX.utils.book_new();
+
+        // Sheet 1: Thông tin
+        const ws1 = XLSX.utils.aoa_to_sheet(infoData);
+        ws1['!cols'] = [{ wch: 30 }, { wch: 20 }];
+        XLSX.utils.book_append_sheet(wb, ws1, 'Thông tin');
+
+        // Sheet 2: Chi tiết HĐ
+        const ws2 = XLSX.utils.aoa_to_sheet(contractData);
+        ws2['!cols'] = [
+            { wch: 6 },   // STT
+            { wch: 15 },  // Kỳ hạn
+            { wch: 18 },  // Khoản vay
+            { wch: 12 },  // Bảo hiểm
+            { wch: 15 },  // Điểm Scheme
+            { wch: 15 },  // Thưởng BH
+            { wch: 18 },  // Thưởng DS
+            { wch: 12 },  // Hệ số
+        ];
+        XLSX.utils.book_append_sheet(wb, ws2, 'Chi tiết HĐ');
+
+        // Xuất file
+        const fileName = `TinhThuong_DL_${new Date().toISOString().split('T')[0]}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+        showToast(`Đã xuất file ${fileName} thành công!`, 'success');
+    };
+
     const layoutProps = {
         formData,
         results,
@@ -293,6 +383,7 @@ const DLBonusTab = () => {
         onAddContract: handleAddContract,
         onDeleteContract: handleDeleteContract,
         onReset: handleReset,
+        onExportExcel: handleExportExcel,
     };
 
     return isMobileOrTablet ? (

@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RotateCcw, FileText, X, Plus, Trash2, Save } from 'lucide-react';
+import { RotateCcw, FileText, X, Plus, Trash2, Save, Download } from 'lucide-react';
 import styled from 'styled-components';
 import { Button } from '../../components';
 import {
@@ -323,7 +323,8 @@ const DLBonusMobile = ({
   onContractChange,
   onAddContract,
   onDeleteContract,
-  onReset
+  onReset,
+  onExportExcel
 }) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
 
@@ -335,14 +336,24 @@ const DLBonusMobile = ({
     <>
       <MobileHeader>
         <MobileTitle>💰 Tính Thưởng DL</MobileTitle>
-        <Button
-          variant="ghost"
-          icon={<RotateCcw size={16} />}
-          onClick={onReset}
-          size="sm"
-        >
-          Làm mới
-        </Button>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          <Button
+            variant="success"
+            icon={<Download size={16} />}
+            onClick={onExportExcel}
+            size="sm"
+          >
+            Xuất
+          </Button>
+          <Button
+            variant="ghost"
+            icon={<RotateCcw size={16} />}
+            onClick={onReset}
+            size="sm"
+          >
+            Làm mới
+          </Button>
+        </div>
       </MobileHeader>
 
       <MobileContainer>
