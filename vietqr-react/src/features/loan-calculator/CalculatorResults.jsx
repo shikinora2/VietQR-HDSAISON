@@ -89,13 +89,13 @@ const ResultLabel = styled.div`
 `;
 
 const ResultValue = styled(motion.div)`
-  font-size: ${props => props.$compact ? props.theme.typography.fontSize.base : props.theme.typography.fontSize['2xl']};
+  font-size: ${props => props.$compact ? props.theme.typography.fontSize['2xl'] : props.theme.typography.fontSize['2xl']};
   font-weight: ${props => props.theme.typography.fontWeight.bold};
   color: ${props => props.theme.colors.text.primary};
   margin-top: ${props => props.$compact ? '4px' : props.theme.spacing.xs};
 
   @media (max-width: ${props => props.theme.breakpoints.tablet}) {
-    font-size: ${props => props.$compact ? props.theme.typography.fontSize.sm : props.theme.typography.fontSize.xl};
+    font-size: ${props => props.$compact ? props.theme.typography.fontSize.lg : props.theme.typography.fontSize.xl};
   }
 `;
 
