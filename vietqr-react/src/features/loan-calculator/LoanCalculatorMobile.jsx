@@ -10,23 +10,24 @@ const Container = styled.div`
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: ${props => props.theme.spacing.md};
+  gap: ${props => props.theme.spacing.xs};
+  min-height: calc(100vh - 60px);
 `;
 
 const Header = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: ${props => props.theme.spacing.md};
+  padding: ${props => props.theme.spacing.xs} ${props => props.theme.spacing.sm};
   background: ${props => props.theme.colors.surface.default};
   border-bottom: 1px solid ${props => props.theme.colors.border.light};
   box-shadow: ${props => props.theme.shadows.sm};
-  gap: ${props => props.theme.spacing.sm};
+  gap: ${props => props.theme.spacing.xs};
   margin: -${props => props.theme.spacing.md} -${props => props.theme.spacing.md} 0 -${props => props.theme.spacing.md};
 `;
 
 const Title = styled.h1`
-  font-size: ${props => props.theme.typography.fontSize.lg};
+  font-size: ${props => props.theme.typography.fontSize.base};
   font-weight: ${props => props.theme.typography.fontWeight.bold};
   color: ${props => props.theme.colors.text.primary};
   margin: 0;
@@ -35,7 +36,8 @@ const Title = styled.h1`
 const StackedLayout = styled.div`
   display: flex;
   flex-direction: column;
-  gap: ${props => props.theme.spacing.md};
+  gap: ${props => props.theme.spacing.xs};
+  flex: 1;
 `;
 
 /**
@@ -76,6 +78,7 @@ const LoanCalculatorMobile = ({
                 </motion.div>
 
                 <motion.div
+                    style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.2, delay: 0.1 }}

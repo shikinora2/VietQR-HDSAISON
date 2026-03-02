@@ -4,14 +4,14 @@ import { Card, Input, Button } from '../../components';
 import { formatCurrency } from '../../utils/formatUtils';
 
 const StyledCard = styled(Card)`
-  padding: ${props => props.theme.spacing.xl};
+  padding: ${props => props.$compact ? props.theme.spacing.sm : props.theme.spacing.xl};
   @media (max-width: ${props => props.theme.breakpoints.tablet}) {
-    padding: ${props => props.theme.spacing.md};
+    padding: ${props => props.$compact ? props.theme.spacing.sm : props.theme.spacing.md};
     
     /* Target nested inputs for mobile 44px touch target */
     input {
-      min-height: 44px;
-      font-size: 16px;
+      min-height: ${props => props.$compact ? '38px' : '44px'};
+      font-size: ${props => props.$compact ? '14px' : '16px'};
     }
   }
 `;
@@ -26,21 +26,25 @@ const FormTitle = styled.h2`
     font-size: ${props => props.theme.typography.fontSize.lg};
     margin-bottom: ${props => props.theme.spacing.md};
   }
+
+  ${props => props.$compact && `
+    display: none;
+  `}
 `;
 
 const FormGrid = styled.div`
   display: grid;
-  gap: ${props => props.theme.spacing.lg};
+  gap: ${props => props.$compact ? props.theme.spacing.xs : props.theme.spacing.lg};
   
   @media (max-width: ${props => props.theme.breakpoints.tablet}) {
-    gap: ${props => props.theme.spacing.md};
+    gap: ${props => props.$compact ? props.theme.spacing.xs : props.theme.spacing.md};
   }
 `;
 
 const InputGroup = styled.div`
   display: grid;
-  gap: ${props => props.theme.spacing.md};
-  grid-template-columns: 1fr;
+  gap: ${props => props.$compact ? props.theme.spacing.xs : props.theme.spacing.md};
+  grid-template-columns: ${props => props.$compact ? '1fr 1fr' : '1fr'};
 
   @media (min-width: ${props => props.theme.breakpoints.tablet}) {
     grid-template-columns: 1fr 1fr;
@@ -76,8 +80,8 @@ const Select = styled.select`
 
 const Label = styled.label`
   display: block;
-  margin-bottom: ${props => props.theme.spacing.xs};
-  font-size: ${props => props.theme.typography.fontSize.sm};
+  margin-bottom: ${props => props.$compact ? '2px' : props.theme.spacing.xs};
+  font-size: ${props => props.$compact ? '11px' : props.theme.typography.fontSize.sm};
   font-weight: ${props => props.theme.typography.fontWeight.medium};
   color: ${props => props.theme.colors.text.primary};
 `;
@@ -184,14 +188,14 @@ const CalculatorForm = ({ formData, onChange, compact }) => {
   };
 
   return (
-    <StyledCard variant="glass">
-      <FormTitle>Thông Tin Khoản Vay (HD SAISON)</FormTitle>
+    <StyledCard variant="glass" $compact={compact}>
+      <FormTitle $compact={compact}>Thông Tin Khoản Vay (HD SAISON)</FormTitle>
 
-      <FormGrid>
+      <FormGrid $compact={compact}>
         {/* Row 1: Giá sản phẩm + Chương trình vay */}
-        <InputGroup>
+        <InputGroup $compact={compact}>
           <div>
-            <Label>Giá sản phẩm (VNĐ)</Label>
+            <Label $compact={compact}>{compact ? 'Giá SP (VNĐ)' : 'Giá sản phẩm (VNĐ)'}</Label>
             <Input
               placeholder="Nhập giá bán"
               value={formData.productPrice ? formatCurrency(formData.productPrice, false) : ''}
@@ -200,7 +204,7 @@ const CalculatorForm = ({ formData, onChange, compact }) => {
           </div>
 
           <div>
-            <Label>Chương trình vay</Label>
+            <Label $compact={compact}>{compact ? 'CT vay' : 'Chương trình vay'}</Label>
             <Select
               value={formData.loanProgram}
               onChange={(e) => onChange({ loanProgram: e.target.value })}
@@ -214,9 +218,9 @@ const CalculatorForm = ({ formData, onChange, compact }) => {
         </InputGroup>
 
         {/* Row 2: Trả trước */}
-        <InputGroup>
+        <InputGroup $compact={compact}>
           <div>
-            <Label>Phần trăm trả trước (%)</Label>
+            <Label $compact={compact}>{compact ? 'TT trước (%)' : 'Phần trăm trả trước (%)'}</Label>
             <PercentInput
               placeholder="Nhập %"
               value={formData.downPaymentPercent > 0 ? formData.downPaymentPercent : ''}
@@ -225,7 +229,7 @@ const CalculatorForm = ({ formData, onChange, compact }) => {
             />
           </div>
           <div>
-            <Label>Số tiền trả trước (VNĐ)</Label>
+            <Label $compact={compact}>{compact ? 'Số tiền TT (VNĐ)' : 'Số tiền trả trước (VNĐ)'}</Label>
             <AmountInput>
               <Input
                 placeholder="Hoặc nhập số tiền"
@@ -237,25 +241,27 @@ const CalculatorForm = ({ formData, onChange, compact }) => {
           </div>
         </InputGroup>
 
-        {/* Row 3: Số tiền vay (readonly) */}
-        <InputGroup>
-          <div>
-            <Label>Số tiền vay</Label>
-            <Input
-              placeholder="Tự động tính"
-              value={formData.productPrice > 0 && formData.productPrice >= formData.downPaymentAmount
-                ? formatCurrency(formData.productPrice - formData.downPaymentAmount, false)
-                : ''}
-              disabled
-              readOnly
-            />
-          </div>
-        </InputGroup>
+        {/* Row 3: Số tiền vay (readonly) - ẩn khi compact */}
+        {!compact && (
+          <InputGroup>
+            <div>
+              <Label>Số tiền vay</Label>
+              <Input
+                placeholder="Tự động tính"
+                value={formData.productPrice > 0 && formData.productPrice >= formData.downPaymentAmount
+                  ? formatCurrency(formData.productPrice - formData.downPaymentAmount, false)
+                  : ''}
+                disabled
+                readOnly
+              />
+            </div>
+          </InputGroup>
+        )}
 
         {/* Row 4: Kỳ hạn vay + Bảo hiểm */}
-        <InputGroup>
+        <InputGroup $compact={compact}>
           <div>
-            <Label>Kỳ hạn vay (tháng)</Label>
+            <Label $compact={compact}>{compact ? 'Kỳ hạn (tháng)' : 'Kỳ hạn vay (tháng)'}</Label>
             <Select
               value={formData.loanTerm}
               onChange={(e) => onChange({ loanTerm: Number(e.target.value) })}

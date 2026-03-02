@@ -131,10 +131,15 @@ export const extractAllDataFromPdfText = (fullText, paymentPageText = '') => {
   const ngayGiaiNgan = findValue(/2\.6\.\s*Ngày giải ngân dự kiến:\s*([0-9\/]+)/) ||
     findValue(/Ngày giải ngân:\s*([0-9\/]+)/);
 
-  const thoiHanVay = findValue(/2\.5\. Thời Hạn Vay:\s*(.*?)\s*3\./);
+  const thoiHanVay = findValue(/2\.5\.?\s*Thời Hạn Vay:\s*(\d+\s*[Tt]háng)/) ||
+    findValue(/Thời Hạn Vay:\s*(\d+\s*[Tt]háng)/) || '';
 
   const insuranceFee = findValue(/4\.3\.\s*Phí bảo hiểm:\s*([0-9,.]+)\s*VNĐ\/tháng/) ||
     findValue(/Phí bảo hiểm:\s*([0-9,.]+)\s*VNĐ\/tháng/);
+
+  // Trích xuất Lãi Suất Thực Tế Hàng Tháng từ mục 5.4
+  const laiSuatThucTe = findValue(/5\.4\.?\s*Lãi Suất Thực Tế Hàng Tháng:\s*([0-9,.]+)\s*%/) ||
+    findValue(/Lãi Suất Thực Tế Hàng Tháng:\s*([0-9,.]+)\s*%/) || '0';
 
   // PDK specific fields
   let sanPham = findValue(/5\.9\.1\. Sản Phẩm Được Tài Trợ 1:\s*(.*?)(?:\s*Tổng Giá Bán|\s*5\.9\.2\.)/);
@@ -186,6 +191,7 @@ export const extractAllDataFromPdfText = (fullText, paymentPageText = '') => {
     ngayGiaiNgan,
     thoiHanVay,
     insuranceFee,
+    laiSuatThucTe,
     // PDK specific fields
     sanPham,
     giaBan,

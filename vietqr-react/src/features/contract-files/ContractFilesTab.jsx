@@ -96,13 +96,26 @@ const ContractFilesTab = () => {
               sanPham.includes('XIAOMI') ||
               sanPham.includes('REALME') ||
               sanPham.includes('VIVO');
-            const chuongTrinh = isPhone ? '0% - có trả trước' : '0% - Không trả trước';
+            // Determine program & interest rate from extracted data
+            const laiSuatThucTe = parseFloat((data.laiSuatThucTe || '0').replace(',', '.'));
+            let chuongTrinh;
+            let laiSuat;
+
+            if (laiSuatThucTe > 0) {
+              // Có lãi suất > 0% → Chương trình 0.5%
+              chuongTrinh = '0.5% - không trả trước';
+              laiSuat = data.laiSuatThucTe || '0.91';
+            } else {
+              // Lãi suất 0% → Xác định theo sản phẩm
+              chuongTrinh = isPhone ? '0% - có trả trước' : '0% - Không trả trước';
+              laiSuat = '0';
+            }
 
             // Create infoBoxData
             const infoBoxData = {
-              chuongTrinh: chuongTrinh,
+              chuongTrinh,
               thoiHanVay: data.thoiHanVay || data.thoiHan || '',
-              laiSuat: '0',  // Always 0% for all products
+              laiSuat,
               phiBaoHiem: data.insuranceFee || ''
             };
 
