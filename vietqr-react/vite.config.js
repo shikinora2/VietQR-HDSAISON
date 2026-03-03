@@ -6,6 +6,8 @@ import { visualizer } from 'rollup-plugin-visualizer';
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/hdsaison/',
+
   plugins: [
     react({
       // Enable Fast Refresh
