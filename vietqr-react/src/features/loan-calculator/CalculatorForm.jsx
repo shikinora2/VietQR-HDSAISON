@@ -200,6 +200,8 @@ const CalculatorForm = ({ formData, onChange, compact }) => {
               placeholder="Nhập giá bán"
               value={formData.productPrice ? formatCurrency(formData.productPrice, false) : ''}
               onChange={(e) => handlePriceChange(e.target.value)}
+              inputMode="numeric"
+              type="text"
             />
           </div>
 
@@ -225,7 +227,8 @@ const CalculatorForm = ({ formData, onChange, compact }) => {
               placeholder="Nhập %"
               value={formData.downPaymentPercent > 0 ? formData.downPaymentPercent : ''}
               onChange={(e) => handleDownPaymentPercentChange(e.target.value)}
-              inputMode="numeric"
+              inputMode="decimal"
+              type="text"
             />
           </div>
           <div>
