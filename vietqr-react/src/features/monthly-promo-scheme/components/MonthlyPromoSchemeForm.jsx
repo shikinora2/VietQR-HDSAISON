@@ -1,26 +1,19 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Card, Input, Button } from '../../components';
-import { formatCurrency } from '../../utils/formatUtils';
-
-const defaultLoanProgramOptions = [
-  { value: '0', label: 'Lãi suất 0%' },
-  { value: '0.005', label: 'Lãi suất 0.5%' },
-  { value: '0.01', label: 'Lãi suất 1%' },
-  { value: 'regular', label: 'Lãi thường' },
-];
-
-const defaultCustomerTypeOptions = [
-  { value: 'all', label: 'Tất cả khách hàng' },
-  { value: 'gamer', label: 'Khách hàng chơi game' },
-];
+import { Card, Input } from '../../../components';
+import { formatCurrency } from '../../../utils/formatUtils';
+import {
+  MONTHLY_PROMO_PROGRAM_OPTIONS,
+  MONTHLY_PROMO_CUSTOMER_TYPE_OPTIONS,
+  MONTHLY_PROMO_LOAN_TERM_OPTIONS,
+} from '../constants';
 
 const StyledCard = styled(Card)`
   padding: ${props => props.$compact ? props.theme.spacing.sm : props.theme.spacing.xl};
+
   @media (max-width: ${props => props.theme.breakpoints.tablet}) {
     padding: ${props => props.$compact ? props.theme.spacing.sm : props.theme.spacing.md};
-    
-    /* Target nested inputs for mobile 44px touch target */
+
     input {
       min-height: ${props => props.$compact ? '38px' : '44px'};
       font-size: ${props => props.$compact ? '14px' : '16px'};
@@ -33,7 +26,7 @@ const FormTitle = styled.h2`
   font-weight: ${props => props.theme.typography.fontWeight.bold};
   color: ${props => props.theme.colors.text.primary};
   margin-bottom: ${props => props.theme.spacing.lg};
-  
+
   @media (max-width: ${props => props.theme.breakpoints.tablet}) {
     font-size: ${props => props.theme.typography.fontSize.lg};
     margin-bottom: ${props => props.theme.spacing.md};
@@ -47,7 +40,7 @@ const FormTitle = styled.h2`
 const FormGrid = styled.div`
   display: grid;
   gap: ${props => props.$compact ? props.theme.spacing.xs : props.theme.spacing.lg};
-  
+
   @media (max-width: ${props => props.theme.breakpoints.tablet}) {
     gap: ${props => props.$compact ? props.theme.spacing.xs : props.theme.spacing.md};
   }
@@ -63,7 +56,7 @@ const InputGroup = styled.div`
   }
 `;
 
-const AlwaysTwoColumnInputGroup = styled(InputGroup)`
+const AlwaysTwoColumnGroup = styled(InputGroup)`
   grid-template-columns: 1fr 1fr;
 `;
 
@@ -89,7 +82,7 @@ const Select = styled.select`
   }
 
   @media (max-width: ${props => props.theme.breakpoints.tablet}) {
-    min-height: 44px; /* Ensure 44px on mobile */
+    min-height: 44px;
     font-size: 16px;
   }
 `;
@@ -100,6 +93,29 @@ const Label = styled.label`
   font-size: ${props => props.$compact ? '11px' : props.theme.typography.fontSize.sm};
   font-weight: ${props => props.theme.typography.fontWeight.medium};
   color: ${props => props.theme.colors.text.primary};
+`;
+
+const RadioGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${props => props.$compact ? props.theme.spacing.xs : props.theme.spacing.md};
+  flex-wrap: wrap;
+`;
+
+const RadioOption = styled.label`
+  display: inline-flex;
+  align-items: center;
+  gap: ${props => props.theme.spacing.xs};
+  cursor: pointer;
+  border: 1px solid ${props => props.$checked ? props.theme.colors.primary.main : props.theme.colors.border.default};
+  border-radius: ${props => props.theme.borderRadius.md};
+  padding: ${props => props.$compact ? '6px 10px' : '8px 12px'};
+  background: ${props => props.$checked ? props.theme.colors.primary.light + '22' : props.theme.colors.surface.default};
+  font-size: ${props => props.$compact ? props.theme.typography.fontSize.xs : props.theme.typography.fontSize.sm};
+`;
+
+const RadioInput = styled.input.attrs({ type: 'radio' })`
+  accent-color: ${props => props.theme.colors.primary.main};
 `;
 
 const CheckboxContainer = styled.label`
@@ -127,16 +143,13 @@ const HiddenCheckbox = styled.input.attrs({ type: 'checkbox' })`
   accent-color: ${props => props.theme.colors.primary.main};
 `;
 
-
 const PercentInput = styled(Input)`
   width: 100%;
-  flex-shrink: 0;
-  
-  /* Remove the default Input label styling since we use parent Label */
+
   label {
     display: none;
   }
-  
+
   input {
     text-align: center;
   }
@@ -145,114 +158,87 @@ const PercentInput = styled(Input)`
 const AmountInput = styled.div`
   flex: 1;
   display: flex;
-  
-  /* Ensure inner input wrapper fills width */
+
   > div {
     width: 100%;
   }
-  
-  /* Remove the default Input label styling since we use parent Label */
+
   label {
     display: none;
   }
 `;
 
-const RadioGroup = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${props => props.$compact ? props.theme.spacing.xs : props.theme.spacing.md};
-  flex-wrap: wrap;
-`;
+const MonthlyPromoSchemeForm = ({ formData, onChange, compact = false }) => {
+  const isDlProgram = formData.loanProgram === 'dl';
 
-const RadioOption = styled.label`
-  display: inline-flex;
-  align-items: center;
-  gap: ${props => props.theme.spacing.xs};
-  cursor: pointer;
-  border: 1px solid ${props => props.$checked ? props.theme.colors.primary.main : props.theme.colors.border.default};
-  border-radius: ${props => props.theme.borderRadius.md};
-  padding: ${props => props.$compact ? '6px 10px' : '8px 12px'};
-  background: ${props => props.$checked ? props.theme.colors.primary.light + '22' : props.theme.colors.surface.default};
-  font-size: ${props => props.$compact ? props.theme.typography.fontSize.xs : props.theme.typography.fontSize.sm};
-`;
-
-const RadioInput = styled.input.attrs({ type: 'radio' })`
-  accent-color: ${props => props.theme.colors.primary.main};
-`;
-
-const CalculatorForm = ({
-  formData,
-  onChange,
-  compact,
-  loanProgramOptions = defaultLoanProgramOptions,
-  loanProgramLabel = 'Chương trình vay',
-  loanProgramCompactLabel = 'CT vay',
-  forceInlineDownPayment = false,
-  showCustomerTypeSelector = false,
-  customerType = 'all',
-  onCustomerTypeChange = () => {},
-  customerTypeOptions = defaultCustomerTypeOptions,
-  customerTypeLabel = 'Phân loại khách hàng',
-  customerTypeName = 'customer-type',
-}) => {
   const handlePriceChange = (value) => {
     const numericValue = Number(value.replace(/\D/g, ''));
 
-    // Auto calculate down payment amount if percent exists
+    if (isDlProgram) {
+      onChange({ productPrice: numericValue });
+      return;
+    }
+
     if (formData.downPaymentPercent > 0) {
       const amount = Math.round(numericValue * (formData.downPaymentPercent / 100));
       onChange({
         productPrice: numericValue,
-        downPaymentAmount: amount
+        downPaymentAmount: amount,
       });
-    } else {
-      onChange({ productPrice: numericValue });
+      return;
     }
+
+    onChange({ productPrice: numericValue });
   };
 
   const handleDownPaymentPercentChange = (value) => {
+    if (isDlProgram) return;
+
     let percent = parseFloat(value);
+    if (Number.isNaN(percent)) percent = 0;
     if (percent > 100) percent = 100;
     if (percent < 0) percent = 0;
 
-    // Auto calculate amount based on percent
     if (formData.productPrice > 0) {
       const amount = Math.round(formData.productPrice * (percent / 100));
       onChange({
         downPaymentPercent: percent,
-        downPaymentAmount: amount
+        downPaymentAmount: amount,
       });
-    } else {
-      onChange({ downPaymentPercent: percent });
+      return;
     }
+
+    onChange({ downPaymentPercent: percent });
   };
 
-  // Recalculate percent when amount changes
   const handleDownPaymentAmountChange = (value) => {
+    if (isDlProgram) return;
+
     const amount = Number(value.replace(/\D/g, ''));
-    let percent = 0;
-    if (formData.productPrice > 0) {
-      percent = (amount / formData.productPrice) * 100;
-    }
+    const percent = formData.productPrice > 0
+      ? (amount / formData.productPrice) * 100
+      : 0;
+
     onChange({
       downPaymentAmount: amount,
-      downPaymentPercent: percent
+      downPaymentPercent: percent,
     });
   };
 
-  const DownPaymentGroup = forceInlineDownPayment ? AlwaysTwoColumnInputGroup : InputGroup;
-
   return (
     <StyledCard variant="glass" $compact={compact}>
-      <FormTitle $compact={compact}>Thông Tin Khoản Vay (HD SAISON)</FormTitle>
+      <FormTitle $compact={compact}>Thông Tin Scheme Khuyến Mãi</FormTitle>
 
       <FormGrid $compact={compact}>
-        {/* Row 1: Giá sản phẩm + Chương trình vay */}
         <InputGroup $compact={compact}>
           <div>
-            <Label $compact={compact}>{compact ? 'Giá SP (VNĐ)' : 'Giá sản phẩm (VNĐ)'}</Label>
+            <Label $compact={compact}>
+              {isDlProgram
+                ? (compact ? 'Tiền vay (VND)' : 'Số tiền vay (VND)')
+                : (compact ? 'Giá SP (VND)' : 'Giá sản phẩm (VND)')}
+            </Label>
             <Input
-              placeholder="Nhập giá bán"
+              placeholder={isDlProgram ? 'Nhập số tiền vay' : 'Nhập giá bán'}
               value={formData.productPrice ? formatCurrency(formData.productPrice, false) : ''}
               onChange={(e) => handlePriceChange(e.target.value)}
               inputMode="numeric"
@@ -261,42 +247,51 @@ const CalculatorForm = ({
           </div>
 
           <div>
-            <Label $compact={compact}>{compact ? loanProgramCompactLabel : loanProgramLabel}</Label>
+            <Label $compact={compact}>{compact ? 'CT' : 'Chương trình'}</Label>
             <Select
               value={formData.loanProgram}
-              onChange={(e) => onChange({ loanProgram: e.target.value })}
+              onChange={(e) => {
+                const nextProgram = e.target.value;
+                if (nextProgram === 'dl') {
+                  onChange({
+                    loanProgram: nextProgram,
+                    downPaymentPercent: 0,
+                    downPaymentAmount: 0,
+                  });
+                  return;
+                }
+
+                onChange({ loanProgram: nextProgram });
+              }}
             >
-              {loanProgramOptions.map((option) => (
+              {MONTHLY_PROMO_PROGRAM_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>{option.label}</option>
               ))}
             </Select>
           </div>
         </InputGroup>
 
-        {showCustomerTypeSelector && (
-          <div>
-            <Label $compact={compact}>{customerTypeLabel}</Label>
-            <RadioGroup $compact={compact}>
-              {customerTypeOptions.map((option) => (
-                <RadioOption
-                  key={option.value}
-                  $checked={customerType === option.value}
-                  $compact={compact}
-                >
-                  <RadioInput
-                    name={customerTypeName}
-                    checked={customerType === option.value}
-                    onChange={() => onCustomerTypeChange(option.value)}
-                  />
-                  <span>{option.label}</span>
-                </RadioOption>
-              ))}
-            </RadioGroup>
-          </div>
-        )}
+        <div>
+          <Label $compact={compact}>Phân loại khách hàng</Label>
+          <RadioGroup $compact={compact}>
+            {MONTHLY_PROMO_CUSTOMER_TYPE_OPTIONS.map((option) => (
+              <RadioOption
+                key={option.value}
+                $checked={formData.customerType === option.value}
+                $compact={compact}
+              >
+                <RadioInput
+                  name="monthly-promo-customer-type"
+                  checked={formData.customerType === option.value}
+                  onChange={() => onChange({ customerType: option.value })}
+                />
+                <span>{option.label}</span>
+              </RadioOption>
+            ))}
+          </RadioGroup>
+        </div>
 
-        {/* Row 2: Trả trước */}
-        <DownPaymentGroup $compact={compact}>
+        <AlwaysTwoColumnGroup $compact={compact}>
           <div>
             <Label $compact={compact}>{compact ? 'TT trước (%)' : 'Phần trăm trả trước (%)'}</Label>
             <PercentInput
@@ -305,23 +300,25 @@ const CalculatorForm = ({
               onChange={(e) => handleDownPaymentPercentChange(e.target.value)}
               inputMode="decimal"
               type="text"
+              disabled={isDlProgram}
             />
           </div>
+
           <div>
-            <Label $compact={compact}>{compact ? 'Số tiền TT (VNĐ)' : 'Số tiền trả trước (VNĐ)'}</Label>
+            <Label $compact={compact}>{compact ? 'Số tiền TT (VND)' : 'Số tiền trả trước (VND)'}</Label>
             <AmountInput>
               <Input
                 placeholder="Hoặc nhập số tiền"
                 value={formData.downPaymentAmount > 0 ? formatCurrency(formData.downPaymentAmount, false) : ''}
                 onChange={(e) => handleDownPaymentAmountChange(e.target.value)}
                 inputMode="numeric"
+                disabled={isDlProgram}
               />
             </AmountInput>
           </div>
-        </DownPaymentGroup>
+        </AlwaysTwoColumnGroup>
 
-        {/* Row 3: Số tiền vay (readonly) - ẩn khi compact */}
-        {!compact && (
+        {!compact && !isDlProgram && (
           <InputGroup>
             <div>
               <Label>Số tiền vay</Label>
@@ -337,7 +334,6 @@ const CalculatorForm = ({
           </InputGroup>
         )}
 
-        {/* Row 4: Kỳ hạn vay + Bảo hiểm */}
         <InputGroup $compact={compact}>
           <div>
             <Label $compact={compact}>{compact ? 'Kỳ hạn (tháng)' : 'Kỳ hạn vay (tháng)'}</Label>
@@ -345,7 +341,7 @@ const CalculatorForm = ({
               value={formData.loanTerm}
               onChange={(e) => onChange({ loanTerm: Number(e.target.value) })}
             >
-              {[6, 9, 12, 15, 18, 21, 24].map(term => (
+              {MONTHLY_PROMO_LOAN_TERM_OPTIONS.map((term) => (
                 <option key={term} value={term}>{term} tháng</option>
               ))}
             </Select>
@@ -357,7 +353,7 @@ const CalculatorForm = ({
                 checked={formData.includeInsurance}
                 onChange={(e) => onChange({ includeInsurance: e.target.checked })}
               />
-              <span>Có bảo hiểm khoản vay (5%)</span>
+              <span>BHKV</span>
             </CheckboxContainer>
           </div>
         </InputGroup>
@@ -366,4 +362,4 @@ const CalculatorForm = ({
   );
 };
 
-export default CalculatorForm;
+export default MonthlyPromoSchemeForm;

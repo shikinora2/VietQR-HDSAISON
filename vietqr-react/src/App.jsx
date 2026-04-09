@@ -14,6 +14,7 @@ import {
   Printer,
   Calculator,
   Award,
+  Gift,
 } from 'lucide-react';
 
 // Lazy load feature tabs
@@ -22,6 +23,7 @@ const PrintContractTab = lazy(() => import('./features/contract-files/ContractFi
 const LoanCalculatorTab = lazy(() => import('./features/loan-calculator/LoanCalculatorTab'));
 
 const DLBonusTab = lazy(() => import('./features/dl-bonus/DLBonusTab'));
+const MonthlyPromoSchemeTab = lazy(() => import('./features/monthly-promo-scheme/MonthlyPromoSchemeTab'));
 
 const QRViewer = lazy(() => import('./features/qr-generator/QRViewer'));
 
@@ -63,6 +65,7 @@ function AppContent() {
         { id: 'qr-generator', label: 'Tạo mã QR', icon: <QrCode size={20} /> },
         { id: 'loan-calculator', label: 'Tính Khoản Vay (ED)', icon: <Calculator size={20} /> },
         { id: 'dl-bonus', label: 'Tính thưởng DL', icon: <Award size={20} /> },
+        { id: 'monthly-promo-scheme', label: 'Scheme khuyến mãi hàng tháng', icon: <Gift size={20} /> },
       ]
     }
   ];
@@ -72,6 +75,7 @@ function AppContent() {
     { id: 'qr-generator', label: 'QR', icon: <QrCode size={20} /> },
     { id: 'loan-calculator', label: 'Tính toán', icon: <Calculator size={20} /> },
     { id: 'dl-bonus', label: 'Thưởng DL', icon: <Award size={20} /> },
+    { id: 'monthly-promo-scheme', label: 'Scheme KM', icon: <Gift size={20} /> },
   ];
 
   const handleNavigationClick = (itemId) => {
@@ -85,6 +89,7 @@ function AppContent() {
       case 'qr-generator': return 'Tạo mã QR';
       case 'loan-calculator': return 'Tính Khoản Vay (ED)';
       case 'dl-bonus': return 'Tính thưởng DL';
+      case 'monthly-promo-scheme': return 'Scheme khuyến mãi hàng tháng';
       default: return 'VietQR HD SAISON';
     }
   };
@@ -106,6 +111,9 @@ function AppContent() {
 
         <div style={{ display: activeTab === 'dl-bonus' ? 'block' : 'none' }}>
           <DLBonusTab />
+        </div>
+        <div style={{ display: activeTab === 'monthly-promo-scheme' ? 'block' : 'none' }}>
+          <MonthlyPromoSchemeTab />
         </div>
       </Suspense>
     );

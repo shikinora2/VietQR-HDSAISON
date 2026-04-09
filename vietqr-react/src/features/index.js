@@ -9,3 +9,6 @@ export * from './loan-calculator';
 
 // Export
 export * from './export';
+
+// Monthly Promo Scheme
+export * from './monthly-promo-scheme';
