@@ -205,7 +205,7 @@ const CalculatorForm = ({
 
   const formatPercentInputValue = (value) => {
     if (!Number.isFinite(value) || value <= 0) return '';
-    return value.toFixed(2).replace('.', ',');
+    return roundToTwoDecimals(value).toString().replace('.', ',');
   };
 
   const handlePriceChange = (value) => {
