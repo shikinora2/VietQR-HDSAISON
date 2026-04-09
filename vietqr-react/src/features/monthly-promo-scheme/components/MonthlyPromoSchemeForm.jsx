@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { Card, Input } from '../../../components';
 import { formatCurrency } from '../../../utils/formatUtils';
@@ -172,6 +172,21 @@ const MonthlyPromoSchemeForm = ({ formData, onChange, compact = false }) => {
   const isDlProgram = formData.loanProgram === 'dl';
 
   const roundToTwoDecimals = (value) => Math.round(value * 100) / 100;
+  const [downPaymentPercentInput, setDownPaymentPercentInput] = useState('');
+
+  const sanitizePercentInput = (value) => {
+    const raw = String(value ?? '').trim();
+    if (!raw) return '';
+
+    const cleaned = raw.replace(/[^\d.,]/g, '');
+    const separatorIndex = cleaned.search(/[.,]/);
+    if (separatorIndex === -1) return cleaned;
+
+    const integerPart = cleaned.slice(0, separatorIndex).replace(/[.,]/g, '');
+    const separator = cleaned[separatorIndex];
+    const decimalPart = cleaned.slice(separatorIndex + 1).replace(/[.,]/g, '').slice(0, 2);
+    return `${integerPart}${separator}${decimalPart}`;
+  };
 
   const parsePercentValue = (value) => {
     const normalized = String(value).replace(',', '.').trim();
@@ -183,6 +198,10 @@ const MonthlyPromoSchemeForm = ({ formData, onChange, compact = false }) => {
     if (!Number.isFinite(value) || value <= 0) return '';
     return roundToTwoDecimals(value).toString().replace('.', ',');
   };
+
+  useEffect(() => {
+    setDownPaymentPercentInput(formatPercentInputValue(formData.downPaymentPercent));
+  }, [formData.downPaymentPercent]);
 
   const handlePriceChange = (value) => {
     const numericValue = Number(value.replace(/\D/g, ''));
@@ -207,7 +226,10 @@ const MonthlyPromoSchemeForm = ({ formData, onChange, compact = false }) => {
   const handleDownPaymentPercentChange = (value) => {
     if (isDlProgram) return;
 
-    let percent = parsePercentValue(value);
+    const sanitizedInput = sanitizePercentInput(value);
+    setDownPaymentPercentInput(sanitizedInput);
+
+    let percent = parsePercentValue(sanitizedInput);
     if (percent > 100) percent = 100;
     if (percent < 0) percent = 0;
     percent = roundToTwoDecimals(percent);
@@ -310,7 +332,7 @@ const MonthlyPromoSchemeForm = ({ formData, onChange, compact = false }) => {
             <Label $compact={compact}>{compact ? 'TT trước (%)' : 'Phần trăm trả trước (%)'}</Label>
             <PercentInput
               placeholder="Nhập %"
-              value={formatPercentInputValue(formData.downPaymentPercent)}
+              value={downPaymentPercentInput}
               onChange={(e) => handleDownPaymentPercentChange(e.target.value)}
               inputMode="decimal"
               type="text"
