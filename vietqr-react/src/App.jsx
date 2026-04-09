@@ -17,6 +17,20 @@ import {
   Gift,
 } from 'lucide-react';
 
+const BASE_PATH = '/hdsaison';
+const TAB_ID_TO_PATH = {
+  'print-contract': 'inhopdong',
+  'qr-generator': 'QR',
+  'loan-calculator': 'tinhED',
+  'dl-bonus': 'bounsDL',
+  'monthly-promo-scheme': 'schemekm',
+};
+
+const PATH_TO_TAB_ID = Object.entries(TAB_ID_TO_PATH).reduce((acc, [tabId, path]) => {
+  acc[path.toLowerCase()] = tabId;
+  return acc;
+}, {});
+
 // Lazy load feature tabs
 const QRGeneratorTab = lazy(() => import('./features/qr-generator/QRGeneratorTab'));
 const PrintContractTab = lazy(() => import('./features/contract-files/ContractFilesTab'));
@@ -34,16 +48,84 @@ const getDefaultTab = () => {
   return window.innerWidth < BREAKPOINTS.desktop ? 'loan-calculator' : 'print-contract';
 };
 
+const isViewerRequest = () => {
+  if (typeof window === 'undefined') return false;
+  const params = new URLSearchParams(window.location.search);
+  return Boolean(params.get('c') && params.get('a'));
+};
+
+const getPathState = (pathname) => {
+  const normalizedPath = (pathname || '/').replace(/\/+$/, '') || '/';
+  const basePathLower = BASE_PATH.toLowerCase();
+  const normalizedPathLower = normalizedPath.toLowerCase();
+
+  if (normalizedPathLower === basePathLower) {
+    return {
+      tabId: getDefaultTab(),
+      isInsideBasePath: true,
+      isValid: true,
+    };
+  }
+
+  if (!normalizedPathLower.startsWith(`${basePathLower}/`)) {
+    return {
+      tabId: null,
+      isInsideBasePath: false,
+      isValid: false,
+    };
+  }
+
+  const pathSegment = normalizedPath.slice(BASE_PATH.length + 1);
+  const tabId = PATH_TO_TAB_ID[pathSegment.toLowerCase()];
+
+  if (!tabId) {
+    return {
+      tabId: getDefaultTab(),
+      isInsideBasePath: true,
+      isValid: false,
+    };
+  }
+
+  return {
+    tabId,
+    isInsideBasePath: true,
+    isValid: true,
+  };
+};
+
+const getPathForTab = (tabId) => `${BASE_PATH}/${TAB_ID_TO_PATH[tabId] || TAB_ID_TO_PATH['print-contract']}`;
+
 function AppContent() {
-  const [activeTab, setActiveTab] = useState(getDefaultTab);
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window === 'undefined') return getDefaultTab();
+    const pathState = getPathState(window.location.pathname);
+    return pathState.tabId || getDefaultTab();
+  });
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isViewerMode, setIsViewerMode] = useState(false);
 
   React.useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('c') && params.get('a')) {
+    if (isViewerRequest()) {
       setIsViewerMode(true);
+      return;
     }
+
+    const syncTabFromPath = () => {
+      const pathState = getPathState(window.location.pathname);
+
+      if (!pathState.isInsideBasePath || !pathState.isValid) {
+        window.history.replaceState({}, '', `${BASE_PATH}${window.location.search}${window.location.hash}`);
+      }
+
+      setActiveTab(pathState.tabId || getDefaultTab());
+    };
+
+    syncTabFromPath();
+
+    window.addEventListener('popstate', syncTabFromPath);
+    return () => {
+      window.removeEventListener('popstate', syncTabFromPath);
+    };
   }, []);
 
   if (isViewerMode) {
@@ -79,6 +161,10 @@ function AppContent() {
   ];
 
   const handleNavigationClick = (itemId) => {
+    const nextPath = getPathForTab(itemId);
+    if (window.location.pathname !== nextPath) {
+      window.history.pushState({}, '', nextPath);
+    }
     setActiveTab(itemId);
     setSidebarOpen(false);
   };
