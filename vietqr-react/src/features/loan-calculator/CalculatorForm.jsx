@@ -195,6 +195,19 @@ const CalculatorForm = ({
   customerTypeLabel = 'Phân loại khách hàng',
   customerTypeName = 'customer-type',
 }) => {
+  const roundToTwoDecimals = (value) => Math.round(value * 100) / 100;
+
+  const parsePercentValue = (value) => {
+    const normalized = String(value).replace(',', '.').trim();
+    const parsed = Number.parseFloat(normalized);
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
+  const formatPercentInputValue = (value) => {
+    if (!Number.isFinite(value) || value <= 0) return '';
+    return value.toFixed(2).replace('.', ',');
+  };
+
   const handlePriceChange = (value) => {
     const numericValue = Number(value.replace(/\D/g, ''));
 
@@ -211,9 +224,10 @@ const CalculatorForm = ({
   };
 
   const handleDownPaymentPercentChange = (value) => {
-    let percent = parseFloat(value);
+    let percent = parsePercentValue(value);
     if (percent > 100) percent = 100;
     if (percent < 0) percent = 0;
+    percent = roundToTwoDecimals(percent);
 
     // Auto calculate amount based on percent
     if (formData.productPrice > 0) {
@@ -234,6 +248,7 @@ const CalculatorForm = ({
     if (formData.productPrice > 0) {
       percent = (amount / formData.productPrice) * 100;
     }
+    percent = roundToTwoDecimals(percent);
     onChange({
       downPaymentAmount: amount,
       downPaymentPercent: percent
@@ -301,7 +316,7 @@ const CalculatorForm = ({
             <Label $compact={compact}>{compact ? 'TT trước (%)' : 'Phần trăm trả trước (%)'}</Label>
             <PercentInput
               placeholder="Nhập %"
-              value={formData.downPaymentPercent > 0 ? formData.downPaymentPercent : ''}
+              value={formatPercentInputValue(formData.downPaymentPercent)}
               onChange={(e) => handleDownPaymentPercentChange(e.target.value)}
               inputMode="decimal"
               type="text"

@@ -171,6 +171,19 @@ const AmountInput = styled.div`
 const MonthlyPromoSchemeForm = ({ formData, onChange, compact = false }) => {
   const isDlProgram = formData.loanProgram === 'dl';
 
+  const roundToTwoDecimals = (value) => Math.round(value * 100) / 100;
+
+  const parsePercentValue = (value) => {
+    const normalized = String(value).replace(',', '.').trim();
+    const parsed = Number.parseFloat(normalized);
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
+  const formatPercentInputValue = (value) => {
+    if (!Number.isFinite(value) || value <= 0) return '';
+    return value.toFixed(2).replace('.', ',');
+  };
+
   const handlePriceChange = (value) => {
     const numericValue = Number(value.replace(/\D/g, ''));
 
@@ -194,10 +207,10 @@ const MonthlyPromoSchemeForm = ({ formData, onChange, compact = false }) => {
   const handleDownPaymentPercentChange = (value) => {
     if (isDlProgram) return;
 
-    let percent = parseFloat(value);
-    if (Number.isNaN(percent)) percent = 0;
+    let percent = parsePercentValue(value);
     if (percent > 100) percent = 100;
     if (percent < 0) percent = 0;
+    percent = roundToTwoDecimals(percent);
 
     if (formData.productPrice > 0) {
       const amount = Math.round(formData.productPrice * (percent / 100));
@@ -218,10 +231,11 @@ const MonthlyPromoSchemeForm = ({ formData, onChange, compact = false }) => {
     const percent = formData.productPrice > 0
       ? (amount / formData.productPrice) * 100
       : 0;
+    const roundedPercent = roundToTwoDecimals(percent);
 
     onChange({
       downPaymentAmount: amount,
-      downPaymentPercent: percent,
+      downPaymentPercent: roundedPercent,
     });
   };
 
@@ -296,7 +310,7 @@ const MonthlyPromoSchemeForm = ({ formData, onChange, compact = false }) => {
             <Label $compact={compact}>{compact ? 'TT trước (%)' : 'Phần trăm trả trước (%)'}</Label>
             <PercentInput
               placeholder="Nhập %"
-              value={formData.downPaymentPercent > 0 ? formData.downPaymentPercent : ''}
+              value={formatPercentInputValue(formData.downPaymentPercent)}
               onChange={(e) => handleDownPaymentPercentChange(e.target.value)}
               inputMode="decimal"
               type="text"
