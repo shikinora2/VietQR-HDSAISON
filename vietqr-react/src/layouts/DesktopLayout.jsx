@@ -28,6 +28,18 @@ const ContentArea = styled.div`
   }
 `;
 
+const FooterCredit = styled.footer`
+  padding: ${({ theme }) => theme.spacing[4]} ${({ theme }) => theme.spacing[8]};
+  border-top: 1px solid ${({ theme }) => theme.colors.border.default};
+  color: ${({ theme }) => theme.colors.text.secondary};
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  text-align: center;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.lg}) {
+    padding: ${({ theme }) => theme.spacing[4]} ${({ theme }) => theme.spacing[6]};
+  }
+`;
+
 /**
  * Desktop Layout Component
  * Layout cho màn hình lớn (>= 768px) với Sidebar bên trái
@@ -55,6 +67,9 @@ const DesktopLayout = ({
         <ContentArea>
           {children}
         </ContentArea>
+        <FooterCredit>
+          Trang web được phát triển bởi Huỳnh Hải Đăng
+        </FooterCredit>
       </MainWrapper>
     </DesktopContainer>
   );

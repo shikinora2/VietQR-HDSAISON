@@ -194,7 +194,7 @@ const Sidebar = ({
   onClose,
   logoIcon = 'HD',
   logoTitle = 'HD SAISON',
-  logoSubtitle = 'VietQR System',
+  logoSubtitle = '',
   sections = [],
   activeItem,
   onNavigate,
