@@ -103,6 +103,11 @@ function AppContent() {
   });
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isViewerMode, setIsViewerMode] = useState(false);
+  const [isPathAllowed, setIsPathAllowed] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    if (isViewerRequest()) return true;
+    return getPathState(window.location.pathname).isInsideBasePath;
+  });
 
   React.useEffect(() => {
     if (isViewerRequest()) {
@@ -113,7 +118,14 @@ function AppContent() {
     const syncTabFromPath = () => {
       const pathState = getPathState(window.location.pathname);
 
-      if (!pathState.isInsideBasePath || !pathState.isValid) {
+      if (!pathState.isInsideBasePath) {
+        setIsPathAllowed(false);
+        return;
+      }
+
+      setIsPathAllowed(true);
+
+      if (!pathState.isValid) {
         window.history.replaceState({}, '', `${BASE_PATH}${window.location.search}${window.location.hash}`);
       }
 
@@ -136,6 +148,24 @@ function AppContent() {
           <QRViewer />
         </ThemeProvider>
       </Suspense>
+    );
+  }
+
+  if (!isPathAllowed) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '1.5rem',
+        textAlign: 'center',
+      }}>
+        <div>
+          <h2 style={{ marginBottom: '0.75rem' }}>Trang khong ton tai</h2>
+          <p style={{ margin: 0 }}>Vui long truy cap dung duong dan: {BASE_PATH}</p>
+        </div>
+      </div>
     );
   }
 
