@@ -109,6 +109,9 @@ function AppContent() {
     return getPathState(window.location.pathname).isInsideBasePath;
   });
 
+  const defaultShareTitle = 'HD SAISON: Công cụ hỗ trợ tính toán khoản vay';
+  const schemeShareTitle = 'Bảng tính Chương Trình “Giỗ Tổ tháng Ba - Trao quà, giảm lãi”';
+
   React.useEffect(() => {
     if (isViewerRequest()) {
       setIsViewerMode(true);
@@ -139,6 +142,21 @@ function AppContent() {
       window.removeEventListener('popstate', syncTabFromPath);
     };
   }, []);
+
+  React.useEffect(() => {
+    if (isViewerMode) return;
+
+    const nextTitle = activeTab === 'monthly-promo-scheme'
+      ? schemeShareTitle
+      : defaultShareTitle;
+
+    document.title = nextTitle;
+
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) {
+      ogTitle.setAttribute('content', nextTitle);
+    }
+  }, [activeTab, isViewerMode]);
 
   if (isViewerMode) {
     return (

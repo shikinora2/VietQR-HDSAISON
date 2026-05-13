@@ -15,7 +15,7 @@ export const MONTHLY_PROMO_INITIAL_FORM_DATA = {
   downPaymentAmount: 0,
   downPaymentPercent: 0,
   loanTerm: 6,
-  loanProgram: 'ed',
-  customerType: 'all',
+  loanProgram: 'dl',
+  customerType: 'gaming',
   includeInsurance: true,
 };

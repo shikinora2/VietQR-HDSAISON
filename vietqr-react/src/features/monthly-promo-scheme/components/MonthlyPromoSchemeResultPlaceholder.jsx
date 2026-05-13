@@ -170,6 +170,50 @@ const DocTag = styled.span`
   font-weight: 600;
 `;
 
+const CompareTableWrap = styled.div`
+  margin-top: ${props => props.$compact ? '0.75rem' : '1rem'};
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(15, 23, 42, 0.35);
+`;
+
+const CompareTableScroll = styled.div`
+  width: 100%;
+  overflow-x: auto;
+`;
+
+const CompareTable = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 520px;
+`;
+
+const CompareTh = styled.th`
+  text-align: left;
+  padding: ${props => props.$compact ? '0.5rem 0.6rem' : '0.7rem 0.8rem'};
+  font-size: ${props => props.$compact ? '0.76rem' : '0.82rem'};
+  font-weight: 700;
+  color: #e2e8f0;
+  background: rgba(30, 41, 59, 0.6);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  white-space: nowrap;
+`;
+
+const CompareTd = styled.td`
+  padding: ${props => props.$compact ? '0.55rem 0.6rem' : '0.7rem 0.8rem'};
+  font-size: ${props => props.$compact ? '0.78rem' : '0.88rem'};
+  color: #f8fafc;
+  border-bottom: 1px dashed rgba(148, 163, 184, 0.18);
+  vertical-align: top;
+`;
+
+const CompareRow = styled.tr`
+  &:last-child ${CompareTd} {
+    border-bottom: none;
+  }
+`;
+
 const Subtle = styled.p`
   margin: 0;
   color: #cbd5e1;
@@ -257,6 +301,7 @@ const MonthlyPromoSchemeResultPlaceholder = ({ result, compact = false }) => {
   const [activePlanIndex, setActivePlanIndex] = useState(0);
   const hasError = Boolean(result?.error);
   const hasMatch = Boolean(result?.matchedCount);
+  const isDlProgram = result?.input?.loanProgram === 'dl';
 
   const planSequence = useMemo(() => {
     const allPlans = Array.isArray(result?.matchedPackages) ? result.matchedPackages : [];
@@ -409,7 +454,38 @@ const MonthlyPromoSchemeResultPlaceholder = ({ result, compact = false }) => {
               </Row>
             </MainBlock>
 
-            {result.matchedCount > 1 && (
+            {hasMatch && isDlProgram && (
+              <CompareTableWrap $compact={compact}>
+                <CompareTableScroll>
+                  <CompareTable>
+                    <thead>
+                      <tr>
+                        <CompareTh $compact={compact}>Mã gói</CompareTh>
+                        <CompareTh $compact={compact}>Tên gói</CompareTh>
+                        <CompareTh $compact={compact}>Số tiền góp / tháng</CompareTh>
+                        <CompareTh $compact={compact}>Giấy tờ yêu cầu</CompareTh>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {result.matchedPackages.map((plan) => (
+                        <CompareRow key={`${plan.codeNoIns}-${plan.codeIns}`}>
+                          <CompareTd $compact={compact}>{plan.selectedCode || '-'}</CompareTd>
+                          <CompareTd $compact={compact}>{getPackageName(plan)}</CompareTd>
+                          <CompareTd $compact={compact}>{formatMoney(plan.cashflow?.monthlyPayment)}</CompareTd>
+                          <CompareTd $compact={compact}>
+                            {(plan.requiredDocs || []).length > 0
+                              ? plan.requiredDocs.map(formatDocLabel).join(', ')
+                              : '-'}
+                          </CompareTd>
+                        </CompareRow>
+                      ))}
+                    </tbody>
+                  </CompareTable>
+                </CompareTableScroll>
+              </CompareTableWrap>
+            )}
+
+            {!isDlProgram && result.matchedCount > 1 && (
               <MatchList $compact={compact}>
                 <SectionTitle $compact={compact}>Danh sách gói cùng điều kiện</SectionTitle>
                 {result.matchedPackages.slice(0, compact ? 3 : 5).map((plan) => (
