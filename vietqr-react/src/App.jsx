@@ -110,7 +110,9 @@ function AppContent() {
   });
 
   const defaultShareTitle = 'HD SAISON: Công cụ hỗ trợ tính toán khoản vay';
+  const defaultShareDescription = 'Một công cụ hỗ trợ tính toán khoản vay nhanh, chính xác và tiện lợi.';
   const schemeShareTitle = 'Bảng tính Chương Trình “Giỗ Tổ tháng Ba - Trao quà, giảm lãi”';
+  const schemeShareDescription = 'Bảng tính Chương Trình “Giỗ Tổ tháng Ba - Trao quà, giảm lãi”';
 
   React.useEffect(() => {
     if (isViewerRequest()) {
@@ -146,15 +148,20 @@ function AppContent() {
   React.useEffect(() => {
     if (isViewerMode) return;
 
-    const nextTitle = activeTab === 'monthly-promo-scheme'
-      ? schemeShareTitle
-      : defaultShareTitle;
+    const isSchemeTab = activeTab === 'monthly-promo-scheme';
+    const nextTitle = isSchemeTab ? schemeShareTitle : defaultShareTitle;
+    const nextDescription = isSchemeTab ? schemeShareDescription : defaultShareDescription;
 
     document.title = nextTitle;
 
     const ogTitle = document.querySelector('meta[property="og:title"]');
     if (ogTitle) {
       ogTitle.setAttribute('content', nextTitle);
+    }
+
+    const ogDescription = document.querySelector('meta[property="og:description"]');
+    if (ogDescription) {
+      ogDescription.setAttribute('content', nextDescription);
     }
   }, [activeTab, isViewerMode]);
 
