@@ -110,7 +110,7 @@ function AppContent() {
   });
 
   const defaultShareTitle = 'HD SAISON: Công cụ hỗ trợ tính toán khoản vay';
-  const defaultShareDescription = 'Một công cụ hỗ trợ tính toán khoản vay nhanh, chính xác và tiện lợi.';
+  const defaultShareDescription = 'Bảng tính Chương Trình “Giỗ Tổ tháng Ba - Trao quà, giảm lãi”';
   const schemeShareTitle = 'Bảng tính Chương Trình “Giỗ Tổ tháng Ba - Trao quà, giảm lãi”';
   const schemeShareDescription = 'Bảng tính Chương Trình “Giỗ Tổ tháng Ba - Trao quà, giảm lãi”';
 
